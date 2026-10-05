@@ -1,0 +1,441 @@
+/* ============================================================
+ * Tailwind 4：站点唯一样式入口
+ * ------------------------------------------------------------
+ * v3 的 tailwind.config.js 已删除，自定义 token 全部搬进下面的 @theme。
+ * source(none) 是刻意的：v4 默认会从 CSS 所在目录向上自动扫描整个项目，
+ * 而本仓库的 tmp/ 里放着 OpenMAIC 的包解剖产物（内含大量 class 字面量），
+ * 自动扫描会把它们当成用法生成一堆用不上的工具类。改成显式声明扫描范围。
+ * 另外本仓库没有 .git 目录，v4 靠 .git/.gitignore 定位项目根，缺了它根目录
+ * 会退化成 CSS 所在目录 —— 那样连 index.html 都扫不到，所以这里不能图省事。
+ * @source 的路径是相对本 CSS 文件算的，不是相对项目根。
+ * ============================================================ */
+@import 'tailwindcss' source(none);
+@source '../index.html';
+@source '../src/**/*.js';
+@source '../src/**/*.jsx';
+
+@theme {
+  /* 色板：与 v3 一一对齐，一个都没改 */
+  --color-mist: #f5f8fc;
+  --color-mist-50: #ffffff;
+  --color-mist-100: #f5f8fc;
+  --color-mist-200: #eef3f9;
+  --color-mist-300: #e3eaf3;
+
+  --color-ink: #0b1220;
+  --color-ink-900: #0b1220;
+  --color-ink-800: #16202e;
+  --color-ink-700: #2a3648;
+  --color-ink-500: #5d6b7e;
+  --color-ink-400: #8b98a9;
+
+  --color-brand: #1677ff;
+  --color-brand-700: #0b4ab0;
+  --color-brand-600: #0e5fd8;
+  --color-brand-500: #2e8bff;
+  --color-brand-400: #65bfff;
+  --color-brand-300: #8fd0ff;
+  --color-brand-200: #bfe3ff;
+  --color-brand-100: #d6e9ff;
+  --color-brand-50: #eaf4ff;
+
+  --color-night: #0a0f1a;
+  --color-night-800: #0e1522;
+  --color-night-700: #141d2e;
+
+  --font-sans:
+    Inter, 'HarmonyOS Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui,
+    sans-serif;
+
+  /* ―― 字阶系统（P0①）――
+     一把模块化刻度收编全站散落的 text-[28px]/[38px]/[40px]：大字收紧字距、
+     正文给足行高。用 clamp 做流式，宽屏敢呼吸、窄屏不溢出。定义在 @theme 的
+     --text-* 命名空间里，Tailwind v4 会自动生成 text-h2 / text-h1 … 工具类，
+     并把 --line-height / --letter-spacing 一并挂上（写死的 text-[..] 做不到这点） */
+  --text-body-lg: 1.0625rem;
+  --text-body-lg--line-height: 1.7;
+  --text-h3: clamp(1.5rem, 1.28rem + 0.9vw, 1.9rem);
+  --text-h3--line-height: 1.22;
+  --text-h3--letter-spacing: -0.018em;
+  --text-h2: clamp(1.85rem, 1.2rem + 2.1vw, 2.6rem);
+  --text-h2--line-height: 1.1;
+  --text-h2--letter-spacing: -0.024em;
+  --text-h1: clamp(2.5rem, 1.5rem + 3.8vw, 4.4rem);
+  --text-h1--line-height: 1.04;
+  --text-h1--letter-spacing: -0.033em;
+  --text-display: clamp(2.9rem, 1.5rem + 5.6vw, 5.7rem);
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.04em;
+  /* 统计数字：等宽数字 + 收紧。上限压在 ~2.15rem：再大在 3 列窄栏会换行溢出
+     （实拍发现“105 套系统”在 sm:grid-cols-3 里顶到邻列） */
+  --text-stat: clamp(1.6rem, 1.3rem + 1.1vw, 2.15rem);
+  --text-stat--line-height: 1.08;
+  --text-stat--letter-spacing: -0.02em;
+
+  --shadow-soft: 0 8px 30px rgba(11, 18, 32, 0.06);
+  --shadow-lift: 0 16px 40px rgba(11, 18, 32, 0.1);
+  --shadow-card: 0 2px 10px rgba(11, 18, 32, 0.05);
+  --shadow-glow: 0 0 28px rgba(22, 119, 255, 0.28);
+  --shadow-glass: 0 20px 50px rgba(30, 80, 160, 0.16);
+  /* ―― 抬升阶梯（P1⑤）―― 两级真实高度：贴底层用双层投影（接触阴影 + 环境阴影），
+     比原来单层 shadow-card/lift 更像“浮在纸上”。聚焦层用 -lg */
+  --shadow-elev: 0 1px 2px rgba(11, 18, 32, 0.05), 0 14px 34px -14px rgba(11, 18, 32, 0.16);
+  --shadow-elev-lg: 0 1px 2px rgba(11, 18, 32, 0.06), 0 30px 64px -22px rgba(11, 18, 32, 0.24);
+
+  --tracking-widest2: 0.28em;
+
+  /* 动画名一律小写：v4 的 --animate-* 就是类名后缀，
+     v3 的 animate-pingSlow 已随源码改名 animate-pingslow。 */
+  --animate-floaty: floaty 6s ease-in-out infinite;
+  --animate-pingslow: pingSlow 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+
+  /* 断点：sm/md/lg/xl/2xl 沿用默认值，这里只补 v3 自定义的两档超大屏。
+     必须写成 rem：v4 排变体时 px 一组、rem 一组，px 组抢在默认的
+     rem 组前面。写成 1900px / 2200px 时，产物里它们落在
+     48rem/64rem/96rem 之前，同为 .container-x 的选择器后写的赢，
+     于是 2xl:max-w-[1440px] 反过来压掉 wide:max-w-none —— 1920/2560
+     两档的容器宽退回到 1440（实测过）。118.75rem = 1900px、
+     137.5rem = 2200px（根字号 16px），跟默认 breakpoint 同单位，
+     排序就回到升序了。 */
+  --breakpoint-wide: 118.75rem;
+  --breakpoint-3xl: 137.5rem;
+}
+
+/* keyframes 一律放顶层。嵌在 @layer 里的 @keyframes 在 v4 的处理下不保证还在，
+   而这三组动画（floaty/pingSlow/breathe/chainShotBar）都是可见效果，掉了就是回归。 */
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes pingSlow {
+  0% {
+    transform: scale(1);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+/* 08 地图「建设中」图标：锤子抬手敲两下，读作现场正在施工。
+   以锤柄末端为轴（组件里 origin 设在右下），抬起蓄势 → 快速下击 → 回弹补一记。
+   供 ChinaMap 的 animate-[hammer_...] 使用（减弱动效下组件不挂这个类）。 */
+@keyframes hammer {
+  0%,
+  100% {
+    transform: rotate(8deg);
+  }
+  18% {
+    transform: rotate(-34deg);
+  }
+  34% {
+    transform: rotate(16deg);
+  }
+  44% {
+    transform: rotate(-2deg);
+  }
+  54% {
+    transform: rotate(14deg);
+  }
+  66% {
+    transform: rotate(8deg);
+  }
+}
+/* 输入框未聚焦时的呼吸光环，引导用户点击输入 */
+@keyframes breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 119, 255, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(22, 119, 255, 0.05);
+  }
+}
+/* 区块链屏截图序列的帧进度条：时长由组件传入，与自动推进节奏对齐 */
+@keyframes chainShotBar {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+/* ―― 链屏那六块玻璃看板 ――
+   板面是 DOM 的（drei <Html transform> 按相机透视摆进 3D 场景），所以这几条
+   规则管的是真 DOM。只留三样在样式表里：边框与 hover 描边（伪类内联给不了）、
+   一道扫描高光、一块跑马灯。各自的次色经 CSS 变量 --edge 从组件递过来，
+   六块牌共用一套规则。
+   别在这里补 backdrop-filter：本站实测过，看板叠在一块逐帧变的 canvas 上，
+   浏览器每帧要重算一次高斯模糊，那是 6fps 的头号成因（见 consoleBits 顶部） */
+.chain-board {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* 斜反射带的亮度。inline style 吃的是这个变量（默认 0.42），所以 hover 与
+     选中都能把那道光推满 —— 玻璃的反光本来就该随视角与靠近而变。写在 CSS 里
+     而不是 React 里：hover 是一个 ref，不为它重渲染六块牌 */
+  --glint: 0.42;
+  /* 板面就是拾取靶：指针压在牌上时不许再读作“这里可以拖着转镜头”。
+     父层那一条 cursor:grab 是装在 canvas 的父层上的，牌是它的子节点 */
+  cursor: pointer;
+  /* 不要在这里补 will-change:transform。试过：drei 每帧给祖先写新 matrix 时，
+     牌上那七层渐变并没有被反复重画 —— 3D transform 的祖先早就是合成层了，
+     牌跟着它一起走。实测加与不加帧中位数没差（55.9 / 60.1 两次，与邻屏的
+     比值 1.22 / 1.24 不动），而它白占六份光栅化显存。
+     链屏比另两屏贵两成的地方在合成面积：六块带透视的 DOM 面板每帧都要与
+     1152×720 的 canvas 重新混合一遍 —— 这是“字不糊”这个方案的固有代价，
+     不是 CSS 写重了 */
+  transition:
+    border-color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+.chain-board:hover,
+.chain-board[data-on='1'] {
+  border-color: var(--edge);
+  --glint: 1;
+}
+/* 扫描带：只在被摘上台中央的那块牌上跑。2.6s 一趟，比牌上 1.5s 的数据节拍慢，
+   两者不同步，也就不会读成一闪一闪 */
+@keyframes cbSweep {
+  from {
+    transform: translateY(-14px);
+  }
+  to {
+    transform: translateY(134px);
+  }
+}
+.chain-board .cb-sweep {
+  animation: cbSweep 2.6s linear infinite;
+}
+/* 跑马灯：整句读数只有一句，18s 走完一趟 1200px ≈ 67px/s，8px 的字跟得上。
+   一块牌上最多这一处无限动画，其余全吃 1.5s 那一拍的 transition */
+@keyframes cbMarquee {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+.chain-board .cb-marquee {
+  animation: cbMarquee 18s linear infinite;
+}
+
+/* 首屏换厅的升降交接不做屏幕层动画：老厅沉回地板下、新厅升上来，
+   全在 3D 里由 kit.jsx 的 useAppear 逐帧完成（文案层的上下浮起交给 framer） */
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-mist-100 font-sans text-ink-800;
+  }
+  ::selection {
+    @apply bg-brand/20 text-ink-900;
+  }
+  /* ―― 键盘焦点环（P2⑦）――
+     之前全站只有滚动条有 focus ring，按钮/链接/输入框键盘聚焦时裸着一层，
+     这是“高端产品”最容易被技术负责人/无障碍审查一眼看出来的破绽。
+     用 :focus-visible：只在键盘/输入法导航时出现，鼠标点击不闪环；
+     用 2px 品牌外环 + 2px 偏移，不挤占布局 */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(11, 18, 32, 0.18);
+    border-radius: 8px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* 组件类留在 @layer components 而不是改写 @utility：v4 依旧声明了 components 层，
+   而这个写法是无条件输出的 —— @utility 要靠扫描到用法才生成，
+   类名一旦只出现在拼接字符串里就会被静默删掉，不值得为省几行冒这个险。 */
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-[1280px] px-6 md:px-10 lg:px-14 2xl:max-w-[1440px] wide:w-[min(calc(100%-160px),1680px)] wide:max-w-none 3xl:w-[min(calc(100%-200px),1780px)];
+  }
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-400;
+  }
+  .btn-dark {
+    @apply inline-flex items-center gap-2.5 rounded-full bg-ink-900 px-6 py-3 text-sm font-medium text-white transition-all duration-300 hover:bg-ink-800 hover:shadow-lift active:scale-[0.97];
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2.5 rounded-full border border-ink-900/15 bg-white/60 px-6 py-3 text-sm font-medium text-ink-900 backdrop-blur-sm transition-all duration-300 hover:border-ink-900/30 hover:bg-white active:scale-[0.97];
+  }
+  .btn-outline-light {
+    @apply inline-flex items-center gap-2.5 rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition-all duration-300 hover:border-white/50 hover:bg-white/10 active:scale-[0.97];
+  }
+  .icon-btn {
+    @apply grid h-9 w-9 shrink-0 place-items-center rounded-full border border-ink-900/10 text-ink-700 transition-all duration-300 hover:border-brand hover:text-brand active:scale-[0.94];
+  }
+  .glass-card {
+    @apply rounded-xl border border-white/70 bg-white/55 shadow-glass backdrop-blur-md;
+  }
+
+  /* ―― 统一卡片材质（P1⑤）――
+     亮色卡之前是“平涂 + 半透明细边”，缺一道高光内描边就不像实体。card-elev
+     把边框 + 顶部 1px 高光内描边 + 双层投影定成一个类，全站卡片统一用。
+     rim 是单独的内描边修饰，可与任意底叠加 */
+  .card-elev {
+    border: 1px solid rgba(11, 18, 32, 0.07);
+    background: #ffffff;
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.7), var(--shadow-elev);
+    transition: box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+  }
+  .card-elev:hover {
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.7), var(--shadow-elev-lg);
+    border-color: rgba(22, 119, 255, 0.28);
+  }
+  /* 暗场卡：顶部一道很淡的高光内描边 + 半透白边，把 AI 能力屏那套质感提为全站暗色标准 */
+  .card-elev-dark {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.09);
+  }
+
+  /* ―― 竖向节奏（P1④）――
+     清一色 py-24 md:py-28（最高 7rem）在宽屏上偏挤；换成 clamp，大屏放到 ~8.5rem、
+     窄屏收到 4.5rem，静态 padding 不会引发抖动，只改呼吸 */
+  .sec-y {
+    padding-top: clamp(4.5rem, 3rem + 6vw, 8.5rem);
+    padding-bottom: clamp(4.5rem, 3rem + 6vw, 8.5rem);
+  }
+
+  /* ―― 图片资产统一处理（P1⑥）――
+     d_*.png / sol*.png 这类图色调不一，最快毁高级感。img-duo 先降饱和提对比，
+     img-veil 叠一层极淡的品牌蓝纱，把整站图片拉进同一色温；hover 微恢复。 */
+  .img-duo {
+    filter: saturate(0.72) contrast(1.04) brightness(1.02);
+    transition: filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .group:hover .img-duo {
+    filter: saturate(1) contrast(1.02) brightness(1.03);
+  }
+  .img-veil {
+    background: linear-gradient(180deg, rgba(22, 119, 255, 0.06), rgba(11, 18, 32, 0.14));
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .animate-breathe {
+    animation: breathe 2.2s ease-in-out infinite;
+  }
+  /* 架构图层间连接线上跑动的光点：位移量走 --flow（默认 60），
+     每根线把自己的「虚线周期（实+空）」写进 --flow，动画从周期推到 0，
+     循环点正好落在图案边界上 —— 否则每圈末尾会「跳」一下（旧版写死 60，
+     只有周期为 60 的线不跳，9/29、16/84、90/910 那几条都在回跳）。 */
+  .arch-flow {
+    animation: archFlow 1.1s linear infinite;
+  }
+  /* 交付流水线：一颗发光数据点沿横向轨道从 01 走到 06（读作“交付在往前走”）。
+     用 left 位移——元素绝对定位、脱离文档流，单元素开销可忽略；首尾淡入淡出避免端点硬闪。 */
+  .animate-flowx {
+    animation: flowX 3.4s linear infinite;
+  }
+  /* AI 链路的数据回流：一颗发光数据点沿竖向回路从「迭代」走回「备课」（自下而上）。 */
+  .animate-flowup {
+    animation: flowUp 3.2s linear infinite;
+  }
+  /* 深色屏背景：一团极光辉光缓慢漂移（位移 + 微缩放），给静态渐变底注入呼吸感。 */
+  .animate-drift {
+    animation: drift 18s ease-in-out infinite;
+  }
+}
+
+@keyframes archFlow {
+  from {
+    stroke-dashoffset: var(--flow, 60);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes flowX {
+  0% {
+    left: 0%;
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  94% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes flowUp {
+  0% {
+    top: 100%;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0;
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(40px, -30px, 0) scale(1.08);
+  }
+}
+
+/* Lenis 平滑滚动 */
+section[id] {
+  scroll-margin-top: 120px;
+}
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

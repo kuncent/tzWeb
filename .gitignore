@@ -1,0 +1,25 @@
+# 依赖与产物
+node_modules/
+dist/
+.vite/
+
+# 临时件：录屏、截图、下载的二进制（tmp/ 下体积大且含机器本地路径）
+tmp/
+
+# 离线原始素材：机器人官方 CAD/网格与减面前的源模型（~1GB，非网站源码；
+# 运行时只用 public/models 下处理好的 -min.glb）。unitree_ros 还是内嵌 git 仓库。
+tools/
+
+# 密钥：QWEN_API_KEY 只留本机，永远不进仓库
+.env
+.env.local
+.env.*.local
+
+# 管理后台与服务端落盘数据（users 口令哈希 / content / leads 含手机号等 PII，绝不入库）
+server/data/
+server/leads.jsonl
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+*.log

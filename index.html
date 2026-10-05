@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F5F8FC" />
+    <!-- 内联 SVG 图标（与顶栏 / 页脚同一枚“甄选之升”品牌标记）：不引外部文件，
+         浏览器也就不会去请求 /favicon.ico（默认会留一条 404） -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='4' y1='2' x2='28' y2='30' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2365BFFF'/%3E%3Cstop offset='1' stop-color='%231677FF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M9.4 18.6L16 10.4L22.6 18.6' stroke='white' stroke-opacity='0.96' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='8' r='2' fill='white'/%3E%3Cpath d='M11 23.6L21 23.6' stroke='white' stroke-opacity='0.4' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <title>天择教育 · 下一代人才培养基础设施｜AI 多智能体课堂 · 数字孪生实验室 · 自然语言实验平台</title>
+    <meta
+      name="description"
+      content="一句话或一份大纲，几分钟生成一堂完整的 AI 多智能体互动课堂；自然语言直接生成实验代码并在云端沙箱自动运行评测；数字孪生实验室虚实结合实训。覆盖 AI / 具身智能 / 区块链 / 数字金融 / 工程实训全学科，全栈私有化、数据不出校。"
+    />
+    <!-- 字体改异步：原来那行 <link rel="stylesheet"> 是渲染阻塞资源，而
+         fonts.googleapis.com 在境内网络上经常要等到 TCP 超时才死心 —— 浏览器
+         就在那段时间里什么都不画。实测（tmp/boot-perf.mjs，本地）：把这两个域
+         断掉，first-paint 688ms → 152ms、FCP 1856ms → 1288ms。
+         media="print" + onload 升回 all：能拿到 Inter 就换上去（display=swap
+         已经写了，不会隐形），拿不到就用系统中文黑体往下排 —— 反正那排字
+         本来就是 Inter 缺席时的样子，不会变丑，只会快 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    </noscript>
+    <style>
+      /* ―― 首屏 loading 角标：只标「舞台还没在画」，不挡页面 ――
+         为什么内联在这里而不是做一个 React 组件：要盖的正是「React 自己的第一帧」
+         （入口 JS 的解析 + 首次提交），挂在 React 里就等于让 loading 等自己。
+         零依赖、零请求：进 HTML 就已在屏上。
+         为什么不是全屏黑幕（上一版是）：黑幕把已经加载好的导航、大标题、看板一起
+         盖掉了 —— 而用户要的是「页面先出来，只有那块 3D 舞台在加载」。所以这是一枚
+         不占排版的胶囊：pointer-events:none，页面从头到尾可读可点。
+         字体不写 Inter（它还在路上），直接用系统里就在的那一档 */
+      html {
+        background: #04070d;
+      }
+      #boot {
+        position: fixed;
+        left: 50%;
+        bottom: 15%;
+        transform: translateX(-50%);
+        z-index: 2147483000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 18px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        background: rgba(4, 7, 13, 0.62);
+        color: rgba(255, 255, 255, 0.72);
+        pointer-events: none;
+        font-family: 'HarmonyOS Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+        transition: opacity 0.55s ease 0.05s;
+      }
+      #boot.boot-gone {
+        opacity: 0;
+      }
+      /* 进度条是不确定的（真的不知道还要多久，骗人的百分比比不给更糟）：
+         一段亮条在胶囊底边 2px 轨道上来回扫，读作“在做事”而不是“卡在 30%” */
+      #boot .bt-bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.09);
+      }
+      #boot .bt-bar i {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 42%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, transparent, #1677ff 45%, #6ec6ff);
+        animation: bt-sweep 1.25s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+      }
+      #boot .bt-tip {
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+      }
+      @keyframes bt-sweep {
+        0% {
+          transform: translateX(-105%);
+        }
+        100% {
+          transform: translateX(245%);
+        }
+      }
+      /* 要求减弱动效的人：给静帧，不要拿着一条来回扫的亮条 */
+      @media (prefers-reduced-motion: reduce) {
+        #boot .bt-bar i {
+          width: 100%;
+          animation: none;
+          transform: none;
+          opacity: 0.5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- loading 角标本体：一枚内联六边形（与 favicon 同一张画）加一句话，不加一个请求。
+         收掉它的是 main.jsx，时机是「首屏舞台真的在画」（过了着色器编译那一帧），
+         不是「React 画完第一帧」—— 那会儿 3D 还在路上；也不等模型下载，
+         那是用户看不见的一跳。不挂 3D 的设备、用户先动手、舞台进错误边界、
+         带 hash 直达别的板块都是立刻收的出口；下面这个定时器只是
+         兜底 —— 入口 JS 挂了也不该让角标一直挂在那儿 -->
+    <div id="boot" role="status" aria-live="polite">
+      <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <linearGradient id="bootg" x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#65BFFF" />
+            <stop offset="1" stop-color="#1677FF" />
+          </linearGradient>
+        </defs>
+        <rect x="1" y="1" width="30" height="30" rx="9" fill="url(#bootg)" />
+        <path d="M10 22.5L15.6 16L21.5 10.2" stroke="#fff" stroke-opacity="0.6" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="10" cy="22.5" r="2.1" fill="#fff" fill-opacity="0.85" />
+        <circle cx="15.6" cy="16" r="2.5" fill="#fff" fill-opacity="0.95" />
+        <circle cx="21.5" cy="10.2" r="3.8" fill="#fff" />
+      </svg>
+      <span class="bt-tip">正在装配实验室…</span>
+      <span class="bt-bar"><i></i></span>
+    </div>
+    <script>
+      setTimeout(function () {
+        var b = document.getElementById('boot')
+        if (b && !b.className) b.classList.add('boot-gone')
+      }, 9000)
+    </script>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "name": "tianze-edu-official-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "ai": "node server/ai-proxy.mjs"
+  },
+  "dependencies": {
+    "@openmaic/dsl": "^0.11.2",
+    "@openmaic/generation": "^0.3.14",
+    "@openmaic/renderer": "^0.1.11",
+    "@react-three/drei": "^9.97.0",
+    "@react-three/fiber": "^8.15.19",
+    "@react-three/postprocessing": "^2.16.3",
+    "echarts": "^5.6.0",
+    "katex": "^0.16.33",
+    "lenis": "^1.1.14",
+    "lucide-react": "^0.562.0",
+    "motion": "^12.43.0",
+    "postprocessing": "^6.36.0",
+    "pptxgenjs": "^4.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "three": "^0.161.0"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "^3.10.1",
+    "@gltf-transform/extensions": "^3.10.1",
+    "@gltf-transform/functions": "^3.10.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.3.3",
+    "vite": "^5.4.11"
+  }
+}

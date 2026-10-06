@@ -16,7 +16,7 @@ export default function Contact() {
   const address = useContent('contact.address', contact.address)
   const headTitle = useContent('sections.contact.title', contactHead.zh)
   const headDesc = useContent('sections.contact.desc', contactHead.desc)
-  const [form, setForm] = useState({ name: '', phone: '', org: '', role: '', product: '', note: '' })
+  const [form, setForm] = useState({ name: '', phone: '', org: '', region: '', role: '', product: '', note: '' })
   const [errors, setErrors] = useState({})
   const [done, setDone] = useState(false)
   const [prefill, setPrefill] = useState(null)
@@ -153,7 +153,7 @@ export default function Contact() {
                   感谢您的信任，{form.name}。方案顾问将在 1 个工作日内致电 {form.phone}
                   {form.note ? <>，并携带《需求建议书》与您沟通：{form.note.slice(0, 28)}{form.note.length > 28 ? '…' : ''}</> : '，为您安排 Demo 体验'}。
                 </p>
-                <button onClick={() => { setDone(false); setSource('site-contact'); setHp(''); setForm({ name: '', phone: '', org: '', role: '', product: '', note: '' }) }} className="btn-ghost mt-8 text-[13px]">
+                <button onClick={() => { setDone(false); setSource('site-contact'); setHp(''); setForm({ name: '', phone: '', org: '', region: '', role: '', product: '', note: '' }) }} className="btn-ghost mt-8 text-[13px]">
                   再提交一条
                 </button>
               </div>
@@ -214,20 +214,36 @@ export default function Contact() {
                     {errors.phone && <p id="err-phone" className="mt-1.5 text-xs text-[#DC2626]">{errors.phone}</p>}
                   </div>
                 </div>
-                <div>
-                  <input
-                    type="text"
-                    name="org"
-                    autoComplete="organization"
-                    aria-label="学校 / 单位名称"
-                    aria-invalid={errors.org ? true : undefined}
-                    aria-describedby={errors.org ? 'err-org' : undefined}
-                    placeholder="学校 / 单位名称 *"
-                    value={form.org}
-                    onChange={set('org')}
-                    className={inputCls}
-                  />
-                  {errors.org && <p id="err-org" className="mt-1.5 text-xs text-[#DC2626]">{errors.org}</p>}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <input
+                      type="text"
+                      name="org"
+                      autoComplete="organization"
+                      aria-label="学校 / 单位名称"
+                      aria-invalid={errors.org ? true : undefined}
+                      aria-describedby={errors.org ? 'err-org' : undefined}
+                      placeholder="学校 / 单位名称 *"
+                      value={form.org}
+                      onChange={set('org')}
+                      className={inputCls}
+                    />
+                    {errors.org && <p id="err-org" className="mt-1.5 text-xs text-[#DC2626]">{errors.org}</p>}
+                  </div>
+                  {/* 所在地区：线索分配 / 区域统计用，选填但落盘 */}
+                  <div>
+                    <input
+                      type="text"
+                      name="region"
+                      autoComplete="address-level1"
+                      aria-label="所在地区"
+                      placeholder="所在地区（省 / 市，选填）"
+                      value={form.region}
+                      onChange={set('region')}
+                      maxLength={40}
+                      className={inputCls}
+                    />
+                  </div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <select name="role" aria-label="职位（选填）" value={form.role} onChange={set('role')} className={inputCls + (form.role ? '' : ' text-ink-400/70')}>

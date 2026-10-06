@@ -113,7 +113,7 @@ export default function Leads() {
         <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
-            <Input className="pl-9" placeholder="搜索姓名 / 电话 / 单位 / 备注" value={filters.q} onChange={setF('q')} aria-label="搜索线索" />
+            <Input className="pl-9" placeholder="搜索姓名 / 电话 / 单位 / 地区 / 备注" value={filters.q} onChange={setF('q')} aria-label="搜索线索" />
           </div>
           <Select value={filters.status} onChange={setF('status')} aria-label="按状态筛选">
             <option value="">全部状态</option>
@@ -143,12 +143,13 @@ export default function Leads() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-left text-[13px]">
+            <table className="w-full min-w-[900px] text-left text-[13px]">
               <thead className="border-b border-ink-900/8 bg-mist-100/60 text-[12px] text-ink-500">
                 <tr>
                   <th className="px-4 py-2.5 font-medium">时间</th>
                   <th className="px-4 py-2.5 font-medium">姓名 / 电话</th>
                   <th className="px-4 py-2.5 font-medium">单位</th>
+                  <th className="px-4 py-2.5 font-medium">地区</th>
                   <th className="px-4 py-2.5 font-medium">意向方向</th>
                   <th className="px-4 py-2.5 font-medium">来源</th>
                   <th className="px-4 py-2.5 font-medium">状态</th>
@@ -173,6 +174,7 @@ export default function Leads() {
                         <div className="tabular-nums text-ink-400">{r.phone || '—'}</div>
                       </td>
                       <td className="max-w-[180px] px-4 py-3 text-ink-700"><div className="truncate">{r.org || '—'}</div></td>
+                      <td className="whitespace-nowrap px-4 py-3 text-ink-500">{r.region || '—'}</td>
                       <td className="px-4 py-3 text-ink-700">{r.product || '—'}</td>
                       <td className="px-4 py-3"><code className="rounded bg-mist-200 px-1.5 py-0.5 text-[11.5px] text-ink-500">{r.source || '—'}</code></td>
                       <td className="px-4 py-3"><Badge tone={sm.tone}>{sm.label}</Badge></td>
@@ -213,6 +215,7 @@ function LeadDetail({ lead, canWrite, onSave }) {
     ['姓名', lead.name],
     ['手机号', lead.phone],
     ['单位', lead.org],
+    ['所在地区', lead.region],
     ['职位', lead.role],
     ['意向方向', lead.product],
     ['来源', lead.source],

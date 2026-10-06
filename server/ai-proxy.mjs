@@ -449,6 +449,7 @@ export async function aiProxy(req, res, next) {
       const name = str(body.name, 40)
       const phone = str(body.phone, 20)
       const org = str(body.org, 60)
+      const region = str(body.region, 40)
       const role = str(body.role, 20)
       const product = str(body.product, 40)
       const note = str(body.note, 500)
@@ -463,7 +464,7 @@ export async function aiProxy(req, res, next) {
         ip,
         ua: str(req.headers['user-agent'], 200),
         source: str(body.source, 40) || 'site-contact',
-        name, phone, org, role, product, note,
+        name, phone, org, region, role, product, note,
       }
       try {
         sinkLead(record)

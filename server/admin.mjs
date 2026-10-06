@@ -250,7 +250,7 @@ function queryLeads(search) {
   const status = str(q.get('status'), 20)
   const product = str(q.get('product'), 40)
   const source = str(q.get('source'), 40)
-  if (term) rows = rows.filter((r) => [r.name, r.phone, r.org, r.note].join(' ').toLowerCase().includes(term))
+  if (term) rows = rows.filter((r) => [r.name, r.phone, r.org, r.region, r.note].join(' ').toLowerCase().includes(term))
   if (status) rows = rows.filter((r) => (r.status || 'new') === status)
   if (product) rows = rows.filter((r) => r.product === product)
   if (source) rows = rows.filter((r) => r.source === source)
@@ -335,9 +335,9 @@ export async function handleAdmin(req, res, url, deps) {
     if (!hasPerm(user, 'leads.read')) return json(res, 403, { error: 'forbidden' })
     /* 遵循当前筛选：与列表同一套 queryLeads，避免「筛完导出」与实际不一致 */
     const rows = queryLeads((req.url || '').split('?')[1] || '')
-    const head = ['提交时间', '姓名', '手机号', '单位', '职位', '意向方向', '来源', '状态', '备注', 'IP']
+    const head = ['提交时间', '姓名', '手机号', '单位', '所在地区', '职位', '意向方向', '来源', '状态', '备注', 'IP']
     const body = rows
-      .map((r) => [r.ts, r.name, r.phone, r.org, r.role, r.product, r.source, r.status || 'new', r.note, r.ip].map(csvCell).join(','))
+      .map((r) => [r.ts, r.name, r.phone, r.org, r.region, r.role, r.product, r.source, r.status || 'new', r.note, r.ip].map(csvCell).join(','))
       .join('\r\n')
     res.writeHead(200, {
       'content-type': 'text/csv; charset=utf-8',

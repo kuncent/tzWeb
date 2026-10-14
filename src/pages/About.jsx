@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { PageHero, InnerNav, PageSection, PageCTA } from '../components/PageShell'
-import { Reveal, StatBand, EASE } from '../components/ui'
+import { PageHero, InnerNav, PageSection, PageCTA, HeroFrame } from '../components/PageShell'
+import { Reveal, StatBand, CountUp, EASE } from '../components/ui'
 import { aboutBeliefs, aboutProof, aboutServices } from '../data/pages'
 import { brand, contact, offices, advisorStats, productMatrix } from '../data/site'
 
@@ -15,38 +15,55 @@ const SECTIONS = [
 
 /* 首屏右半：把「拿得出手的硬东西」先摆上桌。
    合作高校那一行不重复放 —— 它已经在下方数字带里了。 */
+/* 把「4 项 / 60+ / 100+ / 37 套」这类混排值拆成前导整数 + 尾巴，
+   前导交给 CountUp 滚动，后缀原样保留。 */
+function proofVal(v) {
+  const m = String(v).match(/^(\d[\d,]*)(.*)$/)
+  if (!m) return v
+  return <CountUp to={Number(m[1].replace(/,/g, ''))} suffix={m[2]} />
+}
+
 function HeroProofCard() {
   const rows = aboutProof.filter((p) => p.k !== '合作高校')
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
-      <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/70 to-transparent" />
-      <div className="px-6 pb-1 pt-5 font-mono text-[10px] uppercase tracking-[0.26em] text-white/40">Hard assets</div>
-      <dl>
-        {rows.map((p, i) => (
-          <motion.div
-            key={p.k}
-            initial={{ opacity: 0, x: 14 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.26 + i * 0.08, duration: 0.5, ease: EASE }}
-            className="flex items-baseline gap-4 border-t border-white/[0.06] px-6 py-4"
-          >
-            <dt className="w-[88px] shrink-0 text-[12.5px] text-white/50">{p.k}</dt>
-            <dd className="text-[22px] font-bold leading-none tracking-tight text-white tabular-nums">{p.v}</dd>
-            <span className="ml-auto hidden min-w-0 text-right text-[11px] leading-snug text-white/45 sm:block">{p.note}</span>
-          </motion.div>
-        ))}
-      </dl>
-      <div className="border-t border-white/[0.06] px-6 py-5">
-        <p className="text-[11px] text-white/35">服务网络</p>
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {offices.map((o) => (
-            <span key={o} className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11.5px] text-white/65">
-              {o}
-            </span>
+    <HeroFrame label="硬资产 · Hard Assets">
+      <div className="relative pt-12">
+        {/* 周期掠光：一道斜向高光从左扫到右，给静态数字卡一点“活着”的光影 */}
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute -inset-y-4 left-0 z-10 w-1/3 bg-gradient-to-r from-transparent via-white/[0.12] to-transparent"
+          style={{ transform: 'skewX(-18deg)' }}
+          initial={{ x: '-120%' }}
+          animate={{ x: '420%' }}
+          transition={{ duration: 3.8, repeat: Infinity, repeatDelay: 3.2, ease: 'easeInOut' }}
+        />
+        <dl>
+          {rows.map((p, i) => (
+            <motion.div
+              key={p.k}
+              initial={{ opacity: 0, x: 18, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+              transition={{ delay: 0.26 + i * 0.09, duration: 0.55, ease: EASE }}
+              className="flex items-baseline gap-4 border-t border-white/[0.06] px-6 py-4"
+            >
+              <dt className="w-[88px] shrink-0 text-[12.5px] text-white/50">{p.k}</dt>
+              <dd className="text-[22px] font-bold leading-none tracking-tight text-white tabular-nums">{proofVal(p.v)}</dd>
+              <span className="ml-auto hidden min-w-0 text-right text-[11px] leading-snug text-white/45 sm:block">{p.note}</span>
+            </motion.div>
           ))}
+        </dl>
+        <div className="border-t border-white/[0.06] px-6 py-5">
+          <p className="text-[11px] text-white/35">服务网络</p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {offices.map((o) => (
+              <span key={o} className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11.5px] text-white/65">
+                {o}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </HeroFrame>
   )
 }
 

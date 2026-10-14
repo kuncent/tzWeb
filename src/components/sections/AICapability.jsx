@@ -108,7 +108,7 @@ export default function AICapability() {
 
       <div className="container-x relative z-10">
         <SectionHead
-          id="ai" n="06"
+          id="ai" n="05"
           tone="dark"
           en={aiHead.en}
           zh={aiHead.zh}

@@ -5,23 +5,16 @@
  * 前端只负责把 409/403 的 message 如实回显，不自己演算规则（避免两边漂移）。
  * ============================================================ */
 import { useCallback, useEffect, useState } from 'react'
-import { UserPlus, KeyRound, Trash2, Pencil } from 'lucide-react'
+import { UserPlus, KeyRound, Trash2, Pencil, Users as UsersIcon } from 'lucide-react'
 import * as api from '../lib/adminApi'
 import { useAuth } from './AuthContext'
-import { Btn, Card, Input, Select, Field, Badge, Banner, Modal, Spinner, cx, useToast } from './ui'
-
-const ROLE_LABEL = { owner: '超级管理员', admin: '管理员', editor: '编辑', viewer: '只读' }
-const ROLE_DESC = {
-  owner: '全部权限，含用户管理',
-  admin: '线索、内容、用户、设置',
-  editor: '线索与内容编辑',
-  viewer: '只读线索与内容',
-}
-const roleTone = { owner: 'brand', admin: 'neutral', editor: 'green', viewer: 'neutral' }
+import { Btn, Card, Input, Select, Field, Badge, Banner, Modal, Spinner, cx, useToast, PageFade, EmptyState } from './ui'
+import { ROLE_LABEL, ROLE_DESC, ASSIGNABLE_ROLES, ROLE_TONE as roleTone } from '../../server/roles.mjs'
 
 export default function Users() {
-  const { user: me } = useAuth()
+  const { user: me, can } = useAuth()
   const toast = useToast()
+  const canManage = can('users.manage')
   const [items, setItems] = useState(null)
   const [err, setErr] = useState('')
   const [modal, setModal] = useState(null) // {mode:'create'} | {mode:'edit', u} | {mode:'reset', u}
@@ -44,13 +37,13 @@ export default function Users() {
   }
 
   return (
-    <div className="space-y-5">
+    <PageFade className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-[20px] font-bold tracking-tight text-ink-900">用户与权限</h1>
           <p className="mt-1 text-[13px] text-ink-500">{items ? `${items.length} 个账号` : '加载中…'}</p>
         </div>
-        <Btn size="sm" onClick={() => setModal({ mode: 'create' })}><UserPlus className="h-4 w-4" />新增用户</Btn>
+        <Btn size="sm" onClick={() => setModal({ mode: 'create' })} disabled={!canManage} title={canManage ? undefined : '仅管理员可新建用户'}><UserPlus className="h-4 w-4" />新增用户</Btn>
       </div>
 
       <Banner>{err}</Banner>
@@ -58,6 +51,8 @@ export default function Users() {
       <Card className="overflow-hidden">
         {!items ? (
           <div className="grid h-40 place-items-center text-ink-400"><Spinner /></div>
+        ) : items.length === 0 ? (
+          <EmptyState icon={UsersIcon} title="还没有其他账号" hint="点击右上角「新增用户」创建第一个管理员 / 经理 / 运营账号。" />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px] text-left text-[13px]">
@@ -71,7 +66,7 @@ export default function Users() {
               </thead>
               <tbody className="divide-y divide-ink-900/6">
                 {items.map((u) => (
-                  <tr key={u.id} className={cx(u.disabled && 'opacity-60')}>
+                  <tr key={u.id} className={cx('transition-colors even:bg-mist-50/40 hover:bg-mist-100/60', u.disabled && 'opacity-60')}>
                     <td className="px-4 py-3">
                       <div className="font-medium text-ink-900">
                         {u.name}
@@ -85,15 +80,16 @@ export default function Users() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
-                        <IconBtn title="编辑角色 / 姓名" onClick={() => setModal({ mode: 'edit', u })}><Pencil className="h-4 w-4" /></IconBtn>
-                        <IconBtn title="重置密码" onClick={() => setModal({ mode: 'reset', u })}><KeyRound className="h-4 w-4" /></IconBtn>
+                        <IconBtn title="编辑角色 / 姓名" disabled={!canManage} onClick={() => setModal({ mode: 'edit', u })}><Pencil className="h-4 w-4" /></IconBtn>
+                        <IconBtn title="重置密码" disabled={!canManage} onClick={() => setModal({ mode: 'reset', u })}><KeyRound className="h-4 w-4" /></IconBtn>
                         <IconBtn
-                          title={u.disabled ? '启用' : '禁用'}
+                          title={canManage ? (u.disabled ? '启用' : '禁用') : '仅管理员可切换启用'}
+                          disabled={!canManage}
                           onClick={guard(async () => { await api.patchUser(u.id, { disabled: !u.disabled }); if (!u.disabled) toast('已禁用', 'success') })}
                         >
                           <span className="text-[12px] font-semibold">{u.disabled ? '启用' : '禁用'}</span>
                         </IconBtn>
-                        <IconBtn danger title="删除" disabled={u.id === me?.id} onClick={() => confirm(`确认删除「${u.name}」？此操作不可撤销。`) && guard(() => api.deleteUser(u.id))()}>
+                        <IconBtn danger title={canManage ? '删除' : '仅管理员可删除'} disabled={!canManage || u.id === me?.id} onClick={() => confirm(`确认删除「${u.name}」？此操作不可撤销。`) && guard(() => api.deleteUser(u.id))()}>
                           <Trash2 className="h-4 w-4" />
                         </IconBtn>
                       </div>
@@ -107,7 +103,7 @@ export default function Users() {
       </Card>
 
       {modal && <UserModal modal={modal} onClose={() => setModal(null)} guard={guard} />}
-    </div>
+    </PageFade>
   )
 }
 
@@ -134,7 +130,7 @@ function UserModal({ modal, onClose, guard }) {
   const u = modal.u || {}
   const [name, setName] = useState(u.name || '')
   const [email, setEmail] = useState(u.email || '')
-  const [role, setRole] = useState(u.role || 'viewer')
+  const [role, setRole] = useState(u.role && ASSIGNABLE_ROLES.includes(u.role) ? u.role : 'ops')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -163,7 +159,7 @@ function UserModal({ modal, onClose, guard }) {
             )}
             <Field label="角色" hint={ROLE_DESC[role]}>
               <Select value={role} onChange={(e) => setRole(e.target.value)}>
-                {['owner', 'admin', 'editor', 'viewer'].map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                {ASSIGNABLE_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
               </Select>
             </Field>
           </>

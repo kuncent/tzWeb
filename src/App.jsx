@@ -5,8 +5,10 @@ import Footer from './components/Footer'
 import Home from './pages/Home'
 import Placeholder from './pages/Placeholder'
 import { ContentProvider } from './lib/contentStore'
+import RoutedContent from './components/RouteErrorBoundary'
 import { markHeroReady } from './components/three/hero/buildBus'
 import { useLenis, scrollToTop, scrollToId } from './hooks/useLenis'
+import useTracker from './hooks/useTracker'
 
 /* ―― 内页按路由懒加载 ――
    原来这里静态 import 了 Solutions/Technology/Laboratories/Cases/About 五个页，
@@ -16,6 +18,7 @@ import { useLenis, scrollToTop, scrollToId } from './hooks/useLenis'
    落地页零额外往返。（Navbar/Footer 仍静态：它们是全站骨架，不该闪。 ） */
 const Solutions = lazy(() => import('./pages/Solutions'))
 const Technology = lazy(() => import('./pages/Technology'))
+const Devices = lazy(() => import('./pages/Devices'))
 const Laboratories = lazy(() => import('./pages/Laboratories'))
 const Cases = lazy(() => import('./pages/Cases'))
 const About = lazy(() => import('./pages/About'))
@@ -71,19 +74,22 @@ function SiteShell() {
     <div className="flex min-h-screen flex-col bg-mist-100">
       <Navbar />
       <main className="flex-1">
-        <Suspense fallback={<RouteFallback />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/solutions" element={<Solutions />} />
-            <Route path="/technology" element={<Technology />} />
-            <Route path="/laboratories" element={<Laboratories />} />
-            <Route path="/cases" element={<Cases />} />
-            <Route path="/about" element={<About />} />
-            {/* 兜底路由保留：导航里万一又少接一个页，Placeholder 会直接
-                把路径显示出来（见 pages/Placeholder.jsx），比白屏好查 */}
-            <Route path="*" element={<Placeholder />} />
-          </Routes>
-        </Suspense>
+        <RoutedContent>
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/solutions" element={<Solutions />} />
+              <Route path="/technology" element={<Technology />} />
+              <Route path="/devices" element={<Devices />} />
+              <Route path="/laboratories" element={<Laboratories />} />
+              <Route path="/cases" element={<Cases />} />
+              <Route path="/about" element={<About />} />
+              {/* 兜底路由保留：导航里万一又少接一个页，Placeholder 会直接
+                  把路径显示出来（见 pages/Placeholder.jsx），比白屏好查 */}
+              <Route path="*" element={<Placeholder />} />
+            </Routes>
+          </Suspense>
+        </RoutedContent>
       </main>
       <Footer />
     </div>
@@ -95,12 +101,22 @@ function AppShell() {
   const { pathname } = useLocation()
   if (pathname.startsWith('/admin')) {
     return (
-      <Suspense fallback={<RouteFallback />}>
-        <AdminRoot />
-      </Suspense>
+      <RoutedContent>
+        <Suspense fallback={<RouteFallback />}>
+          <AdminRoot />
+        </Suspense>
+      </RoutedContent>
     )
   }
   return <SiteShell />
+}
+
+/* 访问埋点：与 ScrollToTop / BootHandoff 一样是个 null-returning 组件，
+   在 BrowserRouter 之内才能拿到 useLocation；放在 ContentProvider 之外
+   以免内容重发时重复触发。 */
+function Tracker() {
+  useTracker()
+  return null
 }
 
 export default function App() {
@@ -108,6 +124,7 @@ export default function App() {
   return (
     <ContentProvider>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Tracker />
         <ScrollToTop />
         <BootHandoff />
         <AppShell />

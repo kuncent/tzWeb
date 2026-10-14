@@ -8,12 +8,14 @@ import { BrandLockup } from './Brand'
 import { nav, navCta, anchorSections } from '../data/site'
 import { useSectionsMap } from '../lib/contentStore'
 
-/* 产品矩阵为 sticky 钉屏整屏，落点需恰好对齐页眉下方；其余区块留 120px 余量 */
-const ANCHOR_OFFSET = { matrix: -64 }
+/* 顶栏高 64px：板块锚点一律让区块顶边紧贴导航栏下沿（offset = -64），
+   不再留 120px 余量 —— 那 56px 缝会露出上一屏的尾巴，看着“没卡到边界”。
+   matrix（sticky 钉屏整屏）本就是 -64，现与默认一致，无需再特判。 */
+const HEADER_OFFSET = -64
 
 /* 这些页的第一屏是暗底 PageHero（与首页首屏同一底色）。顶栏在
    页首要保持透明 + 浅色字，否则深色 logo 压在暗底上读不出来。 */
-const DARK_HERO_PATHS = new Set(['/solutions', '/technology', '/laboratories', '/cases', '/about'])
+const DARK_HERO_PATHS = new Set(['/solutions', '/technology', '/devices', '/laboratories', '/cases', '/about'])
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -124,7 +126,7 @@ export default function Navbar() {
     /* 不在这里自拼 getElementById + lenis：首屏之下那几屏现在延后一轮才挂
        （见 pages/Home.jsx），那一瞬元素还不存在。scrollToId 里带了轮询，
        而且只有它一处知道「拿到了才能飞」 */
-    scrollToId(id, ANCHOR_OFFSET[id] ?? -120)
+    scrollToId(id, HEADER_OFFSET)
   }
 
   const solid = scrolled || open

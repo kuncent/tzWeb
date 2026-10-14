@@ -18,7 +18,7 @@ export default function Resources() {
     <section id="resources" className="bg-white sec-y">
       <div className="container-x">
         <SectionHead
-          id="resources" n="11"
+          id="resources" n="08"
           en={resourcesHead.en}
           zh={resourcesHead.zh}
           sub="能在线看的技术栈、引擎与对接约束都摆在页面上；需要盖章的方案模板与案例集，留个联系方式即可获取。"

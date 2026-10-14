@@ -187,7 +187,7 @@ function handoff(payload) {
   window.dispatchEvent(new CustomEvent('tianze:prefill'))
   const el = document.getElementById('contact')
   if (el) {
-    if (window.__lenis) window.__lenis.scrollTo(el, { offset: -120 })
+    if (window.__lenis) window.__lenis.scrollTo(el, { offset: -64 })
     else el.scrollIntoView({ behavior: 'smooth' })
   }
 }

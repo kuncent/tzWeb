@@ -1,13 +1,18 @@
-import { useState } from 'react'
+import { lazy, Suspense, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'motion/react'
-import { PageHero, InnerNav, PageSection, PageCTA } from '../components/PageShell'
+import { motion, AnimatePresence, useInView, useReducedMotion } from 'motion/react'
+import { PageHero, InnerNav, PageSection, PageCTA, HeroFrame } from '../components/PageShell'
 import { Reveal, EASE } from '../components/ui'
+import LabCases from '../components/sections/LabCases'
 import { caseWall, caseFilters, caseFeatured, clientLogos } from '../data/pages'
 import { offices } from '../data/site'
 
+/* ECharts 地图 + 粒子扩散单独切 chunk，不为了一个首屏把图表库打进入口包 */
+const HeroCoverage = lazy(() => import('../components/sections/HeroCoverage'))
+
 const SECTIONS = [
   { id: 'deep', label: '深度案例' },
+  { id: 'labcases', label: '实验室案例集' },
   { id: 'wall', label: '合作院校' },
   { id: 'logos', label: '客户墙' },
   { id: 'outcomes', label: '成果出口' },
@@ -42,6 +47,26 @@ const outcomes = [
   },
 ]
 
+/* 首屏右半：不讲「谁在用」，只讲「我们在哪、辐射到哪」——暗色中国地图上，
+   六个自有服务点（深圳总部 + 五服务节点）持续向外扩散粒子与涟漪，
+   读作「以服务节点为中心向全国辐射覆盖」。组件懒加载，ECharts 单独切 chunk。 */
+function HeroCoveragePanel() {
+  const reduced = useReducedMotion()
+  const wrapRef = useRef(null)
+  const inView = useInView(wrapRef, { once: true, margin: '160px' })
+  return (
+    <HeroFrame label="服务网络 · Coverage" hint="6 城服务节点 · 辐射全国">
+      <div ref={wrapRef} className="relative h-[340px] w-full sm:h-[360px]">
+        {inView && (
+          <Suspense fallback={<div className="grid h-full w-full place-items-center text-[12px] text-white/40">分布加载中…</div>}>
+            <HeroCoverage reduced={reduced} />
+          </Suspense>
+        )}
+      </div>
+    </HeroFrame>
+  )
+}
+
 export default function Cases() {
   const [filter, setFilter] = useState('all')
   const shown = caseWall.filter((c) => filter === 'all' || (filter === 'top' ? c.tag === 'top' : c.tag === filter))
@@ -51,30 +76,20 @@ export default function Cases() {
       <PageHero
         eyebrow="HIGHER EDUCATION CASES"
         crumbs="高校案例"
-        title="100+ 所高校，30+ 省市，30+ 学科"
+        title="300+ 所高校，26 个省市，30+ 学科"
         sub="这一页不打算用形容词。能公开的是院校名录与建设形态，需要授权才能讲的是具体采购内容 —— 所以我们把前者摆出来，后者按同类院校的案例集在洽谈阶段提供。"
         stats={[
-          { k: '合作高校', v: '100+' },
-          { k: '覆盖省市', v: '30+' },
+          { k: '合作高校', v: '300+' },
+          { k: '覆盖省市', v: '26' },
           { k: '覆盖学科', v: '30+' },
-          { k: '培养学员', v: '10000+' },
+          { k: '培养学员', v: '100000+' },
         ]}
         cta={[
           { label: '索取同类院校案例集', to: '/#contact', primary: true },
           { label: '看建设形态', to: '/solutions#forms' },
         ]}
       >
-        <div className="overflow-hidden rounded-2xl border border-white/10">
-          <img
-            src="/images/campus_map.webp"
-            alt="合作高校分布示意"
-            width={520}
-            height={200}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover"
-          />
-        </div>
+        <HeroCoveragePanel />
       </PageHero>
 
       <InnerNav items={SECTIONS} />
@@ -160,12 +175,15 @@ export default function Cases() {
         </Reveal>
       </PageSection>
 
+      {/* ―― 标杆实验室建设案例集（深色科技控制台，自公司案例集迁移）―― */}
+      <LabCases />
+
       {/* ―― 合作院校墙 ―― */}
       <PageSection
         id="wall"
         tone="light"
         head={{
-          n: '02',
+          n: '03',
           en: 'PARTNER LIST',
           zh: '部分合作院校',
           sub: '按院校类型看：不同定位的学校要解决的不是同一个问题 —— 双一流要新工科与科研支撑，职业本科要岗位能力与证书，中外合作要英文课程与引进体系。',
@@ -206,7 +224,7 @@ export default function Cases() {
         <Reveal delay={0.1} className="mt-8">
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-ink-900/[0.07] bg-mist-100 px-6 py-5">
             <p className="text-[13.5px] text-ink-500">
-              以上为公开名录中的一部分。全部 <span className="font-semibold text-ink-900">100+</span> 所院校与学科分布可在洽谈时提供清单。
+              以上为公开名录中的一部分。全部 <span className="font-semibold text-ink-900">300+</span> 所院校与学科分布可在洽谈时提供清单。
             </p>
             <Link to="/solutions" className="group inline-flex items-center gap-2 text-[13.5px] font-medium text-brand transition-colors hover:text-ink-900">
               按场景看解决方案
@@ -221,7 +239,7 @@ export default function Cases() {
         id="logos"
         tone="light"
         head={{
-          n: '03',
+          n: '04',
           en: 'CLIENT WALL',
           zh: '我们服务过的单位',
           sub: '以下 logo 来自旧站公开的客户案例墙，是这些年真实交付过的高校与金融机构 —— 白底 logo 原样保留，未经美化。院校之外，也把证券 / 期货 / 保险等行业客户一并列出，因为产业侧的实训需求同样是我们的一条主线。',
@@ -235,7 +253,7 @@ export default function Cases() {
         id="outcomes"
         tone="mist"
         head={{
-          n: '04',
+          n: '05',
           en: 'WHAT COMES OUT',
           zh: '建完之后，成果从这四个口子出来',
           sub: '实验室的验收不该停在「设备到位」。四类出口是我们在方案阶段就与校方一起定下来的验收项。',
@@ -269,7 +287,7 @@ export default function Cases() {
         id="network"
         tone="light"
         head={{
-          n: '05',
+          n: '06',
           en: 'SERVICE NETWORK',
           zh: '六城服务网络，驻校支持半径',
           sub: '实训设备的售后不是快递能解决的。深圳总部之外设五个服务节点，实施与教研按区域排人。',

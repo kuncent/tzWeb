@@ -146,6 +146,47 @@
     transform: rotate(8deg);
   }
 }
+/* 08 地图 3D 状态徽标：静止时缓慢上下漂浮（bob），读作悬浮于地图之上。
+   只动外层 translateY，hover 缩放放在内层，避免 transform 相互覆盖。 */
+@keyframes mapOrb {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+/* 08 地图「舞台投影」：悬停时从徽标打出一道光锥（mapBeam），
+   再把院校信息的全息板（mapProj）沿透视“投”到光锥末端。
+   两者各自一层元素跑 transform，不相互覆盖；transform-origin 由组件
+   按上/下方位设 bottom/top，减弱动效下组件不挂这两个类。 */
+@keyframes mapBeam {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+@keyframes mapProj {
+  from {
+    opacity: 0;
+    transform: perspective(760px) rotateX(-72deg) translateY(10px);
+    filter: blur(3px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(760px) rotateX(0deg) translateY(0);
+    filter: blur(0);
+  }
+}
 /* 输入框未聚焦时的呼吸光环，引导用户点击输入 */
 @keyframes breathe {
   0%,
@@ -222,6 +263,21 @@
 }
 .chain-board .cb-marquee {
   animation: cbMarquee 18s linear infinite;
+}
+
+/* 08 标杆院校轮播：与自动切图同周期的进度条。时长与播放态由内联 style 驱动，
+   悬停 / 点击锁定时靠 animation-play-state 精确停在中途，恢复时接着走。 */
+@keyframes labProg {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.lab-prog {
+  transform-origin: left;
+  animation: labProg linear forwards;
 }
 
 /* 首屏换厅的升降交接不做屏幕层动画：老厅沉回地板下、新厅升上来，
@@ -420,7 +476,9 @@
 
 /* Lenis 平滑滚动 */
 section[id] {
-  scroll-margin-top: 120px;
+  /* 与板块锚点 offset(-64) 对齐：顶栏高 64px，无 Lenis（减弱动效）走原生
+     scrollIntoView 时靠这个把区块顶边卡到导航栏下沿，不留上一屏的缝 */
+  scroll-margin-top: 64px;
 }
 html.lenis,
 html.lenis body {

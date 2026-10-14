@@ -7,9 +7,8 @@
 import { useState } from 'react'
 import * as api from '../lib/adminApi'
 import { useAuth } from './AuthContext'
-import { Btn, Card, Input, Field, Banner, Badge, useToast } from './ui'
-
-const ROLE_LABEL = { owner: '超级管理员', admin: '管理员', editor: '编辑', viewer: '只读' }
+import { Btn, Card, Input, Field, Banner, Badge, useToast, PageFade } from './ui'
+import { ROLE_LABEL } from '../../server/roles.mjs'
 
 export default function Settings() {
   const { user, refresh } = useAuth()
@@ -53,7 +52,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-5">
+    <PageFade className="space-y-5">
       <div>
         <h1 className="text-[20px] font-bold tracking-tight text-ink-900">个人设置</h1>
         <p className="mt-1 text-[13px] text-ink-500">你的账号信息与登录凭据</p>
@@ -95,6 +94,6 @@ export default function Settings() {
           <Btn type="submit" variant="dark" loading={savingPw} disabled={!cur || !npw}>修改密码</Btn>
         </form>
       </Card>
-    </div>
+    </PageFade>
   )
 }

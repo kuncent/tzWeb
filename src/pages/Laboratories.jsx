@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { PageHero, InnerNav, PageSection, PageCTA } from '../components/PageShell'
+import { PageHero, InnerNav, PageSection, PageCTA, HeroFrame } from '../components/PageShell'
 import { Reveal, StatBand, EASE } from '../components/ui'
 import { embodiedProducts, labModules, labRigs, labCourseStages, labSafety } from '../data/pages'
 
@@ -95,21 +95,15 @@ export default function Laboratories() {
           { label: '看具身产品体系', to: '/#matrix' },
         ]}
       >
-        <div className="relative overflow-hidden rounded-2xl border border-white/10">
-          <img
-            src="/images/iso_lab.webp"
-            alt="高校科技实验室等距示意"
-            width={448}
-            height={272}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#04070d]/70 via-transparent to-transparent" />
-          <p className="absolute bottom-3 left-4 font-mono text-[10px] uppercase tracking-[0.22em] text-white/50">
-            isometric layout · 交付形态示意
-          </p>
-        </div>
+        {/* 首屏右半直接上真机：本页卖点就是「可拖动三维查看」，
+            与其给一张静态图做倾斜，不如放一台能自转、能拖转的机器人。 */}
+        <HeroFrame label="NEX-H1 · 人形机器人" hint="drag to rotate · 可拖动旋转">
+          <div className="h-[340px] w-full sm:h-[360px]">
+            <Suspense fallback={<div className="grid h-full w-full place-items-center text-[12px] text-white/40">三维模型加载中…</div>}>
+              <ModelViewer src="/models/h2-official.glb" label="人形机器人三维展示" className="h-full w-full" />
+            </Suspense>
+          </div>
+        </HeroFrame>
       </PageHero>
 
       <InnerNav items={SECTIONS} />

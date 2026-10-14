@@ -2,7 +2,31 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { markHeroReady, whenHeroReady } from './components/three/hero/buildBus'
+import { scrollToId } from './hooks/useLenis'
 import './index.css'
+
+/* ―― 后台内容编辑的 iframe 预览模式 ――
+   管理后台的「内容编辑」右侧一栏会同域嵌 iframe 开 /?admin_preview=1，
+   在这里三件事：
+     1. 给 <html> 挨一个 data-admin-preview="1"，useTracker 会据此短路上报，
+        避免预览 iframe 里的“假访问”污染官网统计；
+     2. 接 postMessage({type:'admin:scrollTo', id})，把后台当前正在编辑的
+        锁点定位到 iframe 内对应那一屏（复用 scrollToId，包含轮询延后挂载）；
+     3. 与 官网自身 Lenis 开屏动画不冲突，不改现有 boot 的交棒时机。
+   监听器只在 iframe 里挂；直接开新标签（非 iframe）不进入预览模式。 */
+const IS_PREVIEW =
+  typeof window !== 'undefined' &&
+  (window.self !== window.top || /[?&]admin_preview=1\b/.test(window.location.search))
+if (IS_PREVIEW && typeof document !== 'undefined') {
+  document.documentElement.dataset.adminPreview = '1'
+  window.addEventListener('message', (ev) => {
+    const d = ev && ev.data
+    if (!d || typeof d !== 'object') return
+    if (d.type === 'admin:scrollTo' && typeof d.id === 'string' && /^[\w-]{1,64}$/.test(d.id)) {
+      scrollToId(d.id, -64)
+    }
+  })
+}
 
 /* ―― 首屏 loading 角标的交棒时机 ――
    角标不挡页面（只一枚胶囊，pointer-events:none），它标的是「具身首屏还没得演」

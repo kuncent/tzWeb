@@ -13,6 +13,12 @@
  * ============================================================ */
 import crypto from 'node:crypto'
 import { FILES, readJson, writeJsonAtomic, readJsonl, writeJsonlAtomic } from './data.mjs'
+import { loadWindow, getOverview, getDaily, getRegions, getPages, getSources, getBots, getDevices } from './stats.mjs'
+import { seoAudit } from './lib/seoAudit.mjs'
+import { geoAudit } from './lib/geoAudit.mjs'
+import { recordAudit, listAudits, diffContent, auditContentPublish } from './audit.mjs'
+import { ROLES, hasImplied } from './roles.mjs'
+import { logError } from './error-log.mjs'
 
 const COOKIE = 'tianze_admin'
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000
@@ -31,24 +37,15 @@ const AUTH_SECRET = () => env('AUTH_SECRET')
 const SECURE_COOKIE = () => /^(1|true|yes)$/i.test(env('AUTH_COOKIE_SECURE'))
 export const adminEnabled = () => !!env('AUTH_SECRET')
 
-/* ---------- 权限模型 ---------- */
-export const PERMS = [
-  'leads.read', 'leads.update',
-  'content.read', 'content.manage',
-  'users.manage',
-  'settings.manage',
-]
-export const ROLES = {
-  owner: ['*'],
-  admin: ['leads.*', 'users.manage', 'content.*', 'settings.manage'],
-  editor: ['leads.*', 'content.*'],
-  viewer: ['leads.read', 'content.read'],
-}
+/* ---------- 权限模型（从 roles.mjs 单一真相源拿） ---------- */
+export { ROLES } from './roles.mjs'
 export const MODULES = {
   leads: { read: 'leads.read', write: 'leads.update' },
   content: { read: 'content.read', write: 'content.manage' },
-  users: { read: 'users.manage', write: 'users.manage' },
-  settings: { read: null, write: null }, // 任何登录用户可用（本人资料/改密）
+  users: { read: 'users.read', write: 'users.manage' },
+  analytics: { read: 'analytics.read', write: 'analytics.read' },
+  audit: { read: 'audit.read', write: 'audit.read' },
+  settings: { read: null, write: null },
 }
 
 function effectivePerms(user) {
@@ -56,13 +53,8 @@ function effectivePerms(user) {
   return Array.from(new Set([...role, ...(Array.isArray(user.perms) ? user.perms : [])]))
 }
 function hasPerm(user, need) {
-  if (!need) return !!user // 仅需登录（settings 自助）
-  const eff = effectivePerms(user)
-  if (eff.includes('*')) return true
-  if (eff.includes(need)) return true
-  const dot = need.lastIndexOf('.')
-  if (dot > 0 && eff.includes(need.slice(0, dot) + '.*')) return true
-  return false
+  if (!need) return !!user
+  return hasImplied(effectivePerms(user), need)
 }
 
 /* ---------- 口令 ---------- */
@@ -186,10 +178,12 @@ function rateOk(ip) {
   const rec = RATE.get(ip)
   if (!rec || rec.reset < now) {
     RATE.set(ip, { n: 1, reset: now + RATE_WINDOW_MS })
-    return true
+    return { ok: true }
   }
   rec.n++
-  return rec.n <= RATE_MAX
+  if (rec.n <= RATE_MAX) return { ok: true }
+  const retryAfter = Math.max(1, Math.ceil((rec.reset - now) / 1000))
+  return { ok: false, retryAfter }
 }
 /* 只有确认在反向代理后（生产，AUTH_COOKIE_SECURE=1）才采信 X-Forwarded-For：
    本地直连时 socket 地址就是真实客户端，误信可伪造的 XFF 会让限流被绕过。 */
@@ -269,7 +263,11 @@ export async function handleAdmin(req, res, url, deps) {
 
   /* --- 公开（无需登录）：登录 / 登出 / 我 --- */
   if (sub === '/login' && method === 'POST') {
-    if (!rateOk(ip)) return json(res, 429, { error: 'too-many', message: '尝试过于频繁，请 1 分钟后再试' })
+    const rate = rateOk(ip)
+    if (!rate.ok) {
+      res.setHeader('retry-after', String(rate.retryAfter))
+      return json(res, 429, { error: 'too-many', message: `尝试过于频繁，请 ${rate.retryAfter}s 后再试`, retryAfter: rate.retryAfter })
+    }
     const body = await readBody(req).catch(() => ({}))
     const email = cleanEmail(body.email)
     const pw = String(body.password || '')
@@ -278,9 +276,12 @@ export async function handleAdmin(req, res, url, deps) {
     const ok = verifyPassword(pw, user ? user.hash : DUMMY_HASH)
     if (!user || !ok) return json(res, 401, { error: 'bad-credentials', message: '邮箱或密码不正确' })
     setCookie(res, makeToken(user), Math.floor(SESSION_TTL_MS / 1000))
+    recordAudit({ actor: user, action: 'auth.login', target: user.email, ip })
     return json(res, 200, { user: publicUser(user), perms: effectivePerms(user) })
   }
   if (sub === '/logout' && method === 'POST') {
+    const u = currentUser(req)
+    if (u) recordAudit({ actor: u, action: 'auth.logout', target: u.email, ip })
     setCookie(res, '', 0)
     return json(res, 200, { ok: true })
   }
@@ -317,6 +318,7 @@ export async function handleAdmin(req, res, url, deps) {
     me.hash = hashPassword(npw)
     me.tv = (me.tv || 0) + 1 // 吊销包括自己在内的旧会话，需重新登录
     saveUsers(users)
+    recordAudit({ actor: me, action: 'user.password.self_reset', target: me.id, ip })
     setCookie(res, '', 0)
     return json(res, 200, { ok: true, reauth: true })
   }
@@ -363,14 +365,15 @@ export async function handleAdmin(req, res, url, deps) {
 
   /* --- 用户管理 --- */
   if (sub === '/users' && method === 'GET') {
-    if (!hasPerm(user, 'users.manage')) return json(res, 403, { error: 'forbidden' })
-    return json(res, 200, { items: loadUsers().map(publicUser), roles: Object.keys(ROLES) })
+    /* 列表：manager/admin/owner 都可读（users.read）；写操作需 users.manage */
+    if (!hasPerm(user, 'users.read')) return json(res, 403, { error: 'forbidden' })
+    return json(res, 200, { items: loadUsers().map(publicUser), roles: Object.keys(ROLES).filter((r) => !['owner', 'editor', 'viewer'].includes(r)) })
   }
   if (sub === '/users' && method === 'POST') {
     if (!hasPerm(user, 'users.manage')) return json(res, 403, { error: 'forbidden' })
     const body = await readBody(req).catch(() => ({}))
     const email = cleanEmail(body.email)
-    const role = ROLES[body.role] ? body.role : 'viewer'
+    const role = ROLES[body.role] ? body.role : 'ops'
     const pw = String(body.password || '')
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json(res, 422, { error: 'bad-email' })
     if (pw.length < 8) return json(res, 422, { error: 'weak', message: '初始密码至少 8 位' })
@@ -378,6 +381,7 @@ export async function handleAdmin(req, res, url, deps) {
     if (users.some((u) => u.email === email)) return json(res, 409, { error: 'exists' })
     const nu = { id: crypto.randomUUID(), email, name: str(body.name, 40) || email.split('@')[0], role, perms: [], tv: 0, disabled: false, hash: hashPassword(pw), createdAt: new Date().toISOString() }
     saveUsers([...users, nu])
+    recordAudit({ actor: user, action: 'user.create', target: nu.id, diff: [{ path: 'role', from: null, to: role }, { path: 'email', from: null, to: email }], ip })
     return json(res, 200, { user: publicUser(nu) })
   }
   if ((m = sub.match(/^\/users\/([\w-]+)(\/password)?$/))) {
@@ -388,6 +392,7 @@ export async function handleAdmin(req, res, url, deps) {
     const owners = users.filter((u) => u.role === 'owner' && !u.disabled)
     if (method === 'PATCH') {
       const body = await readBody(req).catch(() => ({}))
+      const before = { role: target.role, name: target.name, disabled: !!target.disabled }
       if (body.role && ROLES[body.role]) {
         if (target.role === 'owner' && body.role !== 'owner' && owners.length <= 1) return json(res, 409, { error: 'last-owner', message: '不能降级最后一个 owner' })
         target.role = body.role
@@ -400,6 +405,9 @@ export async function handleAdmin(req, res, url, deps) {
         target.tv = (target.tv || 0) + 1
       }
       saveUsers(users)
+      const after = { role: target.role, name: target.name, disabled: !!target.disabled }
+      const patchDiff = diffContent(before, after)
+      if (patchDiff.length) recordAudit({ actor: user, action: 'user.update', target: target.id, diff: patchDiff, ip })
       return json(res, 200, { user: publicUser(target) })
     }
     if (method === 'POST' && m[2] === '/password') {
@@ -409,14 +417,49 @@ export async function handleAdmin(req, res, url, deps) {
       target.hash = hashPassword(pw)
       target.tv = (target.tv || 0) + 1
       saveUsers(users)
+      recordAudit({ actor: user, action: 'user.password.reset', target: target.id, ip })
       return json(res, 200, { ok: true })
     }
     if (method === 'DELETE') {
       if (target.id === user.id) return json(res, 409, { error: 'self', message: '不能删除自己' })
       if (target.role === 'owner' && owners.length <= 1) return json(res, 409, { error: 'last-owner' })
       saveUsers(users.filter((u) => u.id !== target.id))
+      recordAudit({ actor: user, action: 'user.delete', target: target.id, diff: [{ path: 'email', from: target.email, to: null }], ip })
       return json(res, 200, { ok: true })
     }
+  }
+
+  /* --- 访问统计（analytics.read） / SEO 与 GEO 审计（audit.read）---
+     数据量 demo 级，一次 loadWindow 拼回 N 天的 visits，reducer 内存聚合。
+     ownHosts 从 Host 头取，供 sources 分桶时把“站内自跳”剔出去。 */
+  if (sub === '/seo' || sub === '/geo') {
+    if (!hasPerm(user, 'audit.read')) return json(res, 403, { error: 'forbidden' })
+    const q = new URLSearchParams((req.url || '').split('?')[1] || '')
+    const days = Math.min(180, Math.max(1, Number(q.get('days')) || 30))
+    if (sub === '/seo') return json(res, 200, seoAudit())
+    const { rows } = loadWindow(days)
+    return json(res, 200, geoAudit({ rows }))
+  }
+  if (sub.startsWith('/stats/')) {
+    if (!hasPerm(user, 'analytics.read')) return json(res, 403, { error: 'forbidden' })
+    const q = new URLSearchParams((req.url || '').split('?')[1] || '')
+    const days = Math.min(180, Math.max(1, Number(q.get('days')) || 30))
+    const { rows } = loadWindow(days)
+    if (sub === '/stats/overview') return json(res, 200, { days, ...getOverview(rows) })
+    if (sub === '/stats/daily') return json(res, 200, { days, items: getDaily(rows, days) })
+    if (sub === '/stats/regions') return json(res, 200, { days, ...getRegions(rows) })
+    if (sub === '/stats/pages') {
+      const limit = Math.min(100, Math.max(1, Number(q.get('limit')) || 20))
+      return json(res, 200, { days, items: getPages(rows, limit) })
+    }
+    if (sub === '/stats/sources') {
+      const host = String(req.headers.host || '').split(':')[0].toLowerCase()
+      const ownHosts = [host, 'localhost', '127.0.0.1'].filter(Boolean)
+      return json(res, 200, { days, items: getSources(rows, ownHosts) })
+    }
+    if (sub === '/stats/bots') return json(res, 200, { days, items: getBots(rows) })
+    if (sub === '/stats/devices') return json(res, 200, { days, items: getDevices(rows) })
+    return json(res, 404, { error: 'no-route' })
   }
 
   /* --- 内容编辑 --- */
@@ -428,10 +471,44 @@ export async function handleAdmin(req, res, url, deps) {
     if (!hasPerm(user, 'content.manage')) return json(res, 403, { error: 'forbidden' })
     const body = await readBody(req).catch(() => ({}))
     if (!isPlainObj(body)) return json(res, 422, { error: 'bad-patch' })
+    /* 从请求体里剥出 _note（可选备注）；剩余部分才进入 overlay，避免污染发布内容 */
+    const note = typeof body._note === 'string' ? body._note : ''
+    const patch = { ...body }
+    delete patch._note
     /* 嵌套 overlay：只把被编辑的叶子盖到已发布内容上，官网侧同样深合并到 site.js 默认 */
-    const cur = mergeContent(readPublishedContent(), body)
-    writeJsonAtomic(FILES.content, cur)
-    return json(res, 200, { ok: true, content: cur })
+    const before = readPublishedContent()
+    const after = mergeContent(before, patch)
+    // 存储上一次发布快照供回滚
+    writeJsonAtomic(FILES.contentPrev || FILES.content.replace('content.json', 'content.prev.json'), before)
+    writeJsonAtomic(FILES.content, after)
+    auditContentPublish({ actor: user, before, after, note, ip })
+    return json(res, 200, { ok: true, content: after })
+  }
+  /* 回滚到上一次发布快照 */
+  if (sub === '/content/rollback' && method === 'POST') {
+    if (!hasPerm(user, 'content.manage')) return json(res, 403, { error: 'forbidden' })
+    const prevFile = FILES.contentPrev || FILES.content.replace('content.json', 'content.prev.json')
+    const prev = readJson(prevFile, null)
+    if (!prev) return json(res, 400, { error: 'no-rollback', message: '无可回滚的历史快照' })
+    const current = readPublishedContent()
+    writeJsonAtomic(FILES.content, prev)
+    writeJsonAtomic(prevFile, current) // 双向交换，支持 “回滚回来”
+    auditContentPublish({ actor: user, before: current, after: prev, note: 'rollback', ip })
+    return json(res, 200, { ok: true, content: prev })
+  }
+
+  /* --- 操作日志 --- */
+  if (sub === '/audit' && method === 'GET') {
+    if (!hasPerm(user, 'audit.read')) return json(res, 403, { error: 'forbidden' })
+    const q = new URLSearchParams((req.url || '').split('?')[1] || '')
+    const r = listAudits({
+      days: Number(q.get('days')) || 30,
+      userId: q.get('user') || undefined,
+      action: q.get('action') || undefined,
+      limit: Number(q.get('limit')) || 100,
+      offset: Number(q.get('offset')) || 0,
+    })
+    return json(res, 200, r)
   }
 
   return json(res, 404, { error: 'no-route' })

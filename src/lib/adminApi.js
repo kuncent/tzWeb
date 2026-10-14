@@ -68,4 +68,32 @@ export const resetUserPassword = (id, password) => request(`/users/${id}/passwor
 
 /* ---------- 内容 ---------- */
 export const getContent = () => request('/content')
-export const publishContent = (patch) => request('/content', { method: 'PUT', body: patch })
+/* publishContent(patch, note)：note 会写成 body._note，服务端剥出后进审计、
+   不会污染发布 overlay。 */
+export const publishContent = (patch, note) => {
+  const body = note ? { ...patch, _note: String(note).slice(0, 200) } : patch
+  return request('/content', { method: 'PUT', body })
+}
+export const rollbackContent = () => request('/content/rollback', { method: 'POST' })
+
+/* ---------- 操作日志 ---------- */
+export const listAudits = (params = {}) => {
+  const q = new URLSearchParams()
+  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null && v !== '') q.set(k, String(v))
+  const s = q.toString()
+  return request(`/audit${s ? `?${s}` : ''}`)
+}
+
+/* ---------- 访问统计 / SEO / GEO ----------
+ * days 默认 30；pages 可额外传 limit。后端统一取 content.read 权限门，
+ * 无数据时给空项、不会 500；前端渲染要容错。 */
+const daysQS = (days) => (days ? `?days=${encodeURIComponent(days)}` : '')
+export const statsOverview = (days = 30) => request(`/stats/overview${daysQS(days)}`)
+export const statsDaily = (days = 30) => request(`/stats/daily${daysQS(days)}`)
+export const statsRegions = (days = 30) => request(`/stats/regions${daysQS(days)}`)
+export const statsPages = (days = 30, limit = 20) => request(`/stats/pages?days=${days}&limit=${limit}`)
+export const statsSources = (days = 30) => request(`/stats/sources${daysQS(days)}`)
+export const statsBots = (days = 30) => request(`/stats/bots${daysQS(days)}`)
+export const statsDevices = (days = 30) => request(`/stats/devices${daysQS(days)}`)
+export const seoReport = () => request('/seo')
+export const geoReport = (days = 30) => request(`/geo${daysQS(days)}`)

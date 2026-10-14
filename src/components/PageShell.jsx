@@ -118,6 +118,38 @@ export function PageHero({ eyebrow, title, sub, stats, crumbs, cta, children }) 
   )
 }
 
+/* ============================================================
+ * 首屏统一外框 HeroFrame
+ * ------------------------------------------------------------
+ * 五个内页首屏共用同一套「视觉外框」：同一圆角 / 描边 / 顶部光条 /
+ * 四角 HUD / 居中标签胶囊 / 底部提示。各页只往里塞自己那套按业务定制
+ * 的动画（轮播 / 科技核 / 3D 转台 / 地图 / 数字），风格一致、动效各异。
+ * ============================================================ */
+export function HeroFrame({ label, hint, children, bodyClass = '', className = '' }) {
+  return (
+    <div className={`relative w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] shadow-[0_30px_70px_-30px_rgba(0,0,0,0.75)] ${className}`}>
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-20 h-px bg-gradient-to-r from-transparent via-brand-400/60 to-transparent" />
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-20">
+        <span className="absolute left-3.5 top-3.5 h-4 w-4 border-l border-t border-white/[0.14]" />
+        <span className="absolute right-3.5 top-3.5 h-4 w-4 border-r border-t border-white/[0.14]" />
+        <span className="absolute bottom-3.5 left-3.5 h-4 w-4 border-b border-l border-white/[0.14]" />
+        <span className="absolute bottom-3.5 right-3.5 h-4 w-4 border-b border-r border-white/[0.14]" />
+      </div>
+      {label && (
+        <div className="pointer-events-none absolute left-1/2 top-3.5 z-30 -translate-x-1/2">
+          <span className="whitespace-nowrap rounded-full border border-brand/25 bg-[#04070d]/70 px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-brand-300 backdrop-blur-sm">{label}</span>
+        </div>
+      )}
+      {hint && (
+        <div className="pointer-events-none absolute bottom-3.5 left-1/2 z-30 -translate-x-1/2">
+          <p className="whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-white/35">{hint}</p>
+        </div>
+      )}
+      <div className={bodyClass}>{children}</div>
+    </div>
+  )
+}
+
 /* 页内板块导航：吸顶在 64px 顶栏之下，滚动时高亮当前所在段。
    规则取「顶部已经越过基准线的最后一段」，不用 IntersectionObserver：
    IO 在滚回首屏之上、以及两段之间的空档里没有任何命中项，

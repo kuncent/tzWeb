@@ -30,6 +30,72 @@
       media="print"
       onload="this.media='all'"
     />
+    <!-- 规范链 + 社交卡片：canonical 锁死带 UTM 的重复 URL；OG/Twitter 决
+         定微信/推特/X 分享时的卡片。域名以现有公开站点 sztzjy.com 为准（与
+         contact@sztzjy.com / ecosim.sztzjy.com 同一主域），换域名只需改这一处 base。 -->
+    <link rel="canonical" href="https://www.sztzjy.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="天择未来教育" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:url" content="https://www.sztzjy.com/" />
+    <meta property="og:title" content="天择教育 · 下一代人才培养基础设施｜AI 多智能体课堂 · 数字孪生实验室 · 自然语言实验平台" />
+    <meta property="og:description" content="一句话或一份大纲，几分钟生成一堂完整的 AI 多智能体互动课堂；自然语言直接生成实验代码并在云端沙箱自动运行评测。覆盖 AI / 具身智能 / 区块链 / 数字金融 / 工程实训全学科，全栈私有化、数据不出校。" />
+    <meta property="og:image" content="https://www.sztzjy.com/images/tech_orb.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="天择教育 · 下一代人才培养基础设施" />
+    <meta name="twitter:description" content="AI 多智能体课堂 · 数字孪生实验室 · 自然语言实验平台，覆盖全学科，全栈私有化。" />
+    <meta name="twitter:image" content="https://www.sztzjy.com/images/tech_orb.webp" />
+    <!-- SEO/GEO 结构化数据：Organization + WebSite（Knowledge Graph / 站内搜索依赖） -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "天择未来教育",
+      "alternateName": "天择教育",
+      "url": "https://www.sztzjy.com",
+      "logo": "https://www.sztzjy.com/images/tech_orb.webp",
+      "description": "AI 多智能体课堂·数字孪生实验室·自然语言实验平台，覆盖全学科下一代人才培养基础设施",
+      "email": "contact@sztzjy.com",
+      "address": { "@type": "PostalAddress", "addressRegion": "广东", "addressLocality": "深圳市", "streetAddress": "南山区科技园" },
+      "sameAs": [ "https://www.sztzjy.com" ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "天择未来教育",
+      "url": "https://www.sztzjy.com",
+      "inLanguage": "zh-CN",
+      "publisher": { "@type": "Organization", "name": "天择未来教育", "url": "https://www.sztzjy.com" }
+    }
+    </script>
+    <!-- Product + FAQPage：GEO 的关键抓手 —— ChatGPT/Perplexity/Claude 更倾向直接
+         引用结构化 Product 说明与 FAQ 问答原话，帮助在生成式回答里被命中。 -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "天择未来教育 · AI 多智能体课堂与数字孪生实验平台",
+      "brand": { "@type": "Brand", "name": "天择未来教育" },
+      "description": "一句话或一份大纲即可生成完整的 AI 多智能体互动课堂；自然语言直接生成可运行的实验代码并在云端沙箱评测；数字孪生实验室覆盖 AI / 具身智能 / 区块链 / 数字金融 / 工程实训全学科，支持全栈私有化部署、数据不出校。",
+      "url": "https://www.sztzjy.com",
+      "category": "教育科技 / 高等教育信息化平台",
+      "audience": { "@type": "EducationalAudience", "educationalRole": "higher-education" }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "天择教育能做什么？", "acceptedAnswer": { "@type": "Answer", "text": "用一句话或一份大纲，几分钟生成一堂完整的 AI 多智能体互动课堂，并支持自然语言生成可运行的实验代码在云端沙箱自动评测。" } },
+        { "@type": "Question", "name": "是否支持私有化部署？", "acceptedAnswer": { "@type": "Answer", "text": "支持全栈私有化部署，数据不出校，适合对数据安全敏感的高校与职业院校。" } },
+        { "@type": "Question", "name": "覆盖哪些学科？", "acceptedAnswer": { "@type": "Answer", "text": "覆盖 AI、具身智能、区块链、数字金融、工程实训等全学科的数字孪生实验室与互动课堂。" } },
+        { "@type": "Question", "name": "如何联系天择未来教育？", "acceptedAnswer": { "@type": "Answer", "text": "邮箱 contact@sztzjy.com，官网 https://www.sztzjy.com/about。" } }
+      ]
+    }
+    </script>
     <noscript>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     </noscript>
@@ -109,9 +175,29 @@
         }
       }
     </style>
+    <!-- 管理后台是亮色壳（bg-mist-100），但上面为官网 3D 首屏把 html 底色钉成了近黑 #04070d；
+         直接开 /admin 时 React 尚未挂载，会先闪一片黑。这里在首次绘制前用同步内联脚本
+         把 html 底色改回加载后的亮色 #f5f8fc（与后台加载完成后的背景一致）。 -->
+    <script>
+      if (/^\/admin(?:\/|$)/.test(location.pathname)) {
+        document.documentElement.style.background = '#f5f8fc'
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <!-- 无 JS / 不执行脚本的爬虫兜底：本项目首屏走 React.lazy，服务端 index.html 里
+         本来没有 <main>/<h1>，GEO 侧不执行 JS 的检索引擎（部分 AI 爬虫）就抓不到语义
+         骨架。这里放一份纯静态标题 + 主叙述（有 JS 时浏览器会忽略 <noscript> 内容，
+         不影响 React 挂载），既补上语义层级，也让关 JS 的场景有个可读的落地页。 -->
+    <noscript>
+      <main>
+        <h1>天择未来教育 · 下一代人才培养基础设施</h1>
+        <p>AI 多智能体互动课堂、数字孪生实验室与自然语言实验平台，覆盖 AI / 具身智能 / 区块链 / 数字金融 / 工程实训全学科，支持全栈私有化部署、数据不出校。</p>
+        <p>一句话或一份大纲，几分钟生成一堂完整的 AI 多智能体互动课堂；自然语言直接生成可运行的实验代码并在云端沙箱自动评测。</p>
+        <p>联系邮箱：<a href="mailto:contact@sztzjy.com">contact@sztzjy.com</a>　官网：<a href="https://www.sztzjy.com/">https://www.sztzjy.com</a></p>
+      </main>
+    </noscript>
     <!-- loading 角标本体：一枚内联六边形（与 favicon 同一张画）加一句话，不加一个请求。
          收掉它的是 main.jsx，时机是「首屏舞台真的在画」（过了着色器编译那一帧），
          不是「React 画完第一帧」—— 那会儿 3D 还在路上；也不等模型下载，

@@ -38,6 +38,7 @@ export const nav = [
   { label: '首页', to: '/' },
   { label: '解决方案', to: '/solutions' },
   { label: '技术方向', to: '/technology' },
+  { label: '产品设备', to: '/devices' },
   { label: '实训实验室', to: '/laboratories' },
   { label: '高校案例', to: '/cases' },
   { label: '关于我们', to: '/about' },
@@ -56,11 +57,9 @@ export const anchorSections = [
   { id: 'advisor', label: 'AI 方案顾问' },
   { id: 'matrix', label: '产品矩阵' },
   { id: 'architecture', label: '技术架构' },
-  { id: 'features', label: '平台能力' },
   { id: 'ai', label: 'AI 能力' },
   { id: 'delivery', label: '交付路径' },
   { id: 'customers', label: '合作高校' },
-  { id: 'value', label: '价值账' },
   { id: 'resources', label: '资源专区' },
   { id: 'contact', label: '联系我们' },
 ]
@@ -78,9 +77,9 @@ export const advisorCtas = [
 ]
 export const advisorConsoleUrl = 'console.sztzjy.com / ai-engine'
 export const advisorStats = [
-  { value: 100, suffix: '+', label: '合作高校' },
+  { value: 300, suffix: '+', label: '合作高校' },
   { value: 30, suffix: '+', label: '覆盖学科' },
-  { value: 10000, suffix: '+', label: '培养学员' },
+  { value: 100000, suffix: '+', label: '培养学员' },
   { value: 98, suffix: '%', label: '课堂互动率提升' },
 ]
 
@@ -339,60 +338,6 @@ export const valueNodes = [
   { en: 'LEARNER', zh: '合适的学生' },
 ]
 
-/* ---------------- 平台能力（选一看一） ---------------- */
-export const featuresHead = { en: 'PLATFORM CAPABILITIES', zh: '平台能力', sub: '六项能力共用一套身份、一份数据、一条审计链 —— 覆盖备课、授课、实训、评价、运营全链路' }
-export const features = [
-  {
-    id: 'classroom',
-    tag: 'AI 课堂',
-    title: '一键生成多智能体互动课堂',
-    desc: '输入教学主题或上传大纲 / PPT / PDF，两阶段流水线自动生成"幻灯片 + 讲解 + 测验 + 项目任务"的完整课程。AI 教师语音讲解并实时板书，AI 同学主动举手辩论，助教课后单独补课 —— 像真实学习小组一样上课。',
-    bullets: ['3-10 分钟出课', '白板推演与标注', '课堂纪要自动沉淀'],
-    visual: 'classroom',
-  },
-  {
-    id: 'ide',
-    tag: 'AI 实训',
-    title: '自然语言生成实验代码',
-    desc: '学生用大白话描述任务，如"写一个 ROS 机械臂抓取策略并加入失败重试"，AI 即时生成规范的 Python / C++ / Solidity 代码，在云端沙箱直接运行、可视化回放评分，把实验门槛从"会写代码"降到"会说人话"。',
-    bullets: ['云端沙箱秒级运行', '报错自动定位讲解', '代码查重与评分'],
-    visual: 'ide',
-  },
-  {
-    id: 'analytics',
-    tag: '学情分析',
-    title: '结构化 AI 学情分析报告',
-    desc: '不止分数：AI 基于答题行为、代码提交、课堂发言多维数据，输出每个知识点掌握度、班级薄弱点漏斗与个性化补救建议，支持历史回顾与校准，让教学改进有据可依。',
-    bullets: ['知识点掌握漏斗', '薄弱项班级对比', 'AI 生成辅导建议'],
-    visual: 'analytics',
-  },
-  {
-    id: 'timing',
-    tag: '智能调度',
-    title: '最佳教学时机预测',
-    desc: 'AI 算法引擎预测每位学生的专注曲线与遗忘曲线，智能安排复习提醒、测验下发与实验任务推送时机，降低打扰的同时提升完课率与留存。',
-    bullets: ['遗忘曲线复习调度', '任务智能下发', '预警辍学风险学生'],
-    visual: 'timing',
-  },
-  {
-    id: 'twin',
-    tag: '数字孪生',
-    title: '实验室数字孪生与安全包',
-    desc: '机械臂、机器人、产线设备 1:1 数字孪生，学生先在虚拟环境试错再到真机执行；内置内容安全审核、实验操作预警与一键回滚，为实训安全保驾护航。',
-    bullets: ['设备级虚拟仿真', '操作风险预警', '实训过程可回放'],
-    visual: 'twin',
-    img: '/images/d_labiso.webp',
-  },
-  {
-    id: 'private',
-    tag: '私有部署',
-    title: '校本专属云与源码级定制',
-    desc: '为数据安全要求高的院校提供全功能私有化部署，支持对接教务系统、统一身份认证与校园算力集群；开放 API 与插件机制，支持二次开发和本地化定制。',
-    bullets: ['信创环境适配', '教务系统直连', '源码授权可选'],
-    visual: 'private',
-  },
-]
-
 /* ---------------- AI 能力 ---------------- */
 export const aiHead = {
   en: 'AI CAPABILITIES',
@@ -490,7 +435,7 @@ export const ledgerAsset = {
 }
 
 /* ---------------- 合作高校 ---------------- */
-export const customersHead = { en: 'PARTNER INSTITUTIONS', zh: '已合作院校', sub: '已服务全国 100+ 高校，覆盖 30+ 省市' }
+export const customersHead = { en: 'PARTNER INSTITUTIONS', zh: '已合作院校', sub: '已服务全国 300+ 高校，覆盖 26 个省市' }
 export const customers = ['清华大学', '浙江大学', '上海交通大学', '华南理工大学', '北京理工大学', '深圳职业技术大学', '北理莫斯科大学', '哈尔滨工业大学（深圳）']
 export const caseFeatured = {
   school: '北京理工大学',
@@ -555,9 +500,9 @@ export const footerNav = [
     title: '产品',
     links: [
       { label: 'AI 多智能体课堂', to: '/#ai' },
-      { label: '自然语言实验平台', to: '/#features' },
+      { label: '自然语言实验平台', to: '/#ai' },
       { label: '数字孪生实验室', to: '/laboratories' },
-      { label: '学情分析引擎', to: '/#features' },
+      { label: '学情分析引擎', to: '/#ai' },
     ],
   },
   {

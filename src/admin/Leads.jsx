@@ -5,10 +5,11 @@
  * CSV 走 <a href>：GET 带同源 httpOnly cookie 即可下载，不需要 fetch。
  * ============================================================ */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Download, Search, RefreshCw, Inbox as InboxIcon } from 'lucide-react'
 import * as api from '../lib/adminApi'
 import { useAuth } from './AuthContext'
-import { Btn, Card, Input, Select, Textarea, Field, Badge, Banner, Modal, Spinner, cx, useToast } from './ui'
+import { Btn, Card, Input, Select, Textarea, Field, Badge, Banner, Modal, cx, useToast, PageFade, EmptyState, Skeleton } from './ui'
 
 const STATUSES = [
   { value: 'new', label: '新线索', tone: 'brand' },
@@ -31,6 +32,8 @@ const fmtTime = (iso) => {
 export default function Leads() {
   const { can } = useAuth()
   const toast = useToast()
+  const location = useLocation()
+  const navigate = useNavigate()
   const canWrite = can('leads.update')
   const [items, setItems] = useState([])
   const [total, setTotal] = useState(0)
@@ -69,6 +72,15 @@ export default function Leads() {
     return () => clearTimeout(t)
   }, [load, filters.q])
 
+  /* ?focus=<id> 自动打开详情抽屉（Dashboard 最近线索点击跳过来） */
+  useEffect(() => {
+    const focus = new URLSearchParams(location.search).get('focus')
+    if (!focus || !items.length) return
+    const target = items.find((r) => String(r.id) === focus)
+    if (target) setActive(target)
+    navigate('/admin/leads', { replace: true })
+  }, [items, location.search, navigate])
+
   /* 产品 / 来源下拉的候选：从当前结果里现取，不额外发请求 */
   const { productOpts, sourceOpts } = useMemo(() => {
     const ps = new Set()
@@ -96,7 +108,7 @@ export default function Leads() {
   }
 
   return (
-    <div className="space-y-5">
+    <PageFade className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-[20px] font-bold tracking-tight text-ink-900">线索管理</h1>
@@ -135,12 +147,13 @@ export default function Leads() {
       {/* 表 */}
       <Card className="overflow-hidden">
         {loading && !items.length ? (
-          <div className="grid h-52 place-items-center text-ink-400"><Spinner /></div>
+          <div className="p-5"><Skeleton lines={8} /></div>
         ) : !items.length ? (
-          <div className="flex h-52 flex-col items-center justify-center gap-2 text-ink-400">
-            <InboxIcon className="h-8 w-8" />
-            <p className="text-[13px]">{filters.q || filters.status || filters.product || filters.source ? '没有符合条件的线索' : '还没有线索'}</p>
-          </div>
+          <EmptyState
+            icon={InboxIcon}
+            title={filters.q || filters.status || filters.product || filters.source ? '没有符合条件的线索' : '还没有线索'}
+            hint={filters.q || filters.status || filters.product || filters.source ? '试着放宽关键词或状态。' : '官网留资提交后会实时出现在这里。'}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-[13px]">
@@ -166,7 +179,7 @@ export default function Leads() {
                       aria-label={`查看 ${r.name || '该条'} 线索详情`}
                       onClick={() => setActive(r)}
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(r) } }}
-                      className="cursor-pointer transition-colors hover:bg-mist-100/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
+                      className="cursor-pointer transition-colors even:bg-mist-50/40 hover:bg-mist-100/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
                     >
                       <td className="whitespace-nowrap px-4 py-3 tabular-nums text-ink-500">{fmtTime(r.ts)}</td>
                       <td className="px-4 py-3">
@@ -199,7 +212,7 @@ export default function Leads() {
       <Modal open={!!active} onClose={() => setActive(null)} title="线索详情">
         {active && <LeadDetail lead={active} canWrite={canWrite} onSave={saveLead} />}
       </Modal>
-    </div>
+    </PageFade>
   )
 }
 

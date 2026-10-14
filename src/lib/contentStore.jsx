@@ -12,12 +12,16 @@
  * ============================================================ */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { contact } from '../data/site'
+import { heroMeta, heroScenes } from '../data/heroScenes'
 
 /* 可被后台编辑、且官网侧已接入 useContent 的命名空间默认值。
    · contact：页脚/联系区的电话邮箱地址；
    · products：按产品 id 的映射（只覆盖 title/tagline/desc，数组结构仍由 site.js 提供）；
-   · sections：首屏之下 11 屏的开关与标题/描述（按锚点 id），默认空对象 → 全部启用、文案回落 site.js。 */
-const DEFAULTS = { contact, products: {}, sections: {} }
+   · sections：首屏之下 11 屏的开关与标题/描述（按锚点 id），默认空对象 → 全部启用、文案回落 site.js。
+   · hero / heroMeta：首屏三屏（具身/区块链/AI）的可编辑文案，按场景 id 建种子，
+     使发布 overlay 能深合并进来、StoryHero 运行时读到（title/tags 为数组，整值替换）。 */
+const HERO_SEED = Object.fromEntries(heroScenes.map((s) => [s.id, {}]))
+const DEFAULTS = { contact, products: {}, sections: {}, hero: HERO_SEED, heroMeta: { ...heroMeta } }
 
 const isPlainObj = (v) => v && typeof v === 'object' && !Array.isArray(v)
 
@@ -89,4 +93,26 @@ export const useSectionsMap = () => useContext(ContentCtx).data.sections || {}
 /* 单块是否启用：未发布 enabled 即视为启用（默认 true），仅显式 false 才关。 */
 export function useSectionEnabled(id) {
   return useContent(`sections.${id}.enabled`, true) !== false
+}
+
+/* 首屏三屏：把发布 overlay（data.hero.<id>）盖到 heroScenes 默认文案上，
+   只覆盖纯文本字段（nav/title/desc/tags/hint）；结构与 3D 指令（commands/specs/…）
+   始终读 site 默认。title/tags 为数组，overlay 存在则整值替换，否则回落默认。 */
+export function useHeroScenes() {
+  const { data } = useContext(ContentCtx)
+  return useMemo(
+    () =>
+      heroScenes.map((s) => {
+        const h = (data.hero && data.hero[s.id]) || {}
+        return {
+          ...s,
+          nav: typeof h.nav === 'string' && h.nav ? h.nav : s.nav,
+          title: Array.isArray(h.title) && h.title.length ? h.title : s.title,
+          desc: typeof h.desc === 'string' && h.desc ? h.desc : s.desc,
+          tags: Array.isArray(h.tags) && h.tags.length ? h.tags : s.tags,
+          hint: typeof h.hint === 'string' && h.hint ? h.hint : s.hint,
+        }
+      }),
+    [data.hero],
+  )
 }

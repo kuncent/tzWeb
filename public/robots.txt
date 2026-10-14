@@ -1,0 +1,36 @@
+# ===== 天择未来教育 · robots.txt =====
+# 允许全站抓取；显式放行主流 AI 爬虫（GEO：让 ChatGPT/Perplexity/Claude 能在回答里引到原话）。
+
+User-agent: *
+Allow: /
+
+# --- AI / 生成式检索爬虫：明确允许 ---
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: GPTBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-User
+Allow: /
+User-agent: anthropic-ai
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Perplexity-User
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
+User-agent: Bingbot
+Allow: /
+
+# --- 管理后台与埋点接口不进索引 ---
+User-agent: *
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://www.sztzjy.com/sitemap.xml

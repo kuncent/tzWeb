@@ -6,8 +6,18 @@
  * 环（全局已配），动效件带 motion-reduce 兜底。
  * ============================================================ */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export const cx = (...a) => a.filter(Boolean).join(' ')
+
+/* 时间戳归一：同时兼容 numeric epoch ms（访问/线索日志）与 ISO 字符串（审计行），
+   返回 UTC+8 偏移后的 ms；无法解析时回落到 Date.now()。防 new Date("...Z"+ms) 抛 Invalid time value。 */
+export const TZ8_MS = 8 * 3600 * 1000
+export function toBaseMs(ts) {
+  if (ts == null) return NaN
+  const base = typeof ts === 'number' ? ts : new Date(ts).getTime()
+  return Number.isFinite(base) ? base + TZ8_MS : NaN
+}
 
 const inputBase =
   'w-full rounded-xl border border-ink-900/10 bg-white px-3.5 py-2.5 text-sm text-ink-900 outline-none transition-all placeholder:text-ink-400/70 focus:border-brand focus:ring-4 focus:ring-brand/10 disabled:cursor-not-allowed disabled:bg-mist-200 disabled:text-ink-400'
@@ -80,9 +90,16 @@ export function Spinner({ className = 'h-5 w-5' }) {
   )
 }
 
-export function Card({ className, children, ...p }) {
+export function Card({ className, children, hover, ...p }) {
   return (
-    <div {...p} className={cx('card-elev rounded-2xl', className)}>
+    <div
+      {...p}
+      className={cx(
+        'card-elev rounded-2xl',
+        hover && 'transition-all duration-200 hover:-translate-y-px hover:shadow-elev-lg',
+        className,
+      )}
+    >
       {children}
     </div>
   )
@@ -116,7 +133,11 @@ export function Modal({ open, onClose, title, children, wide }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
   if (!open) return null
-  return (
+  // 走 portal 挂到 document.body：抽屉/弹窗是 fixed 全屏遮罩，必须脱离页面内容树。
+  // 否则一旦祖先（如 PageFade 的 tz-fade-in 动画 fill-mode:both 触发 transform）成为
+  // fixed 的包含块，遮罩就只盖住内容盒（实测被夹到 max-w-[1100px] 那块），抽屉错位、
+  // 列表被半遮——"进入详情有东西盖住列表"即此。portal 到 body 后 fixed 重新以视口为基准。
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-stretch justify-end">
       <div className="absolute inset-0 bg-ink-900/30 backdrop-blur-[2px]" onClick={onClose} aria-hidden />
       <div
@@ -135,7 +156,114 @@ export function Modal({ open, onClose, title, children, wide }) {
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-5">{children}</div>
       </div>
+    </div>,
+    document.body,
+  )
+}
+
+/* ---------- Skeleton 骨架屏：取代满屏 Spinner，给加载中的卡/表行一个占位 */
+export function Skeleton({ lines = 3, className }) {
+  return (
+    <div className={cx('space-y-2', className)} aria-busy="true" aria-live="polite">
+      {Array.from({ length: lines }).map((_, i) => (
+        <div key={i} className="h-3 animate-pulse rounded-md bg-mist-200 motion-reduce:animate-none" style={{ width: `${Math.max(35, 100 - i * 12)}%` }} />
+      ))}
     </div>
+  )
+}
+
+/* ---------- EmptyState：插画图标 + 主标题 + 可选提示 + 可选 CTA */
+export function EmptyState({ icon: Icon, title, hint, action, className }) {
+  return (
+    <div className={cx('flex flex-col items-center justify-center px-6 py-10 text-center', className)}>
+      {Icon && (
+        <span className="mb-3 grid h-11 w-11 place-items-center rounded-full bg-mist-200 text-ink-400">
+          <Icon className="h-5 w-5" />
+        </span>
+      )}
+      <p className="text-[13.5px] font-semibold text-ink-900">{title}</p>
+      {hint && <p className="mt-1 max-w-sm text-[12.5px] leading-relaxed text-ink-400">{hint}</p>}
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  )
+}
+
+/* ---------- PageFade：包裹一页的顶层容器，进入时淡入 + 8px 上推；
+   prefers-reduced-motion 下自动关闭动画，直接可见。 */
+export function PageFade({ children, className }) {
+  return (
+    <div
+      className={cx(
+        'animate-[tz-fade-in_0.24s_ease-out_both] motion-reduce:animate-none',
+        className,
+      )}
+    >
+      <style>{`@keyframes tz-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`}</style>
+      {children}
+    </div>
+  )
+}
+
+/* ---------- AuditList：SEO / GEO 面板共用的体检清单 ----------
+ * items：[{ key, label, pass, detail, advice }]；
+ *   · pass=true 一行一个对号，绿色
+ *   · pass=false 开一个可展开的 advice 区，默认折叠
+ * 无 advice 则不渲染展开开关，保持行高一致。 */
+export function AuditList({ items }) {
+  const [open, setOpen] = useState(() => new Set())
+  const toggle = (k) =>
+    setOpen((prev) => {
+      const next = new Set(prev)
+      if (next.has(k)) next.delete(k)
+      else next.add(k)
+      return next
+    })
+  if (!items?.length) {
+    return <p className="px-4 py-6 text-center text-[13px] text-ink-400">没有可展示的条目。</p>
+  }
+  return (
+    <ul className="divide-y divide-ink-900/6">
+      {items.map((it) => {
+        const isOpen = open.has(it.key)
+        const hasAdvice = !!it.advice
+        return (
+          <li key={it.key} className="px-5 py-3.5">
+            <div className="flex items-start gap-3">
+              <span
+                className={cx(
+                  'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold',
+                  it.pass ? 'bg-emerald-50 text-emerald-600' : 'bg-[#DC2626]/10 text-[#B91C1C]',
+                )}
+                aria-hidden
+              >
+                {it.pass ? '✓' : '!'}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className={cx('text-[13.5px] font-medium leading-snug', it.pass ? 'text-ink-900' : 'text-[#B91C1C]')}>{it.label}</p>
+                {it.detail && <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink-500">{it.detail}</p>}
+                {hasAdvice && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => toggle(it.key)}
+                      className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium text-brand hover:underline"
+                      aria-expanded={isOpen}
+                    >
+                      {isOpen ? '收起建议' : '查看建议'}
+                    </button>
+                    {isOpen && (
+                      <div className="mt-2 rounded-lg border border-brand/20 bg-brand-50/60 px-3 py-2 text-[12.5px] leading-relaxed text-ink-700">
+                        {it.advice}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 
@@ -146,7 +274,8 @@ export function ToastProvider({ children }) {
   const push = useCallback((msg, kind = 'info') => {
     const id = Date.now() + Math.random()
     setItems((x) => [...x, { id, msg, kind }])
-    setTimeout(() => setItems((x) => x.filter((i) => i.id !== id)), 3200)
+    const ttl = kind === 'error' ? 8000 : 3200
+    setTimeout(() => setItems((x) => x.filter((i) => i.id !== id)), ttl)
   }, [])
   const value = useMemo(() => ({ push }), [push])
   return (

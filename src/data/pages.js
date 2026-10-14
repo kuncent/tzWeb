@@ -103,7 +103,7 @@ export const solutionScenes = [
     stack: [
       { label: '03 AI 多智能体课堂', to: '/#matrix' },
       { label: '05 数字经济 · 大数据与 AI 实训体系', to: '/#matrix' },
-      { label: '自然语言实验平台', to: '/#features' },
+      { label: '自然语言实验平台', to: '/#ai' },
     ],
     deliver: ['AI 教学资源与课件平台', '多智能体课堂环境（教师 / 同学 / 助教 / 导演）', '推理算力调度与模型接入', '18 套大数据与 AI 实训系统', '课程包、实验手册与评价标准'],
     outcome: ['校本 AI 课程群与教材', '模型与数据的本地化部署', '学生 AI 项目作品集'],
@@ -126,7 +126,7 @@ export const solutionScenes = [
     fit: ['机器人工程', '自动化', '机械电子工程', '智能制造工程', '人工智能'],
     stack: [
       { label: '01 具身智能 · 机器人实验室', to: '/laboratories' },
-      { label: '数字孪生与实训安全包', to: '/#features' },
+      { label: '数字孪生与实训安全包', to: '/#matrix' },
       { label: '实验室交付六模块', to: '/laboratories' },
     ],
     deliver: ['空间规划与安全动线', '6 类机器人设备成套进场', '一体化实验管理平台', '四阶段进阶课程', '驻校师资培训与认证', '赛项选题与器材保障'],
@@ -198,14 +198,14 @@ export const solutionScenes = [
     fit: ['教务处', '创新创业学院', '研究生院', '图书馆 / 信息化处'],
     stack: [
       { label: '五大产品体系按需组合', to: '/#matrix' },
-      { label: '校级学情驾驶舱', to: '/#features' },
+      { label: '校级学情驾驶舱', to: '/#ai' },
       { label: '全栈私有化交付', to: '/#architecture' },
     ],
     deliver: ['公共讲授与研讨空间', '跨学科项目工坊', '校级学情与设备利用驾驶舱', '成果展陈与竞赛区', '私有化算力与数据底座'],
     outcome: ['面向全校的 AI 素养课程群', '跨学院联合毕设与孵化项目', '可对外接待与申报的建设成果'],
     metrics: [
       { k: '覆盖学科', v: '30+' },
-      { k: '合作高校', v: '100+' },
+      { k: '合作高校', v: '300+' },
       { k: '部署方式', v: '私有化 / 云端' },
     ],
   },
@@ -408,17 +408,151 @@ export const caseWall = [
   { name: '哈尔滨工业大学（深圳）', type: '理工类', city: '深圳', tag: 'top' },
   { name: '北理莫斯科大学', type: '中外合作', city: '深圳', tag: 'foreign' },
   { name: '深圳职业技术大学', type: '职业本科', city: '深圳', tag: 'vocational' },
+  /* ―― 以下为案例集里可对外展示的标杆实验室院校 ―― */
+  { name: '广东技术师范大学', type: '师范类', city: '广州', tag: 'lab' },
+  { name: '兴义民族师范学院', type: '民族师范', city: '兴义', tag: 'lab' },
+  { name: '广东财贸职业学院', type: '职业学院', city: '广州', tag: 'lab' },
+  { name: '广西金融职业技术学院', type: '高职', city: '南宁', tag: 'lab' },
+  { name: '广东培正学院', type: '民办本科', city: '广州', tag: 'lab' },
+  { name: '湖北商贸学院', type: '本科', city: '武汉', tag: 'lab' },
+  { name: '郑州西亚斯学院', type: '本科', city: '郑州', tag: 'lab' },
+  { name: '西安明德理工学院', type: '理工类', city: '西安', tag: 'lab' },
 ]
 
 export const caseFilters = [
   { id: 'all', label: '全部院校' },
   { id: 'top', label: '双一流理工 / 综合' },
+  { id: 'lab', label: '标杆实验室案例' },
   { id: 'vocational', label: '职业本科' },
   { id: 'foreign', label: '中外合作' },
 ]
 
+/* ---------------- 标杆实验室建设案例集（源自公司《高校专业实验室设计建设案例集》）----------------
+   与案例墙「只写公开属性」的纪律不同：这里的九条是公司自己整理、可对外展示的
+   经典交付案例，内容（院校 / 实验室 / 面积机位 / 软硬件配置）均来自该案例集原文，
+   不做数字加工。展示形态做成深色科技控制台：左轨点选、右板详情联动。 */
+export const labCases = [
+  {
+    id: 'sinos-moscow', n: '01', icon: Landmark,
+    school: '深圳北理莫斯科大学', lab: '数字经管实验教学中心', en: 'DIGITAL ECONOMICS & MANAGEMENT EXPERIMENT CENTER',
+    city: '深圳', province: '广东', year: '2025.07', type: '中外合作 · 研究中心',
+    summary: '基于毛坯条件整体建设，依托虚拟仿真、云计算、区块链、大数据，把四个实验室合成一个统一的经济管理实验教学中心，集教学、实验、科研、资源于一体。',
+    specs: [ { k: '中心面积', v: '955㎡' }, { k: '下设实验室', v: '4 个' }, { k: '支撑专业', v: '3 个' } ],
+    regions: ['金融投资与分析实验室', '金融科技与创新实验室', '智能决策与分析实验室', '运营管理与模拟实验室'],
+    hardware: ['LED 显示屏 · 弧形金融行情跑马灯', '精品录播 · 高清投影 · 服务器', 'E-Prime · 眼动追踪 · 脑电采集 · Plux 生理信号', 'XR 感知智能研创平台 · 4D 数字工厂 AR 智能沙盘'],
+    software: ['区块链金融研究系统', '投资银行 / 量化投资交易', '智能投顾 · Python 金融分析', '多模态行为数据采集分析'],
+    highlight: '中心揭牌仪式 2025 年 11 月，覆盖应用经济学、国际经济与贸易、金融科技三专业学科建设与前沿科研。',
+    imgs: ['/images/labcases/lab-01-1.webp', '/images/labcases/lab-01-2.webp', '/images/labcases/lab-01-3.webp', '/images/labcases/lab-01-4.webp', '/images/labcases/lab-01-5.webp', '/images/labcases/lab-01-6.webp', '/images/labcases/lab-01-7.webp', '/images/labcases/lab-01-8.webp'],
+  },
+  {
+    id: 'gpnu-digital', n: '02', icon: BrainCircuit,
+    school: '广东技术师范大学', lab: '数字经济创新实验室', en: 'DIGITAL ECONOMY INNOVATION LAB',
+    city: '广州', province: '广东', year: '2025.04', type: '师范类 · 本科',
+    summary: '服务财经学院数字经济、金融科技专业的实践与创新实验室，高仿真场景 + 全球行情实时展示，兼顾沙盘体验与虚拟仿真教学。',
+    specs: [ { k: '面积', v: '160㎡' }, { k: '学生机位', v: '56' }, { k: '教师机位', v: '1' } ],
+    regions: ['金融数据实时可视化分析', '智能投研模拟', '区块链技术应用', '虚拟仿真教学'],
+    hardware: ['LED 数据可视化大屏', '金融行情跑马灯 · 多点触控平台', 'AI 云平台摄像机 · 录播系统'],
+    software: ['金融行情数据可视化系统', '金融模拟交易系统', '金融科技实训教学平台', '区块链金融应用平台', '数字经济多点触控虚拟仿真平台'],
+    highlight: '多屏交互 + AI 云平台 + 智能环境控制，打造教学、科研、产业应用一体的数字化平台。',
+    imgs: ['/images/labcases/lab-02-1.webp', '/images/labcases/lab-02-2.webp'],
+  },
+  {
+    id: 'xysu-fintech', n: '03', icon: Network,
+    school: '兴义民族师范学院', lab: '数字经济与金融科技实验室', en: 'DIGITAL ECONOMY & FINTECH LAB',
+    city: '兴义', province: '贵州', year: '2025.12', type: '民族师范 · 本科',
+    summary: '一站式金融实训平台，支撑学生从理论认知到看盘、技术分析、模拟下单的全流程实践，同时服务教师科研与产学研协同转化。',
+    specs: [ { k: '面积', v: '200㎡' }, { k: '学生机位', v: '66' }, { k: '教师机位', v: '1' } ],
+    regions: ['学生实践创新能力', '教师科研与教学优化', '产学研协同转化'],
+    hardware: ['LED 数据可视化大屏', '金融资讯行情跑马灯', '教学一体机 · 精品录播设备'],
+    software: ['投资银行教学系统', '金融衍生品交易教学系统', '金融数据分析终端系统', '金融量化交易分析系统', '企业投融资分析实训系统', '金融科技风控管理综合平台'],
+    highlight: '促进学院从「教学—科研」向「产学研用」一体化成果转化，服务地方经济。',
+    imgs: ['/images/labcases/lab-03-1.webp', '/images/labcases/lab-03-2.webp', '/images/labcases/lab-03-3.webp', '/images/labcases/lab-03-4.webp'],
+  },
+  {
+    id: 'gdcm-literacy', n: '04', icon: GaugeCircle,
+    school: '广东财贸职业学院', lab: '智慧财经素养沁润中心', en: 'SMART FINANCIAL LITERACY CENTER',
+    city: '广州', province: '广东', year: '2025.12', type: '高职 · 职业学院',
+    summary: '以《中国财经素养教育标准框架》为指导，打造集五大区域于一体的财经素养沁润中心，面向学生与中小学生开展科普与实训。',
+    specs: [ { k: '功能区域', v: '5 区' }, { k: '指导标准', v: '国家框架' }, { k: '出口', v: '财商大讲堂' } ],
+    regions: ['币海探秘区', '财金智趣区', '风险透视区', '财智实战区', '财经风云区'],
+    hardware: ['智能导览机器人', '数字人民币实训柜台', '财金智趣交互压感数字集成系统', '互动魔镜打卡'],
+    software: ['财经素养测评系统', '金融实时行情系统', '数字经济可视化系统', '财经素养动画游戏互动系统'],
+    highlight: '数字人民币教学业务、证券模拟交易、保险业务拓展三者融合，还原真实现代金融场景。',
+    imgs: ['/images/labcases/lab-04-1.webp', '/images/labcases/lab-04-2.webp', '/images/labcases/lab-04-3.webp', '/images/labcases/lab-04-4.webp', '/images/labcases/lab-04-5.webp', '/images/labcases/lab-04-6.webp'],
+  },
+  {
+    id: 'gxtc-aimarketing', n: '05', icon: Sparkles,
+    school: '广西金融职业技术学院', lab: 'AI 数字金融营销开放产教融合中心', en: 'AI DIGITAL FINANCE MARKETING HUB',
+    city: '南宁', province: '广西', year: '2025.12', type: '高职 · 国家级产教融合',
+    summary: '定位为国家级开放型区域产教融合实践中心，集教学、实训、科研、社会服务一体，培养复合型 AI 金融营销人才。',
+    specs: [ { k: '定位', v: '国家级' }, { k: '区域面积', v: '147㎡ × 2' }, { k: '功能', v: '展示+体验+教学' } ],
+    regions: ['AI 金融营销实战中心', '金融新媒体营销实践中心', '数字营销直播间'],
+    hardware: ['金融数据可视化展示', '一体化智能直播录播设备', 'AI 智能陪练终端'],
+    software: ['数字金融培训系统', 'AI 智能陪练', '金融新媒体营销业务实践'],
+    highlight: '「金融 + 科技 + 职业」三位一体，线上线下金融营销模式全场景模拟。',
+    imgs: ['/images/labcases/lab-05-1.webp', '/images/labcases/lab-05-2.webp', '/images/labcases/lab-05-3.webp', '/images/labcases/lab-05-4.webp'],
+  },
+  {
+    id: 'pzxy-quant', n: '06', icon: LineChart,
+    school: '广东培正学院', lab: '金融证券与量化投资实验室', en: 'SECURITIES & QUANTITATIVE INVESTMENT LAB',
+    city: '广州', province: '广东', year: '2024.03', type: '民办本科',
+    summary: '以模拟证券交易环境为核心，为金融专业学生打造「一站式」证券模拟与量化投资实训平台，同时服务教师教学与科研。',
+    specs: [ { k: '面积', v: '174㎡' }, { k: '工位', v: '50 人' }, { k: '核心', v: '证券模拟' } ],
+    regions: ['证券模拟交易', '量化投资实训', '大数据分析'],
+    hardware: ['LED 数据可视化大屏 · 跑马灯', '纳米触控智慧黑板 · 电子白板', '录播 · 互动视频会议 · 飞屏器 · 数位手写板'],
+    software: ['金融模拟交易系统', '投资银行教学系统', '大数据分析挖掘系统', '金融行情可视化系统'],
+    highlight: '前沿金融证券教学实践环境，学生实操与教师科研设备双提升。',
+    imgs: ['/images/labcases/lab-06-1.webp', '/images/labcases/lab-06-2.webp', '/images/labcases/lab-06-3.webp'],
+  },
+  {
+    id: 'hbsy-factory', n: '07', icon: Building2,
+    school: '湖北商贸学院', lab: '新金融智慧学习工厂', en: 'NEW FINANCE SMART LEARNING FACTORY',
+    city: '武汉', province: '湖北', year: '2022.10', type: '本科 · 省级首个',
+    summary: '湖北省首个「新金融智慧学习工厂」，约 800㎡ 两层 144 机位，全场景全时段模拟世界主要证券交易所的行情与交易环境。',
+    specs: [ { k: '面积', v: '约 800㎡' }, { k: '楼层', v: '2 层' }, { k: '学生机位', v: '144' } ],
+    regions: ['证券仿真交易实训室', '金融大数据实验室', '金融职业素养实验室', '金融创新创业实践基地'],
+    hardware: ['DS-C21N 分布式多屏控制器', '全息投影 · 多屏金融分析工作站', 'LED 滚动柔性屏 · 金融可视化大屏'],
+    software: ['量化投资交易 / 智能理财分析', '区块链金融实训 · 商业银行综合业务', '全球金融数据终端', '财经大数据竞赛平台'],
+    highlight: '24 小时不间断真实反映深交所、上交所、纽交所、纳斯达克的信息流、资金流与数据流，获多家媒体报道。',
+    imgs: ['/images/labcases/lab-07-1.webp', '/images/labcases/lab-07-2.webp', '/images/labcases/lab-07-3.webp', '/images/labcases/lab-07-4.webp'],
+  },
+  {
+    id: 'sias-fintech', n: '08', icon: Cpu,
+    school: '郑州西亚斯学院', lab: '金融科技实验室', en: 'FINTECH LAB',
+    city: '郑州', province: '河南', year: '—', type: '本科 · 新金融学习工厂',
+    summary: '依据专业发展与人培方案建设的新一代金融智慧学习工厂，并依托该实验教学平台申报虚拟仿真实验教学项目。',
+    specs: [ { k: '面积', v: '200+㎡' }, { k: '学生机位', v: '100' }, { k: '教师机位', v: '2' } ],
+    regions: ['智慧银行经营决策', '智能理财分析', '金融模拟交易', '量化投资'],
+    hardware: ['LED 数据可视化大屏 · 金融行情跑马灯', '智慧处理器 · 摄像头 · 飞屏器', '信息展示屏 · 音响功放'],
+    software: ['智慧银行经营决策软件', '智能理财分析教学系统', '量化投资交易平台', '金融大数据分析实验平台 · 实时行情'],
+    highlight: '支撑现有专业实验教学需求，同时作为虚拟仿真实验教学项目的建设底座。',
+    imgs: ['/images/labcases/lab-08-1.webp', '/images/labcases/lab-08-2.webp', '/images/labcases/lab-08-3.webp'],
+  },
+  {
+    id: 'xa-mingde', n: '09', icon: Server,
+    school: '西安明德理工学院', lab: '数字化综合金融实验室', en: 'DIGITAL COMPREHENSIVE FINANCE LAB',
+    city: '西安', province: '陕西', year: '2024.12', type: '本科 · 理工',
+    summary: '面向综合金融教学的数字化实验室，覆盖量化投资、大数据分析、银行国际结算与外汇交易，软硬件一体交付。',
+    specs: [ { k: '面积', v: '160㎡' }, { k: '学生机位', v: '50' }, { k: '教师机位', v: '1' } ],
+    regions: ['量化投资交易', '金融大数据分析', '国际结算与外汇交易'],
+    hardware: ['可视化大屏幕系统 · LED 跑马灯', '纳米触控智慧黑板 · 录播 · 互动视频会议', '飞屏器 · 数位手写板'],
+    software: ['量化投资交易平台', '金融大数据分析挖掘系统', '银行国际结算及外汇交易系统', '金融数据终端'],
+    highlight: '可视化大屏与智慧课堂设备一体化，兼顾讲授、实训与数据分析。',
+    imgs: ['/images/labcases/lab-09-1.webp', '/images/labcases/lab-09-2.webp', '/images/labcases/lab-09-3.webp'],
+  },
+]
+
+/* 案例集聚合口径：数字全部由上面 9 条真实数据汇总，不另立说法 */
+export const labCaseStats = [
+  { k: '标杆院校', v: 9, suffix: ' 所' },
+  { k: '实验室 / 中心', v: 12, suffix: '+' },
+  { k: '累计实训机位', v: 470, suffix: '+' },
+  { k: '累计建设面积', v: 2700, suffix: '㎡+' },
+  { k: '覆盖省市', v: 6, suffix: ' 个' },
+]
+
 /* ---------------- 客户 logo 墙（自旧站 sztzjy.com「客户案例 · 合作客户」迁移）----------------
-   30 家真实服务过的单位：25 所院校 + 5 家金融机构。图为白底 logo，故在浅色卡片里
+   38 家真实服务过的单位：33 所院校 + 5 家金融机构。多为白底 / 透明 logo，故在浅色卡片里
    object-contain 展示；kind 分 school / corp，cat 是给人看的简短类别。 */
 export const clientLogos = [
   { name: '清华大学', img: '/images/cases/case-10.png', kind: 'school', cat: '综合' },
@@ -446,6 +580,15 @@ export const clientLogos = [
   { name: '皖西学院', img: '/images/cases/case-01.jpg', kind: 'school', cat: '本科' },
   { name: '滁州学院', img: '/images/cases/case-15.jpg', kind: 'school', cat: '本科' },
   { name: '深圳市龙岗区第二职业技术学校', img: '/images/cases/case-21.jpg', kind: 'school', cat: '中职' },
+  /* ―― 案例集新增院校（校徽取自维基共享 / 各校官网），补齐地图全息板 logo ―― */
+  { name: '深圳北理莫斯科大学', img: '/images/cases/case-31.png', kind: 'school', cat: '中外合作' },
+  { name: '广东技术师范大学', img: '/images/cases/case-32.png', kind: 'school', cat: '师范' },
+  { name: '广东财贸职业学院', img: '/images/cases/case-33.png', kind: 'school', cat: '高职' },
+  { name: '广东培正学院', img: '/images/cases/case-34.png', kind: 'school', cat: '民办本科' },
+  { name: '郑州西亚斯学院', img: '/images/cases/case-35.png', kind: 'school', cat: '民办本科' },
+  { name: '湖北商贸学院', img: '/images/cases/case-36.png', kind: 'school', cat: '民办本科' },
+  { name: '西安明德理工学院', img: '/images/cases/case-37.png', kind: 'school', cat: '民办本科' },
+  { name: '兴义民族师范学院', img: '/images/cases/case-38.png', kind: 'school', cat: '师范' },
   { name: '招商证券', img: '/images/cases/case-26.jpg', kind: 'corp', cat: '证券' },
   { name: '中国银河证券', img: '/images/cases/case-28.jpg', kind: 'corp', cat: '证券' },
   { name: '广发期货', img: '/images/cases/case-29.jpg', kind: 'corp', cat: '期货' },
@@ -501,7 +644,7 @@ export const aboutBeliefs = [
 export const aboutProof = [
   { icon: BookOpenCheck, k: '发明专利', v: '4 项', note: '多智能体编排、代码沙箱、数字孪生引擎方向' },
   { icon: FileSearch, k: '软件著作权', v: '60+', note: '覆盖平台各子系统与实验模块' },
-  { icon: Network, k: '合作高校', v: '100+', note: '覆盖 30+ 省市与 30+ 学科' },
+  { icon: Network, k: '合作高校', v: '300+', note: '覆盖 26 个省市与 30+ 学科' },
   { icon: Boxes, k: '在跑实训系统', v: '37 套', note: '自旧平台迁移并持续使用，含 492 条实验项目' },
 ]
 

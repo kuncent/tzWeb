@@ -6,19 +6,11 @@
  * ============================================================ */
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Inbox, FileText, Users as UsersIcon, Settings as SettingsIcon, ExternalLink, LogOut, ChevronDown, ShieldCheck } from 'lucide-react'
+import { ExternalLink, LogOut, ChevronDown, ShieldCheck, Settings as SettingsIcon } from 'lucide-react'
 import { useAuth } from './AuthContext'
 import { cx, Badge, Spinner } from './ui'
-
-const NAV = [
-  { path: '/admin', label: '概览', icon: LayoutDashboard, perm: null, end: true },
-  { path: '/admin/leads', label: '线索管理', icon: Inbox, perm: 'leads.read' },
-  { path: '/admin/content', label: '内容编辑', icon: FileText, perm: 'content.read' },
-  { path: '/admin/users', label: '用户与权限', icon: UsersIcon, perm: 'users.manage' },
-  { path: '/admin/settings', label: '个人设置', icon: SettingsIcon, perm: null, end: true },
-]
-
-const roleLabel = { owner: '超级管理员', admin: '管理员', editor: '编辑', viewer: '只读' }
+import { ROLE_LABEL as roleLabel, ROLE_TONE as roleTone } from '../../server/roles.mjs'
+import { NAV_GROUPS } from './nav.js'
 
 export default function Shell() {
   const { user, can, logout } = useAuth()
@@ -26,7 +18,10 @@ export default function Shell() {
   const [menu, setMenu] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
 
-  const items = NAV.filter((n) => can(n.perm))
+  const groups = NAV_GROUPS
+    .map((g) => ({ ...g, items: g.items.filter((n) => can(n.perm)) }))
+    .filter((g) => g.items.length)
+  const itemCount = groups.reduce((n, g) => n + g.items.length, 0)
 
   const doLogout = async () => {
     setLoggingOut(true)
@@ -63,7 +58,7 @@ export default function Shell() {
                   <div className="border-b border-ink-900/6 px-4 py-3">
                     <p className="truncate text-[13px] font-semibold text-ink-900">{user?.name}</p>
                     <p className="mt-0.5 truncate text-[12px] text-ink-400">{user?.email}</p>
-                    <Badge tone="brand" className="mt-2">{roleLabel[user?.role] || user?.role}</Badge>
+                    <Badge tone={roleTone[user?.role] || 'neutral'} className="mt-2">{roleLabel[user?.role] || user?.role}</Badge>
                   </div>
                   <Link to="/admin/settings" onClick={() => setMenu(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-ink-700 transition-colors hover:bg-mist-100">
                     <SettingsIcon className="h-4 w-4 text-ink-400" /> 个人设置
@@ -81,32 +76,40 @@ export default function Shell() {
       <div className="flex flex-1">
         {/* 侧栏 */}
         <aside className="hidden w-56 shrink-0 flex-col border-r border-ink-900/8 bg-white/60 px-3 py-4 md:flex">
-          <nav className="space-y-0.5">
-            {items.map((n) => (
-              <NavLink
-                key={n.path}
-                to={n.path}
-                end={n.end || n.path === '/admin'}
-                className={({ isActive }) =>
-                  cx(
-                    'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors',
-                    isActive ? 'bg-ink-900 text-white' : 'text-ink-500 hover:bg-mist-200 hover:text-ink-900',
-                  )
-                }
-              >
-                <n.icon className="h-4 w-4" />
-                {n.label}
-              </NavLink>
+          <nav className="space-y-4">
+            {groups.map((g) => (
+              <div key={g.title}>
+                <p className="mb-1.5 px-3 text-[10.5px] uppercase tracking-wider text-ink-400">{g.title}</p>
+                <div className="space-y-0.5">
+                  {g.items.map((n) => (
+                    <NavLink
+                      key={n.path}
+                      to={n.path}
+                      end={n.end || n.path === '/admin'}
+                      className={({ isActive }) =>
+                        cx(
+                          'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors',
+                          isActive ? 'bg-ink-900 text-white' : 'text-ink-500 hover:bg-mist-200 hover:text-ink-900',
+                        )
+                      }
+                    >
+                      <n.icon className="h-4 w-4" />
+                      {n.label}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
             ))}
           </nav>
-          <p className="mt-auto px-3 pt-6 text-[11px] leading-relaxed text-ink-400">
-            共 {items.length} 个模块<br />按角色权限可见
-          </p>
+          <div className="mt-auto space-y-1 px-3 pt-6 text-[11px] leading-relaxed text-ink-400">
+            <p>共 {itemCount} 个模块・按角色可见</p>
+            <p className="text-ink-300">v{import.meta.env.PKG_VERSION}・天择未来教育</p>
+          </div>
         </aside>
 
         {/* 移动端顶部横滑导航 */}
         <div className="fixed bottom-0 left-0 right-0 z-20 flex gap-1 overflow-x-auto border-t border-ink-900/8 bg-white/95 px-2 py-1.5 backdrop-blur md:hidden">
-          {items.map((n) => (
+          {groups.flatMap((g) => g.items).map((n) => (
             <NavLink
               key={n.path}
               to={n.path}

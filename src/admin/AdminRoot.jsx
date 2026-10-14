@@ -5,6 +5,7 @@
  * 守卫只决定「看到什么」，每个接口调用仍会打到服务端二次鉴权，
  * 绕过这里也拿不到数据。
  * ============================================================ */
+import { useEffect } from 'react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './AuthContext'
 import { ToastProvider, Spinner } from './ui'
@@ -15,6 +16,10 @@ import Leads from './Leads'
 import Content from './Content'
 import Users from './Users'
 import Settings from './Settings'
+import Analytics from './Analytics'
+import Seo from './Seo'
+import Geo from './Geo'
+import Audit from './Audit'
 
 /* 路由级权限门：与侧栏 NAV 用同一套 perm，未命中的页直接不给渲染。
    数据边界始终在服务端（绕过这里照样 403），这里只是让「看不到的模块」
@@ -52,7 +57,11 @@ function Gate() {
         <Route index element={<Dashboard />} />
         <Route path="leads" element={<RequirePerm perm="leads.read"><Leads /></RequirePerm>} />
         <Route path="content" element={<RequirePerm perm="content.read"><Content /></RequirePerm>} />
-        <Route path="users" element={<RequirePerm perm="users.manage"><Users /></RequirePerm>} />
+        <Route path="analytics" element={<RequirePerm perm="analytics.read"><Analytics /></RequirePerm>} />
+        <Route path="seo" element={<RequirePerm perm="audit.read"><Seo /></RequirePerm>} />
+        <Route path="geo" element={<RequirePerm perm="audit.read"><Geo /></RequirePerm>} />
+        <Route path="audit" element={<RequirePerm perm="audit.read"><Audit /></RequirePerm>} />
+        <Route path="users" element={<RequirePerm perm="users.read"><Users /></RequirePerm>} />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
@@ -62,6 +71,14 @@ function Gate() {
 }
 
 export default function AdminRoot() {
+  /* 后台标签页标题：营销 index.html 的 <title> 是全站统一那一份，进后台要换成
+     专属标题（登录 / 骨架 / 外壳都在这棵子树里，一次设定即覆盖）。卸载时还原，
+     避免切回营销站时残留。 */
+  useEffect(() => {
+    const prev = document.title
+    document.title = '天择教育·管理后台'
+    return () => { document.title = prev }
+  }, [])
   return (
     <ToastProvider>
       <AuthProvider>

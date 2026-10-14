@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { aiProxy } from './server/ai-proxy.mjs'
+import pkg from './package.json' with { type: 'json' }
 
 /* 把 AI 代理挂进 Vite 自己：dev 与 preview 都能直接访问 /api/ai/*，
    不要求开发者额外起一个后端进程（Key 仍然只从 .env / 环境变量读，
@@ -22,11 +23,12 @@ function aiProxyPlugin() {
 const tunnelHosts = ['.lhr.life', '.serveo.net', '.pinggy.io', '.loca.lt', '.trycloudflare.com']
 
 export default defineConfig({
+  define: { 'import.meta.env.PKG_VERSION': JSON.stringify(pkg.version) },
   /* Tailwind 4 走官方 Vite 插件：postcss.config.js + autoprefixer 那条链路已拆，
      插件自己管编译与浏览器前缀。 */
   plugins: [tailwindcss(), react(), aiProxyPlugin()],
-  server: { allowedHosts: tunnelHosts },
-  preview: { allowedHosts: tunnelHosts },
+  server: { allowedHosts: tunnelHosts, headers: { 'content-security-policy': "frame-ancestors 'self'" } },
+  preview: { allowedHosts: tunnelHosts, headers: { 'content-security-policy': "frame-ancestors 'self'" } },
   /* ―― 把「只被 lazy() 动态链触达的重依赖」显式列进预打包 ――
      Vite 冷启动扫描顺静态 import 图找依赖，但首屏之下那 11 屏是 React.lazy 动态
      块（见 pages/Home.jsx），echarts / @openmaic / katex / pptxgen 这些只在这些块

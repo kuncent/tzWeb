@@ -8,6 +8,7 @@
  * ============================================================ */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import * as api from '../lib/adminApi'
+import { hasImplied } from '../../server/roles.mjs'
 
 const AuthCtx = createContext(null)
 
@@ -54,9 +55,7 @@ export function AuthProvider({ children }) {
   const can = useCallback(
     (perm) => {
       if (!perm) return !!user
-      if (perms.includes('*') || perms.includes(perm)) return true
-      const dot = perm.lastIndexOf('.')
-      return dot > 0 && perms.includes(perm.slice(0, dot) + '.*')
+      return hasImplied(perms, perm)
     },
     [perms, user],
   )

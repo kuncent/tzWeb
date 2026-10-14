@@ -29,9 +29,11 @@
 import http from 'node:http'
 import fs from 'node:fs'
 import path from 'node:path'
+import crypto from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import { generateDeck, offlineDeckEvents } from './maic-deck.mjs'
 import { handleAdmin, readPublishedContent, ensureAdminBoot, configureAdmin } from './admin.mjs'
+import { handleTrack } from './tracker.mjs'
 import { FILES, appendJsonl } from './data.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -389,6 +391,30 @@ function allowCors(req, res) {
 export async function aiProxy(req, res, next) {
   const url = (req.url || '/').replace(/^\/api\/ai/, '').split('?')[0] || '/'
 
+  /* 前端埋点上报：只收 POST /track，不鉴权（访客未登录）、按 IP 节流（15/min）。
+     成功一律回 204；失败回 4xx JSON，sendBeacon 不关心响应体。 */
+  if (url === '/track') {
+    allowCors(req, res)
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204).end()
+      return
+    }
+    if (req.method !== 'POST') {
+      res.writeHead(405).end()
+      return
+    }
+    let body = {}
+    try {
+      body = await readBody(req)
+    } catch {
+      res.writeHead(400).end()
+      return
+    }
+    const r = handleTrack(body, req)
+    res.writeHead(r.status).end()
+    return
+  }
+
   /* 管理后台：挂在同一 /api/ai 下的 /admin/*，零新增 Nginx 规则。
      委派要在下面统一 readBody 之前——handleAdmin 自己按方法读体。 */
   if (url === '/admin' || url.startsWith('/admin/')) {
@@ -399,15 +425,18 @@ export async function aiProxy(req, res, next) {
     }
     return handleAdmin(req, res, url, { json, readBody })
   }
-  /* 官网运行时内容覆盖：公开只读，免鉴权，返回已发布的 content.json */
+  /* 官网运行时内容覆盖：公开只读，免鉴权，返回已发布的 content.json（带 ETag 缓存协商） */
   if (url === '/content') {
     allowCors(req, res)
     if (req.method === 'OPTIONS') {
       res.writeHead(204).end()
       return
     }
-    res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' })
-    res.end(JSON.stringify(readPublishedContent()))
+    const body = JSON.stringify(readPublishedContent())
+    const etag = '"' + crypto.createHash('md5').update(body).digest('hex').slice(0, 16) + '"'
+    if (req.headers['if-none-match'] === etag) { res.writeHead(304).end(); return }
+    res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-cache', etag })
+    res.end(body)
     return
   }
 

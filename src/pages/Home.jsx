@@ -21,11 +21,9 @@ const importProblems = () => import('../components/sections/Problems')
 const importAIAdvisor = () => import('../components/sections/AIAdvisor')
 const importProductMatrix = () => import('../components/sections/ProductMatrix')
 const importArchitecture = () => import('../components/sections/Architecture')
-const importFeatures = () => import('../components/sections/Features')
 const importAICapability = () => import('../components/sections/AICapability')
 const importDelivery = () => import('../components/sections/Delivery')
 const importCustomers = () => import('../components/sections/Customers')
-const importValueLedger = () => import('../components/sections/ValueLedger')
 const importResources = () => import('../components/sections/Resources')
 const importContact = () => import('../components/sections/Contact')
 
@@ -35,11 +33,9 @@ const importContact = () => import('../components/sections/Contact')
   importAIAdvisor,
   importProductMatrix,
   importArchitecture,
-  importFeatures,
   importAICapability,
   importDelivery,
   importCustomers,
-  importValueLedger,
   importResources,
   importContact,
 ].forEach((m) => m())
@@ -96,11 +92,9 @@ export default function Home() {
           <Sec id="advisor" loader={importAIAdvisor} />
           <Sec id="matrix" loader={importProductMatrix} />
           <Sec id="architecture" loader={importArchitecture} />
-          <Sec id="features" loader={importFeatures} />
           <Sec id="ai" loader={importAICapability} />
           <Sec id="delivery" loader={importDelivery} />
           <Sec id="customers" loader={importCustomers} />
-          <Sec id="value" loader={importValueLedger} />
           <Sec id="resources" loader={importResources} />
           <Sec id="contact" loader={importContact} />
         </>

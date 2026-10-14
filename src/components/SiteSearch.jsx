@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { Search, CornerDownLeft } from 'lucide-react'
 import { nav, anchorSections } from '../data/site'
+import { devices, deviceTypes } from '../data/devices'
 import { solutionScenes, techDetail, disciplineGroups } from '../data/pages'
 import { productMatrix } from '../data/site'
 
@@ -24,6 +25,8 @@ function buildIndex() {
   solutionScenes.forEach((s) => out.push({ label: s.name, kind: '解决方案', to: `/solutions#${s.id}`, sub: s.line }))
   disciplineGroups.forEach((g) => out.push({ label: g.name, kind: '学科', to: '/solutions#disciplines', sub: g.majors.join('、') }))
   techDetail.forEach((t) => out.push({ label: t.name, kind: '技术底座', to: '/technology#bases', sub: t.thesis }))
+  const typeName = (id) => deviceTypes.find((t) => t.id === id)?.zh || '设备'
+  devices.forEach((d) => out.push({ label: d.name, kind: '产品设备', to: `/devices#${d.type}`, sub: `${typeName(d.type)} · ${d.tag}` }))
   out.push({ label: '交付路径', kind: '首页板块', to: '/#delivery' })
   out.push({ label: '联系我们 / 预约演示', kind: '页面', to: '/#contact' })
   return out

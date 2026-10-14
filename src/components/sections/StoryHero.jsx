@@ -2,6 +2,7 @@ import { Component, Suspense, lazy, useCallback, useEffect, useRef, useState } f
 import { AnimatePresence, motion } from 'motion/react'
 import { ArrowUpRight, ChevronDown, Radar } from 'lucide-react'
 import { heroScenes, heroMeta } from '../../data/heroScenes'
+import { useHeroScenes, useContent } from '../../lib/contentStore'
 import EmbodiedConsole from '../hero/EmbodiedConsole'
 import BuildStepper from '../hero/BuildStepper'
 import { getBuildStage, markHeroReady, selectDevice, skipBuild } from '../three/hero/buildBus'
@@ -247,6 +248,12 @@ export default function StoryHero() {
   const pctRef = useRef(null)
   const [cmd, setCmd] = useState({ id: '', n: 0 })
   const lastUser = useRef(0)
+  /* 首屏可编辑文案：从发布 overlay 取（后台"内容编辑 → 首屏三屏"改了就生效），
+     拉不到即回落 heroScenes / heroMeta 默认。scenes 与 heroScenes 同长、同结构，
+     只多了被覆盖的文本字段；索引与 3D 指令仍按 heroScenes 原序对齐。 */
+  const scenes = useHeroScenes()
+  const heroBrand = useContent('heroMeta.brand', heroMeta.brand)
+  const heroEyebrow = useContent('heroMeta.eyebrow', heroMeta.eyebrow)
 
   /* 能力探测：WebGL / 减弱动效 / 视口宽度。三个都不满足时首屏退成纯 CSS + 看板 */
   const [env, setEnv] = useState({ gl: true, reduced: false, desktop: true })
@@ -426,7 +433,7 @@ export default function StoryHero() {
     else window.scrollTo({ top: y, behavior: 'smooth' })
   }
 
-  const scene = heroScenes[idx]
+  const scene = scenes[idx]
   const Console = CONSOLES[idx]
   const still = env.reduced
 
@@ -558,7 +565,7 @@ export default function StoryHero() {
               </span>
 
               <div className="pointer-events-auto flex items-center gap-1.5">
-                {heroScenes.map((s, i) => {
+                {scenes.map((s, i) => {
                   const on = i === idx
                   return (
                     <button
@@ -604,10 +611,10 @@ export default function StoryHero() {
       {/* ―― 移动 / 平板：纵向堆叠，纯 CSS 动底 + 看板照旧可点 ―― */}
       <div className="lg:hidden">
         <div className="border-b border-white/[0.06] px-6 pb-3 pt-16">
-          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/35">{heroMeta.eyebrow}</p>
-          <p className="mt-1 text-[12px] text-white/50">{heroMeta.brand}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/35">{heroEyebrow}</p>
+          <p className="mt-1 text-[12px] text-white/50">{heroBrand}</p>
         </div>
-        {heroScenes.map((s, i) => (
+        {scenes.map((s, i) => (
           <MobileScene key={s.id} scene={s} index={i} still={still} />
         ))}
       </div>

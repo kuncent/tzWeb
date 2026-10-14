@@ -318,7 +318,7 @@ export function ScrollProgress() {
 const normStat = (s) => {
   if (s.value !== undefined) return { v: s.value, suffix: s.suffix || '', raw: String(s.value ?? ''), k: s.label || '', countable: true }
   const raw = String(s.v ?? '').trim()
-  const m = raw.match(/^(\d{1,3}(?:,\d{3})*|\d+)\s*(.*)$/)
+  const m = raw.match(/^(\d[\d,]*)\s*(.*)$/)
   const numeric = m ? Number(m[1].replace(/,/g, '')) : null
   const suffix = m ? m[2] : ''
   const countable = numeric !== null && !/[→±/]/.test(raw) && !/\.\d/.test(raw)

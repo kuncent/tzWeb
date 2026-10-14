@@ -45,7 +45,7 @@ export default function Delivery() {
     <section id="delivery" ref={rootRef} className="relative bg-mist-100 sec-y">
       <div className="container-x">
         <SectionHead
-          id="delivery" n="07"
+          id="delivery" n="06"
           en="DELIVERY PATH"
           zh="从第一次见面，到学生拿出作品"
           sub="六步交付路径。周期按一个院系的首批建设估算，多院系并行时第 02 步之后可以拆开走。"

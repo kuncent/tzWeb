@@ -13,7 +13,7 @@ import { advisorKicker, advisorTitle, advisorDesc, advisorCtas, advisorStats, ad
 function scrollToContact() {
   const el = document.getElementById('contact')
   if (!el) return
-  if (window.__lenis) window.__lenis.scrollTo(el, { offset: -120 })
+  if (window.__lenis) window.__lenis.scrollTo(el, { offset: -64 })
   else el.scrollIntoView({ behavior: 'smooth' })
 }
 

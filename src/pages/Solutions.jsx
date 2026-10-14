@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
-import { PageHero, InnerNav, PageSection, PageCTA } from '../components/PageShell'
+import { PageHero, InnerNav, PageSection, PageCTA, HeroFrame } from '../components/PageShell'
 import { Reveal, StatBand, EASE } from '../components/ui'
 import { scrollToId } from '../hooks/useLenis'
 import { solutionScenes, disciplineGroups, buildForms } from '../data/pages'
@@ -157,40 +157,93 @@ function SceneDetail({ scene }) {
   )
 }
 
-/* 首屏右半不是装饰：五类场景的目录直接摆在这里。点一行 = 选中那个场景
-   + 跳到下方详情，省掉「先滚下去、再找是哪一格」那两步。 */
+/* 首屏右半：五类场景的「实景窗口」——不是装饰，是让决策人一眼看到
+   「这类实验室建成后长什么样」。主图按场景实景图自动轮播（Ken Burns
+   缓慢推拉 + 交叉淡入），下方一条轻目录：悬停即切到该场景，点击直达详情。 */
+const SCENE_MS = 3600
 function HeroSceneRail({ scenes, onPick }) {
+  const reduced = useReducedMotion()
+  const [cur, setCur] = useState(0)
+  const [paused, setPaused] = useState(false)
+
+  useEffect(() => {
+    if (reduced || paused) return
+    const t = setInterval(() => setCur((c) => (c + 1) % scenes.length), SCENE_MS)
+    return () => clearInterval(t)
+  }, [reduced, paused, scenes.length])
+
+  const active = scenes[cur]
+
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
-      <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/70 to-transparent" />
-      <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-3">
-        <span className="font-mono text-[10px] uppercase tracking-[0.26em] text-white/40">Five scenarios</span>
-        <span className="text-[11px] text-white/35">点击直达</span>
-      </div>
-      <ul>
-        {scenes.map((s, i) => (
-          <motion.li
-            key={s.id}
-            initial={{ opacity: 0, x: 14 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.26 + i * 0.07, duration: 0.5, ease: EASE }}
-          >
-            <button
-              type="button"
-              onClick={() => onPick(s.id)}
-              className="group flex w-full items-center gap-4 border-b border-white/[0.05] px-5 py-3 text-left transition-colors duration-300 hover:bg-white/[0.05] last:border-0"
-            >
-              <span className="font-mono text-[10.5px] tabular-nums text-brand-400/80">{s.n}</span>
-              <span className="h-7 w-px shrink-0 bg-white/10 transition-colors duration-300 group-hover:bg-brand-400" />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[14px] font-medium text-white/85 transition-colors group-hover:text-white">{s.name}</span>
-                <span className="mt-0.5 block truncate font-mono text-[9.5px] uppercase tracking-[0.16em] text-white/30">{s.en}</span>
-              </span>
-              <ArrowRight className="h-4 w-4 shrink-0 text-white/25 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-brand-400" />
-            </button>
-          </motion.li>
-        ))}
-      </ul>
+    <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <HeroFrame label="五大建设场景 · Five scenarios">
+        {/* 实景主图收进一圈「屏幕」里：截图不再顶到画框边缘，
+            顶部标签有呼吸位，巨幅叠字改为左下角小徽标 + 右侧关键指标。 */}
+        <div className="p-3 sm:p-4">
+          <div className="relative h-[210px] overflow-hidden rounded-xl bg-night ring-1 ring-white/10 sm:h-[240px]">
+            <AnimatePresence>
+              <motion.img
+                key={active.id}
+                src={active.img}
+                alt={active.name}
+                width={active.imgW}
+                height={active.imgH}
+                decoding="async"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, scale: reduced ? 1 : [1, 1.08] }}
+                exit={{ opacity: 0 }}
+                transition={{ opacity: { duration: 0.75, ease: 'easeInOut' }, scale: { duration: SCENE_MS / 1000, ease: 'linear' } }}
+                className="absolute inset-0 h-full w-full object-cover object-center"
+              />
+            </AnimatePresence>
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#04070d]/88 via-[#04070d]/10 to-transparent" />
+            {/* 底部：左下场景名小徽标 · 右下两条关键指标 */}
+            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-3.5 sm:p-4">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.35, ease: EASE }}
+                >
+                  <p className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-brand-300">{active.n} · {active.en}</p>
+                  <h3 className="mt-0.5 text-[15px] font-semibold tracking-tight text-white sm:text-[16px]">{active.name}</h3>
+                </motion.div>
+              </AnimatePresence>
+              <div className="hidden shrink-0 gap-4 sm:flex">
+                {active.metrics.slice(0, 2).map((m) => (
+                  <div key={m.k} className="text-right">
+                    <p className="text-[14px] font-bold leading-none tracking-tight text-white tabular-nums">{m.v}</p>
+                    <p className="mt-1 text-[9.5px] text-white/50">{m.k}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* 轻目录：悬停切主图，点击直达下方详情 */}
+        <ul className="grid grid-cols-5 border-t border-white/[0.07]">
+          {scenes.map((s, i) => (
+            <li key={s.id}>
+              <button
+                type="button"
+                onMouseEnter={() => setCur(i)}
+                onFocus={() => setCur(i)}
+                onClick={() => onPick(s.id)}
+                aria-current={i === cur}
+                className={`relative flex h-full w-full flex-col items-center gap-1 px-1 py-3 text-center transition-colors duration-300 ${i > 0 ? 'border-l border-white/[0.06]' : ''} ${i === cur ? 'text-white' : 'text-white/45 hover:text-white/75'}`}
+              >
+                {i === cur && (
+                  <motion.span layoutId="scene-rail-active" transition={{ type: 'spring', stiffness: 380, damping: 34 }} className="absolute inset-0 rounded-lg bg-white/[0.07] ring-1 ring-inset ring-brand/30" />
+                )}
+                <span className="relative font-mono text-[10px] tabular-nums text-brand-400/90">{s.n}</span>
+                <span className="relative line-clamp-2 text-[11px] font-medium leading-tight">{s.name}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </HeroFrame>
     </div>
   )
 }
@@ -218,7 +271,7 @@ export default function Solutions() {
           { k: '建设场景', v: '5 类' },
           { k: '在跑实训系统', v: '37 套' },
           { k: '适用专业', v: '25 个' },
-          { k: '合作高校', v: '100+' },
+          { k: '合作高校', v: '300+' },
         ]}
         cta={[
           { label: '预约方案沟通', to: '/#contact', primary: true },

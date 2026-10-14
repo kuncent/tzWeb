@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "ai": "node server/ai-proxy.mjs"
+    "ai": "node server/ai-proxy.mjs",
+    "pull-ipdb": "node scripts/pull-ipdb.mjs",
+    "backfill-geo": "node scripts/backfill-geo.mjs"
   },
   "dependencies": {
     "@openmaic/dsl": "^0.11.2",

@@ -74,7 +74,7 @@ function fly(el, offset, tries = 3, immediate = false) {
    才挂（见 pages/Home.jsx 那段归因），拿不到元素不等于没这个板块。
    原来 Navbar 与路由跳转都是直接 getElementById，拿不到就 return —— 首屏刚出来
    那一下点导航会静默失灵，这比多等 200ms 严重点 */
-export function scrollToId(id, offset = -120) {
+export function scrollToId(id, offset = -64) {
   const t0 = performance.now()
   let lastTop = -1
   let stable = 0

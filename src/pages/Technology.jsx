@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
-import { PageHero, InnerNav, PageSection, PageCTA } from '../components/PageShell'
+import { motion, useReducedMotion } from 'motion/react'
+import { PageHero, InnerNav, PageSection, PageCTA, HeroFrame } from '../components/PageShell'
+import ElectricBorder from '../components/reactbits/ElectricBorder'
 import { Reveal, StatBand } from '../components/ui'
 import { techDetail, techAssurance } from '../data/pages'
 import { aiAgents, aiEngine } from '../data/site'
@@ -105,7 +107,99 @@ function BaseBlock({ base, i }) {
   )
 }
 
+/* 首屏右半：把「四大自研引擎撑起一个技术核心」直接画出来——
+   中心一颗电流描边的科技球（ElectricBorder，WebGL），四个引擎节点
+   沿虚线轨道缓慢公转（标签反向自转保持正立），整体上下浮动。
+   prefers-reduced-motion 下全部静止，只剩静态的科技球与四角节点。 */
+const ENGINE_SHORT = { agent: '多智能体课堂', nl2exp: '自然语言实验', twin: '数字孪生仿真', ledger: '可信账本底座' }
+const ORBIT_PTS = [
+  { left: '50%', top: '0%' },
+  { left: '100%', top: '50%' },
+  { left: '50%', top: '100%' },
+  { left: '0%', top: '50%' },
+]
+
+function HeroTechCore({ reduced }) {
+  return (
+    <HeroFrame label="全栈自研 · Core Engines">
+      <div className="relative h-[340px] sm:h-[360px]">
+        <motion.div
+          className="absolute left-1/2 top-1/2 aspect-square h-[316px] -translate-x-1/2 -translate-y-1/2 sm:h-[344px]"
+          animate={reduced ? undefined : { y: [0, -6, 0] }}
+          transition={{ duration: 7, repeat: reduced ? 0 : Infinity, ease: 'easeInOut' }}
+        >
+          {/* 柔光核（铺到更宽，填满画框中部） */}
+          <div aria-hidden className="pointer-events-none absolute inset-[12%] rounded-full bg-[radial-gradient(closest-side,rgba(22,119,255,0.24),transparent)] blur-lg" />
+          {/* 最外淡环（增加层次） */}
+          <div aria-hidden className="absolute inset-[3%] rounded-full border border-white/[0.05]" />
+          {/* 虚线轨道 */}
+          <motion.div
+            className="absolute inset-[10%] rounded-full border border-dashed border-white/[0.14]"
+            animate={reduced ? undefined : { rotate: 360 }}
+            transition={{ duration: 70, repeat: reduced ? 0 : Infinity, ease: 'linear' }}
+          />
+          {/* 中心科技球 + 电流描边（放大） */}
+          <div className="absolute inset-[25%]">
+            <ElectricBorder
+              color="#4ea8ff"
+              glowColor="#8ad0ff"
+              borderRadius={9999}
+              thickness={1.3}
+              intensity={0.55}
+              chaos={0.32}
+              spread={0.5}
+              strands={3}
+              arcs={1}
+              speed={0.9}
+              glow={0.4}
+              className="block h-full w-full"
+            >
+              <div className="h-full w-full overflow-hidden rounded-full border border-white/10">
+                <img
+                  src="/images/tech_orb.webp"
+                  alt="全栈技术矩阵核心"
+                  width={531}
+                  height={318}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </ElectricBorder>
+          </div>
+          {/* 四大引擎沿轨道公转 */}
+          <motion.div
+            className="absolute inset-[10%]"
+            animate={reduced ? undefined : { rotate: 360 }}
+            transition={{ duration: 38, repeat: reduced ? 0 : Infinity, ease: 'linear' }}
+          >
+            {techDetail.map((e, i) => {
+              const Icon = e.icon
+              return (
+                <div key={e.id} className="absolute -translate-x-1/2 -translate-y-1/2" style={ORBIT_PTS[i]}>
+                  <motion.div
+                    animate={reduced ? undefined : { rotate: -360 }}
+                    transition={{ duration: 38, repeat: reduced ? 0 : Infinity, ease: 'linear' }}
+                  >
+                    <div className="flex items-center gap-2 whitespace-nowrap rounded-full border border-white/[0.12] bg-[#04070d]/85 px-3 py-1.5 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                      <span className="grid h-6 w-6 place-items-center rounded-full bg-brand/15 text-brand-300">
+                        <Icon className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="text-[11.5px] font-medium text-white/85">{ENGINE_SHORT[e.id]}</span>
+                    </div>
+                  </motion.div>
+                </div>
+              )
+            })}
+          </motion.div>
+        </motion.div>
+      </div>
+    </HeroFrame>
+  )
+}
+
 export default function Technology() {
+  const reduced = useReducedMotion()
   return (
     <>
       <PageHero
@@ -124,17 +218,7 @@ export default function Technology() {
           { label: '看 AI 能力屏', to: '/#ai' },
         ]}
       >
-        <div className="overflow-hidden rounded-2xl border border-white/10">
-          <img
-            src="/images/tech_orb.webp"
-            alt="全栈式技术矩阵示意"
-            width={531}
-            height={318}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover"
-          />
-        </div>
+        <HeroTechCore reduced={reduced} />
       </PageHero>
 
       <InnerNav items={SECTIONS} />

@@ -1,335 +1,124 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { motion } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
 import { PageHero, InnerNav, PageSection, PageCTA, HeroFrame } from '../components/PageShell'
-import { Reveal, StatBand, EASE } from '../components/ui'
+import { Reveal } from '../components/ui'
 import { scrollToId } from '../hooks/useLenis'
-import { solutionScenes, disciplineGroups, buildForms } from '../data/pages'
-import { audiences, deliveryPath } from '../data/business'
-import BusinessArchitecture from '../components/sections/BusinessArchitecture'
+import { solutionPlans, disciplineGroups } from '../data/pages'
+import { deliveryPath } from '../data/business'
+import SolutionConsole from '../components/sections/SolutionConsole'
 
 const SECTIONS = [
-  { id: 'architecture', label: '业务架构' },
-  { id: 'scenes', label: '按场景' },
-  { id: 'disciplines', label: '按学科' },
-  { id: 'audiences', label: '按对象' },
-  { id: 'forms', label: '建设形态' },
+  { id: 'plans', label: '四大方案' },
+  { id: 'disciplines', label: '学科对接' },
   { id: 'delivery', label: '交付与部署' },
 ]
 
-/* 左列选中态的滑动底色：layoutId 让它从上一行滑到下一行，
-   而不是每行各自淡入淡出 —— 这类「连续位移」是动感的主要来源 */
-function SceneRow({ scene, i, on, onPick }) {
-  const Icon = scene.icon
+/* 首屏右半：四大方案的「目录轨」。不是装饰 —— 它是这一页的主入口，
+   悬停/点击即把下方主控台切到对应方案，并平滑滚过去。四张卡与主控台
+   左轨共享同一份 solutionPlans，说法与数字天然一致，不会两处打架。 */
+function HeroPlanRail({ plans, onPick }) {
+  const [hover, setHover] = useState(0)
   return (
-    <button
-      type="button"
-      onMouseEnter={() => onPick(scene.id)}
-      onFocus={() => onPick(scene.id)}
-      onClick={() => onPick(scene.id)}
-      aria-pressed={on}
-      className="relative block w-full rounded-2xl px-5 py-4 text-left transition-colors duration-300"
-    >
-      {on && (
-        <motion.span
-          layoutId="scene-active"
-          transition={{ type: 'spring', stiffness: 340, damping: 32 }}
-          className="absolute inset-0 rounded-2xl border border-brand/30 bg-white shadow-lift"
-        />
-      )}
-      {!on && <span className="absolute inset-0 rounded-2xl border border-transparent" />}
-      <span className="relative z-10 flex items-start gap-4">
-        <span
-          className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl transition-colors duration-300 ${
-            on ? 'bg-brand text-white' : 'bg-mist-200 text-ink-500'
-          }`}
-        >
-          <Icon className="h-[18px] w-[18px]" />
-        </span>
-        <span className="min-w-0">
-          <span className="flex items-baseline gap-2">
-            <span className="font-mono text-[10.5px] tabular-nums tracking-[0.18em] text-ink-400">{scene.n}</span>
-            <span className={`text-[16px] font-semibold tracking-tight transition-colors ${on ? 'text-ink-900' : 'text-ink-700'}`}>
-              {scene.name}
-            </span>
-          </span>
-          <span className={`mt-1 block text-[12.5px] leading-relaxed ${on ? 'text-ink-500' : 'text-ink-400'}`}>{scene.en}</span>
-        </span>
-      </span>
-    </button>
-  )
-}
-
-function SceneDetail({ scene }) {
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={scene.id}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.42, ease: EASE }}
-        className="overflow-hidden rounded-2xl border border-ink-900/[0.07] bg-white shadow-soft"
-      >
-        <div className="relative aspect-[16/9] overflow-hidden bg-night">
-          <img
-            src={scene.img}
-            alt={scene.name}
-            width={scene.imgW}
-            height={scene.imgH}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover object-right"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#04070d]/85 via-[#04070d]/25 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
-            <p className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-brand-300">{scene.en}</p>
-            <h3 className="mt-1.5 text-[22px] font-bold tracking-tight text-white md:text-[26px]">{scene.name}</h3>
-          </div>
-          <div className="absolute right-5 top-5 hidden gap-4 rounded-xl border border-white/15 bg-black/25 px-4 py-2.5 backdrop-blur-sm sm:flex">
-            {scene.metrics.map((m) => (
-              <div key={m.k} className="text-center">
-                <p className="text-[16px] font-bold leading-none tracking-tight text-white">{m.v}</p>
-                <p className="mt-1 text-[10.5px] text-white/55">{m.k}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="p-5 md:p-7">
-          <p className="text-[14.5px] leading-[1.85] text-ink-700">{scene.line}</p>
-
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
-            <div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-400">交付清单</p>
-              <ul className="mt-3 space-y-2">
-                {scene.deliver.map((d) => (
-                  <li key={d} className="flex items-start gap-2.5 text-[13.5px] leading-snug text-ink-700">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="mt-[3px] shrink-0 text-brand">
-                      <path d="M2 6.5 4.8 9 10 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    {d}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-400">建成后能拿到</p>
-              <ul className="mt-3 space-y-2">
-                {scene.outcome.map((o) => (
-                  <li key={o} className="flex items-start gap-2.5 text-[13.5px] leading-snug text-ink-900">
-                    <span className="mt-[7px] inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand/70" />
-                    {o}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-1.5">
-            {scene.stack.map((s) => (
-              <Link
-                key={s.label}
-                to={s.to}
-                className="rounded-full border border-ink-900/[0.08] bg-mist-100 px-3 py-1.5 text-[12px] text-ink-700 transition-colors duration-300 hover:border-brand/40 hover:bg-brand-50 hover:text-brand-700"
-              >
-                {s.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-6 border-t border-ink-900/[0.07] pt-5">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-400">常见对接院系</p>
-            <p className="mt-2 text-[13.5px] leading-relaxed text-ink-700">{scene.fit.join(' · ')}</p>
-          </div>
-
-          <Link
-            to="/#contact"
-            className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-ink-900 px-5 py-2.5 text-[13.5px] font-medium text-white transition-all duration-300 hover:bg-ink-800 hover:shadow-lift"
-          >
-            索取这套场景的方案书
-            <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-          </Link>
-        </div>
-      </motion.div>
-    </AnimatePresence>
-  )
-}
-
-/* 首屏右半：五类场景的「实景窗口」——不是装饰，是让决策人一眼看到
-   「这类实验室建成后长什么样」。主图按场景实景图自动轮播（Ken Burns
-   缓慢推拉 + 交叉淡入），下方一条轻目录：悬停即切到该场景，点击直达详情。 */
-const SCENE_MS = 3600
-function HeroSceneRail({ scenes, onPick }) {
-  const reduced = useReducedMotion()
-  const [cur, setCur] = useState(0)
-  const [paused, setPaused] = useState(false)
-
-  useEffect(() => {
-    if (reduced || paused) return
-    const t = setInterval(() => setCur((c) => (c + 1) % scenes.length), SCENE_MS)
-    return () => clearInterval(t)
-  }, [reduced, paused, scenes.length])
-
-  const active = scenes[cur]
-
-  return (
-    <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <HeroFrame label="五大建设场景 · Five scenarios">
-        {/* 实景主图收进一圈「屏幕」里：截图不再顶到画框边缘，
-            顶部标签有呼吸位，巨幅叠字改为左下角小徽标 + 右侧关键指标。 */}
-        <div className="p-3 sm:p-4">
-          <div className="relative h-[210px] overflow-hidden rounded-xl bg-night ring-1 ring-white/10 sm:h-[240px]">
-            <AnimatePresence>
-              <motion.img
-                key={active.id}
-                src={active.img}
-                alt={active.name}
-                width={active.imgW}
-                height={active.imgH}
-                decoding="async"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, scale: reduced ? 1 : [1, 1.08] }}
-                exit={{ opacity: 0 }}
-                transition={{ opacity: { duration: 0.75, ease: 'easeInOut' }, scale: { duration: SCENE_MS / 1000, ease: 'linear' } }}
-                className="absolute inset-0 h-full w-full object-cover object-center"
-              />
-            </AnimatePresence>
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#04070d]/88 via-[#04070d]/10 to-transparent" />
-            {/* 底部：左下场景名小徽标 · 右下两条关键指标 */}
-            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-3.5 sm:p-4">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={active.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.35, ease: EASE }}
-                >
-                  <p className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-brand-300">{active.n} · {active.en}</p>
-                  <h3 className="mt-0.5 text-[15px] font-semibold tracking-tight text-white sm:text-[16px]">{active.name}</h3>
-                </motion.div>
-              </AnimatePresence>
-              <div className="hidden shrink-0 gap-4 sm:flex">
-                {active.metrics.slice(0, 2).map((m) => (
-                  <div key={m.k} className="text-right">
-                    <p className="text-[14px] font-bold leading-none tracking-tight text-white tabular-nums">{m.v}</p>
-                    <p className="mt-1 text-[9.5px] text-white/50">{m.k}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* 轻目录：悬停切主图，点击直达下方详情 */}
-        <ul className="grid grid-cols-5 border-t border-white/[0.07]">
-          {scenes.map((s, i) => (
-            <li key={s.id}>
-              <button
-                type="button"
-                onMouseEnter={() => setCur(i)}
-                onFocus={() => setCur(i)}
-                onClick={() => onPick(s.id)}
-                aria-current={i === cur}
-                className={`relative flex h-full w-full flex-col items-center gap-1 px-1 py-3 text-center transition-colors duration-300 ${i > 0 ? 'border-l border-white/[0.06]' : ''} ${i === cur ? 'text-white' : 'text-white/45 hover:text-white/75'}`}
-              >
-                {i === cur && (
-                  <motion.span layoutId="scene-rail-active" transition={{ type: 'spring', stiffness: 380, damping: 34 }} className="absolute inset-0 rounded-lg bg-white/[0.07] ring-1 ring-inset ring-brand/30" />
-                )}
-                <span className="relative font-mono text-[10px] tabular-nums text-brand-400/90">{s.n}</span>
-                <span className="relative line-clamp-2 text-[11px] font-medium leading-tight">{s.name}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </HeroFrame>
-    </div>
+    <HeroFrame label="四大实验教学方案 · FOUR SOLUTIONS">
+      {/* 顶部留一行呼吸位，让居中的标签胶囊浮在网格之上而不压到卡片文字 */}
+      <div className="pt-9">
+        <div className="grid grid-cols-2 gap-px bg-white/[0.06]">
+        {plans.map((p, i) => {
+          const Icon = p.icon
+          const on = i === hover
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onMouseEnter={() => setHover(i)}
+              onFocus={() => setHover(i)}
+              onClick={() => onPick(i)}
+              className="group relative overflow-hidden bg-[#070b14] p-5 text-left transition-colors duration-300 hover:bg-[#0b1220]"
+            >
+              {on && (
+                <motion.span
+                  layoutId="hero-plan-active"
+                  transition={{ type: 'spring', stiffness: 360, damping: 34 }}
+                  className="pointer-events-none absolute inset-0 rounded-xl border border-brand/40 bg-brand/[0.07]"
+                />
+              )}
+              <span className="relative flex items-center gap-2">
+                <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg transition-colors duration-300 ${on ? 'bg-brand text-white' : 'bg-white/[0.06] text-brand-300'}`}>
+                  <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-mono text-[10px] uppercase tracking-[0.16em] text-white/35">方案 {p.n}</span>
+                  <span className="block truncate text-[15px] font-semibold tracking-tight text-white">{p.short}</span>
+                </span>
+              </span>
+              <span className="relative mt-3 block text-[11.5px] leading-snug text-white/50">{p.tagline}</span>
+              <span className="relative mt-3 flex items-center gap-1.5 text-[11.5px] font-medium text-brand-300/90">
+                展开主控台
+                <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      </div>
+    </HeroFrame>
   )
 }
 
 export default function Solutions() {
-  const [pick, setPick] = useState(solutionScenes[0].id)
-  const cur = solutionScenes.find((s) => s.id === pick)
-  const [aud, setAud] = useState(audiences[0].id)
-  const curAud = audiences.find((a) => a.id === aud)
-  const AudIcon = curAud.icon
+  const [planIndex, setPlanIndex] = useState(0)
 
-  const goScene = (id) => {
-    setPick(id)
-    scrollToId('scenes', -116)
+  const goPlan = (i) => {
+    setPlanIndex(i)
+    scrollToId('plans', -116)
   }
 
   return (
     <>
       <PageHero
-        eyebrow="SOLUTIONS FOR UNIVERSITIES"
+        eyebrow="EXPERIMENTAL TEACHING SOLUTIONS"
         crumbs="解决方案"
-        title="按场景建实验室，按学科落课程"
-        sub="五类建设场景、六个学科群、四类决策人 —— 同一套产品体系，从三个入口都能对号入座。选定之后看交付清单：里面每一项都是能验收的东西，不是概念。"
+        title="四大实验教学方案，把一个专业建进真实场景"
+        sub="数字金融 · 数字经济 · 应用统计 · 智能机器人 —— 每个方案都给全：建设目标、课程模块 ↔ 实验项目 ↔ 支撑产品的四层矩阵、实验室空间、实践教学四阶递进与一张方案架构图。选定一个，右侧主控台整份换过来。"
         stats={[
-          { k: '建设场景', v: '5 类' },
+          { k: '实验教学方案', v: '4 类' },
           { k: '在跑实训系统', v: '37 套' },
           { k: '适用专业', v: '25 个' },
-          { k: '合作高校', v: '300+' },
+          { k: '合作高校', v: '180+' },
         ]}
         cta={[
           { label: '预约方案沟通', to: '/#contact', primary: true },
           { label: '看产品矩阵', to: '/#matrix' },
         ]}
       >
-        <HeroSceneRail scenes={solutionScenes} onPick={goScene} />
+        <HeroPlanRail plans={solutionPlans} onPick={goPlan} />
       </PageHero>
-      <InnerNav items={SECTIONS} />
+      <InnerNav items={SECTIONS} tone="light" />
 
-      {/* ―― 业务架构：全页目录 ―― */}
+      {/* ―― 01 四大方案主控台：本页主线 ―― */}
       <PageSection
-        id="architecture"
-        tone="light"
-        head={{
-          n: '01',
-          en: 'BUSINESS ARCHITECTURE',
-          zh: '先看整套体系怎么搭',
-          sub: '解决方案不是单个软件。从技术与算力底座，到产品体系，到面向不同处室的场景与对象，再到交付与成果认证 —— 四层自下而上，下面的每一节都对得上这里的一层。',
-        }}
-      >
-        <BusinessArchitecture />
-      </PageSection>
-
-      {/* ―― 按场景 ―― */}
-      <PageSection
-        id="scenes"
+        id="plans"
         tone="mist"
         head={{
-          n: '02',
-          en: 'BY SCENARIO',
-          zh: '先说清楚要建什么',
-          sub: '左侧选一个场景，右侧换一整份交付内容。五个场景可以单独建，也可以叠成院系级实训群或校级创新中心。',
+          n: '01',
+          en: 'FOUR SOLUTIONS',
+          zh: '选定方向，看一整套怎么落地',
+          sub: '顶部目录轨切换方案，下方按「目标定位 → 四层课程矩阵 → 实验室空间 → 四阶实践 → 架构图」整套往下展开。所有课程与产品数据都取自公司《实验教学解决方案》，不做数字加工。',
         }}
       >
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:gap-10">
-          <div className="lg:sticky lg:top-[136px] lg:self-start">
-            <div className="space-y-1 rounded-2xl bg-white/60 p-1.5">
-              {solutionScenes.map((s, i) => (
-                <SceneRow key={s.id} scene={s} i={i} on={s.id === pick} onPick={setPick} />
-              ))}
-            </div>
-            <p className="mt-4 px-2 text-[12px] leading-relaxed text-ink-400">
-              没找到对应场景？多数院校的第一版方案都是在已有场景上改出来的 —— 直接说场地和人数，我们出图。
-            </p>
-          </div>
-          <SceneDetail scene={cur} />
-        </div>
+        <SolutionConsole plans={solutionPlans} index={planIndex} onIndex={setPlanIndex} />
       </PageSection>
 
-      {/* ―― 按学科 ―― */}
+      {/* ―― 02 学科对接：专业目录 ↔ 方案（精简保留，给申报口径）―― */}
       <PageSection
         id="disciplines"
         tone="light"
         head={{
-          n: '03',
+          n: '02',
           en: 'BY DISCIPLINE',
-          zh: '按学科目录看：这个专业能开什么',
+          zh: '按学科目录看：这个专业能接哪个方案',
           sub: '专业申报与培养方案论证要回答的是「这门专业配哪些课、哪些实验」。下面按学科群给出可直接引用的系统与课程方向，专业名称对齐现行本科专业目录。',
         }}
       >
@@ -375,155 +164,12 @@ export default function Solutions() {
         </Reveal>
       </PageSection>
 
-      {/* ―― 按对象 ―― */}
-      <PageSection
-        id="audiences"
-        tone="mist"
-        head={{
-          n: '04',
-          en: 'BY ROLE',
-          zh: '同一件事，四个处关心的不一样',
-          sub: '教务处要材料、学院要课堂、实训中心要设备与安全、信息中心要数据与运维。选一个身份，看我们准备的那一份说法。',
-        }}
-      >
-        <Reveal>
-          <div className="flex flex-wrap gap-2">
-            {audiences.map((a) => {
-              const on = a.id === aud
-              return (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => setAud(a.id)}
-                  aria-pressed={on}
-                  className={`relative rounded-full px-4 py-2 text-[13px] font-medium transition-colors duration-300 ${
-                    on ? 'text-white' : 'text-ink-500 hover:text-ink-900'
-                  }`}
-                >
-                  {on && (
-                    <motion.span
-                      layoutId="sol-aud-active"
-                      transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                      className="absolute inset-0 rounded-full bg-ink-900"
-                    />
-                  )}
-                  <span className="relative z-10 whitespace-nowrap">{a.role}</span>
-                </button>
-              )
-            })}
-          </div>
-        </Reveal>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={curAud.id}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.4, ease: EASE }}
-            className="mt-8 rounded-2xl border border-ink-900/[0.07] bg-white p-6 shadow-soft md:p-9"
-          >
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-              <div>
-                <div className="flex items-center gap-3">
-                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-ink-900 text-white">
-                    <AudIcon className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <p className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-400">{curAud.en}</p>
-                    <h3 className="text-[19px] font-semibold tracking-tight text-ink-900">{curAud.role}</h3>
-                  </div>
-                </div>
-                <p className="mt-5 border-l-2 border-brand/40 pl-4 text-[14.5px] leading-[1.8] text-ink-700">{curAud.pain}</p>
-                <div className="mt-6">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-400">他真正要的</p>
-                  <ul className="mt-3 space-y-2">
-                    {curAud.want.map((w) => (
-                      <li key={w} className="flex items-start gap-2 text-[13.5px] leading-snug text-ink-700">
-                        <span className="mt-[7px] inline-block h-1 w-1 shrink-0 rounded-full bg-brand" />
-                        {w}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-              <div className="rounded-2xl bg-mist-100 p-6">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-400">对应产品</p>
-                <ul className="mt-3 space-y-2.5">
-                  {curAud.match.map((m) => (
-                    <li key={m} className="flex items-start gap-2.5 text-[14.5px] font-medium leading-snug text-ink-900">
-                      <span className="mt-[3px] inline-block h-4 w-[3px] shrink-0 rounded-full bg-brand/70" />
-                      {m}
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-6 border-t border-ink-900/[0.07] pt-5">
-                  <StatBand items={curAud.proof} cols="grid-cols-1 gap-y-5 sm:grid-cols-1" />
-                </div>
-                <Link
-                  to={curAud.cta.to}
-                  className="group mt-6 inline-flex items-center gap-2 text-[13.5px] font-medium text-brand transition-colors hover:text-ink-900"
-                >
-                  {curAud.cta.label}
-                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-                </Link>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </PageSection>
-
-      {/* ―― 建设形态 ―― */}
-      <PageSection
-        id="forms"
-        tone="light"
-        head={{
-          n: '05',
-          en: 'BUILDING FORMS',
-          zh: '三种建设形态，对应三种预算周期',
-          sub: '从一间实验室快建，到院系级实训群，再到全校开放的创新中心。规模不同，共用同一套技术底座，因此可以分期，不会推倒重来。',
-        }}
-      >
-        <div className="grid gap-5 lg:grid-cols-3">
-          {buildForms.map((f, i) => {
-            const Icon = f.icon
-            return (
-              <Reveal key={f.id} delay={i * 0.08}>
-                <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-ink-900/[0.07] bg-white p-7 shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-lift">
-                  <span className="pointer-events-none absolute -right-6 -top-8 font-mono text-[92px] font-bold leading-none text-ink-900/[0.04] transition-colors duration-500 group-hover:text-brand/[0.09]">
-                    {f.n}
-                  </span>
-                  <span className="relative grid h-11 w-11 place-items-center rounded-xl bg-ink-900 text-white transition-transform duration-500 group-hover:scale-105">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <h3 className="relative mt-5 text-[19px] font-semibold tracking-tight text-ink-900">{f.name}</h3>
-                  <p className="relative mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-ink-500">
-                    <span>周期 <span className="font-medium text-ink-900">{f.cycle}</span></span>
-                    <span>规模 <span className="font-medium text-ink-900">{f.scale}</span></span>
-                  </p>
-                  <p className="relative mt-4 text-[13.5px] leading-[1.8] text-ink-500">{f.line}</p>
-                  <ul className="relative mt-5 space-y-2 border-t border-ink-900/[0.07] pt-5">
-                    {f.parts.map((p) => (
-                      <li key={p} className="flex items-start gap-2.5 text-[13px] leading-snug text-ink-700">
-                        <span className="mt-[6px] inline-block h-1 w-1 shrink-0 rounded-full bg-brand" />
-                        {p}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="relative mt-auto pt-6 text-[12px] text-ink-400">适合：{f.fitFor}</p>
-                </div>
-              </Reveal>
-            )
-          })}
-        </div>
-      </PageSection>
-
-      {/* ―― 交付与部署 ―― */}
+      {/* ―― 03 交付与部署 ―― */}
       <PageSection
         id="delivery"
         tone="mist"
         head={{
-          n: '06',
+          n: '03',
           en: 'DELIVERY & DEPLOYMENT',
           zh: '签了之后怎么落地',
           sub: '六步交付路径，把方案落到首批开课。周期按一个院系的首批建设估算，多院系并行时第 02 步之后可以拆开走。',
@@ -568,7 +214,7 @@ export default function Solutions() {
 
       <PageCTA
         title="把场地、专业和学生数告诉我们"
-        sub="一次沟通通常能确定三件事：先建哪个场景、分几期、第一批课程能不能赶上这个学期的课表。方案初稿免费出。"
+        sub="一次沟通通常能确定三件事：先建哪个方案、分几期、第一批课程能不能赶上这个学期的课表。方案初稿免费出。"
         back={{ label: '看技术底座', to: '/technology' }}
       />
     </>

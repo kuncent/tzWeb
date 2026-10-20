@@ -1,7 +1,10 @@
+import { Fragment, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
+import { ZoomIn } from 'lucide-react'
 import { PageHero, InnerNav, PageSection, PageCTA, HeroFrame } from '../components/PageShell'
-import { Reveal, StatBand, CountUp, EASE } from '../components/ui'
+import { Reveal, StatBand, EASE } from '../components/ui'
 import { aboutBeliefs, aboutProof, aboutServices } from '../data/pages'
 import { brand, contact, offices, advisorStats, productMatrix } from '../data/site'
 
@@ -13,56 +16,150 @@ const SECTIONS = [
   { id: 'network', label: '公司与联系' },
 ]
 
-/* 首屏右半：把「拿得出手的硬东西」先摆上桌。
-   合作高校那一行不重复放 —— 它已经在下方数字带里了。 */
-/* 把「4 项 / 60+ / 100+ / 37 套」这类混排值拆成前导整数 + 尾巴，
-   前导交给 CountUp 滚动，后缀原样保留。 */
-function proofVal(v) {
-  const m = String(v).match(/^(\d[\d,]*)(.*)$/)
-  if (!m) return v
-  return <CountUp to={Number(m[1].replace(/,/g, ''))} suffix={m[2]} />
+/* 首屏右半：公司实景。前台 / 文化墙 / 资质墙 / 荣誉墙四张实拍，
+   用 bento 拼贴（竖图占满左列、文化墙做大块、两张小图压底）。小格里
+   object-cover 会裁掉边缘、密集墙面照缩在小格中读不清，因此鼠标悬停
+   （触屏点按）时浮出一块按原图比例尽量放大的预览面板看清细节；面板
+   portal 到 body，避免被 HeroFrame 的 overflow-hidden 裁掉。硬指标数字
+   在下方「资质与知识产权」段仍在，这里不重复。 */
+const heroShots = [
+  { src: '/images/about/reception.webp', label: '公司前台', en: 'Reception', span: 'col-span-1 row-span-3', iw: 619, ih: 1100 },
+  { src: '/images/about/culture-wall.webp', label: '方案与产品文化墙', en: 'Solutions Wall', span: 'col-span-2 row-span-2', iw: 1100, ih: 619 },
+  { src: '/images/about/qualification.webp', label: '企业资质墙', en: 'Qualifications', span: 'col-span-1 row-span-1', iw: 618, ih: 1100 },
+  { src: '/images/about/honor.webp', label: '荣誉征程墙', en: 'Honors', span: 'col-span-1 row-span-1', iw: 1100, ih: 456 },
+]
+
+const PANEL_GAP = 14
+const PANEL_MARGIN = 16
+
+/* 悬停放大浮层：portal 到 body 的 fixed 面板，按视口空间与格子位置
+ * 智能挑左右侧摆放（放不下时居中），按原图长宽比尽量放大到可读尺寸。
+ * withBackdrop（触屏）时附半透明遮罩承接点按关闭；鼠标态面板本身
+ * pointer-events-none，交由小格的 pointerleave 收起，避免 hover 抖动。 */
+function ZoomPreview({ shot, rect, reduce, withBackdrop, onClose }) {
+  const geo = useMemo(() => {
+    if (!shot || !rect || typeof window === 'undefined') return null
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const maxW = Math.min(600, vw * 0.5)
+    const maxH = Math.min(560, vh * 0.7)
+    let w = maxW
+    let h = (w * shot.ih) / shot.iw
+    if (h > maxH) { h = maxH; w = (h * shot.iw) / shot.ih }
+    w = Math.min(w, vw - PANEL_MARGIN * 2)
+    h = Math.min(h, vh - PANEL_MARGIN * 2)
+    const spaceRight = vw - rect.right
+    const spaceLeft = rect.left
+    let left
+    if (spaceRight >= w + PANEL_GAP) left = rect.right + PANEL_GAP
+    else if (spaceLeft >= w + PANEL_GAP) left = rect.left - w - PANEL_GAP
+    else left = Math.min(Math.max((vw - w) / 2, PANEL_MARGIN), vw - w - PANEL_MARGIN)
+    let top = rect.top + rect.height / 2 - h / 2
+    top = Math.min(Math.max(top, PANEL_MARGIN), vh - h - PANEL_MARGIN)
+    return { w, h, left, top }
+  }, [shot, rect])
+
+  if (typeof document === 'undefined') return null
+  return createPortal(
+    <AnimatePresence>
+      {shot && geo && (
+        <Fragment key={shot.src}>
+          {withBackdrop && (
+            <motion.div
+              aria-hidden
+              className="fixed inset-0 z-[55] bg-black/45 backdrop-blur-[1px]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduce ? 0 : 0.2 }}
+              onClick={onClose}
+            />
+          )}
+          <motion.div
+            className="pointer-events-none fixed z-[60] overflow-hidden rounded-2xl border border-white/15 bg-[#04070d] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.85)]"
+            style={{ left: geo.left, top: geo.top, width: geo.w, height: geo.h }}
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: reduce ? 0 : 0.2, ease: EASE }}
+          >
+            <img src={shot.src} alt={`天择科技 · ${shot.label}`} className="h-full w-full object-contain" />
+            <div className="absolute inset-x-0 bottom-0 flex items-baseline gap-2 bg-gradient-to-t from-[#04070d]/90 to-transparent p-3">
+              <span className="text-[12.5px] font-medium text-white/95">{shot.label}</span>
+              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">{shot.en}</span>
+            </div>
+          </motion.div>
+        </Fragment>
+      )}
+    </AnimatePresence>,
+    document.body,
+  )
 }
 
-function HeroProofCard() {
-  const rows = aboutProof.filter((p) => p.k !== '合作高校')
+function HeroGallery() {
+  const reduce = !!useReducedMotion()
+  const canHover = typeof window !== 'undefined' && window.matchMedia?.('(hover: hover) and (pointer: fine)').matches
+  const [pv, setPv] = useState(null) // { i, rect }
+
+  useEffect(() => {
+    if (!pv) return
+    const close = () => setPv(null)
+    const onKey = (e) => { if (e.key === 'Escape') close() }
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('resize', close)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [pv])
+
+  const toggle = (i, el) => setPv((p) => (p && p.i === i ? null : { i, rect: el.getBoundingClientRect() }))
+
   return (
-    <HeroFrame label="硬资产 · Hard Assets">
+    <HeroFrame label="走进天择 · 实景">
       <div className="relative pt-12">
-        {/* 周期掠光：一道斜向高光从左扫到右，给静态数字卡一点“活着”的光影 */}
+        {/* 周期掠光：一道斜向高光从左扫到右，给静态图组一点活着的光影 */}
         <motion.div
           aria-hidden
-          className="pointer-events-none absolute -inset-y-4 left-0 z-10 w-1/3 bg-gradient-to-r from-transparent via-white/[0.12] to-transparent"
+          className="pointer-events-none absolute -inset-y-4 left-0 z-20 w-1/3 bg-gradient-to-r from-transparent via-white/[0.14] to-transparent"
           style={{ transform: 'skewX(-18deg)' }}
           initial={{ x: '-120%' }}
-          animate={{ x: '420%' }}
-          transition={{ duration: 3.8, repeat: Infinity, repeatDelay: 3.2, ease: 'easeInOut' }}
+          animate={{ x: '460%' }}
+          transition={{ duration: 4.2, repeat: Infinity, repeatDelay: 3.6, ease: 'easeInOut' }}
         />
-        <dl>
-          {rows.map((p, i) => (
-            <motion.div
-              key={p.k}
-              initial={{ opacity: 0, x: 18, filter: 'blur(4px)' }}
-              animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-              transition={{ delay: 0.26 + i * 0.09, duration: 0.55, ease: EASE }}
-              className="flex items-baseline gap-4 border-t border-white/[0.06] px-6 py-4"
+        <div className="grid h-[380px] grid-cols-3 grid-rows-3 gap-2.5 md:h-[448px]">
+          {heroShots.map((s, i) => (
+            <motion.figure
+              key={s.src}
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.24 + i * 0.08, duration: 0.5, ease: EASE }}
+              onPointerEnter={(e) => { if (canHover && e.pointerType === 'mouse') setPv({ i, rect: e.currentTarget.getBoundingClientRect() }) }}
+              onPointerLeave={() => { if (canHover) setPv((p) => (p && p.i === i ? null : p)) }}
+              onClick={canHover ? undefined : (e) => toggle(i, e.currentTarget)}
+              className={`group relative overflow-hidden rounded-xl ring-1 ring-inset ring-white/10 ${canHover ? 'cursor-zoom-in' : 'cursor-pointer'} ${s.span}`}
             >
-              <dt className="w-[88px] shrink-0 text-[12.5px] text-white/50">{p.k}</dt>
-              <dd className="text-[22px] font-bold leading-none tracking-tight text-white tabular-nums">{proofVal(p.v)}</dd>
-              <span className="ml-auto hidden min-w-0 text-right text-[11px] leading-snug text-white/45 sm:block">{p.note}</span>
-            </motion.div>
-          ))}
-        </dl>
-        <div className="border-t border-white/[0.06] px-6 py-5">
-          <p className="text-[11px] text-white/35">服务网络</p>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {offices.map((o) => (
-              <span key={o} className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11.5px] text-white/65">
-                {o}
+              <img
+                src={s.src}
+                alt={`天择科技 · ${s.label}`}
+                decoding="async"
+                className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.07]"
+              />
+              <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#04070d]/85 via-[#04070d]/10 to-transparent" />
+              <span aria-hidden className="pointer-events-none absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full bg-black/45 text-white/80 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
+                <ZoomIn className="h-3.5 w-3.5" />
               </span>
-            ))}
-          </div>
+              <figcaption className="absolute inset-x-0 bottom-0 flex items-baseline gap-1.5 p-2.5">
+                <span className="text-[11.5px] font-medium text-white/95">{s.label}</span>
+                <span className="font-mono text-[8.5px] uppercase tracking-[0.16em] text-white/45">{s.en}</span>
+              </figcaption>
+            </motion.figure>
+          ))}
         </div>
       </div>
+      <ZoomPreview shot={pv ? heroShots[pv.i] : null} rect={pv?.rect} reduce={reduce} withBackdrop={!canHover} onClose={() => setPv(null)} />
     </HeroFrame>
   )
 }
@@ -81,7 +178,7 @@ export default function About() {
           { label: '看解决方案', to: '/solutions' },
         ]}
       >
-        <HeroProofCard />
+        <HeroGallery />
       </PageHero>
 
       <InnerNav items={SECTIONS} />

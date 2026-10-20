@@ -154,8 +154,9 @@ export function HeroFrame({ label, hint, children, bodyClass = '', className = '
    规则取「顶部已经越过基准线的最后一段」，不用 IntersectionObserver：
    IO 在滚回首屏之上、以及两段之间的空档里没有任何命中项，
    高亮会停在最后一次命中的那一格 —— 看着就是「导航点不动」。 */
-export function InnerNav({ items }) {
+export function InnerNav({ items, tone = 'light' }) {
   const [active, setActive] = useState(items[0]?.id)
+  const dark = tone === 'dark'
   useEffect(() => {
     const ids = items.map((s) => s.id)
     let raf = 0
@@ -185,7 +186,7 @@ export function InnerNav({ items }) {
   const jump = (id) => scrollToId(id, -116)
 
   return (
-    <div className="sticky top-[64px] z-40 border-b border-ink-900/[0.06] bg-white/85 backdrop-blur-xl">
+    <div className={`sticky top-[64px] z-40 border-b backdrop-blur-xl ${dark ? 'border-white/[0.06] bg-[#04070d]/85' : 'border-ink-900/[0.06] bg-white/85'}`}>
       <div className="container-x flex gap-1 overflow-x-auto py-2.5 no-scrollbar">
         {items.map((s) => {
           const on = active === s.id
@@ -195,14 +196,14 @@ export function InnerNav({ items }) {
               type="button"
               onClick={() => jump(s.id)}
               className={`relative shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
-                on ? 'text-white' : 'text-ink-500 hover:text-ink-900'
+                on ? 'text-white' : dark ? 'text-white/55 hover:text-white' : 'text-ink-500 hover:text-ink-900'
               }`}
             >
               {on && (
                 <motion.span
                   layoutId="inner-nav-active"
                   transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                  className="absolute inset-0 rounded-full bg-ink-900"
+                  className={`absolute inset-0 rounded-full ${dark ? 'bg-white/12 ring-1 ring-inset ring-white/15' : 'bg-ink-900'}`}
                 />
               )}
               <span className="relative z-10 whitespace-nowrap">{s.label}</span>

@@ -205,8 +205,216 @@ export const solutionScenes = [
     outcome: ['面向全校的 AI 素养课程群', '跨学院联合毕设与孵化项目', '可对外接待与申报的建设成果'],
     metrics: [
       { k: '覆盖学科', v: '30+' },
-      { k: '合作高校', v: '300+' },
+      { k: '合作高校', v: '180+' },
       { k: '部署方式', v: '私有化 / 云端' },
+    ],
+  },
+]
+
+/* ---------------- 四大实验教学方案（源自公司《天择教育科技·实验教学解决方案》）----------------
+   与上面「按场景」不同：这一版按专业方向整页组织，是解决方案页的新主线。
+   每个方案五段式，全部照文档原样录入、不做数字加工：
+     · tagline 方案总览口号 + goal 建设目标与定位 + mainline 四位一体主线
+     · layers 课程体系建设（基础/核心/进阶/综合四层 × 课程模块↔实验项目↔支撑产品）
+     · labs 实验室建设 · practice 实践教学四阶递进
+   metrics 的四个数都由本方案自身的结构汇总（课程模块数 / 支撑产品去重数 / 实训空间数 / 实践阶段数）。 */
+export const solutionPlans = [
+  {
+    id: 'digital-finance',
+    n: '01',
+    icon: Landmark,
+    name: '数字金融实验教学方案',
+    short: '数字金融',
+    en: 'DIGITAL FINANCE',
+    tagline: '数智融合 · 产教协同 · 面向金融科技人才培养',
+    goal: '面向金融数字化转型的人才需求，构建“金融基础—智能投顾—风险量化—金融科技”四位一体的数字金融实验教学体系，培养既懂金融业务又能驾驭数据与算法的复合型金融科技人才。',
+    mainline: ['金融基础', '智能投顾', '风险量化', '金融科技'],
+    positioning: '复合型金融科技人才',
+    metrics: [
+      { k: '课程模块', v: '10 个' },
+      { k: '支撑产品', v: '9 套' },
+      { k: '实训空间', v: '3 区' },
+      { k: '实践阶段', v: '四阶' },
+    ],
+    products: ['公司金融实验系统', '金融模拟交易系统', '智能理财分析教学系统', '金融风险管理实验平台', '量化投资交易系统 / 金融建模实验平台', '区块链基础实验平台', 'AI 智能投顾机器人', '供应链金融融资实验系统', '财商素养游戏互动系统'],
+    layers: [
+      { key: 'base', name: '基础课程层', en: 'FOUNDATION', modules: [
+        { module: '金融业务基础', projects: ['收益与风险度量', '现值与价值评估', '投资决策分析', '融资决策分析'], product: '公司金融实验系统 · 18 个实验项目' },
+        { module: '公司财务分析', projects: ['三大报表分析', '杜邦分析', '财务预警 Z 值模型'], product: '公司金融实验系统' },
+      ] },
+      { key: 'core', name: '核心技能层', en: 'CORE SKILLS', modules: [
+        { module: '证券投资交易', projects: ['股票 / 基金 / 期货模拟交易', '技术分析与基本面分析'], product: '金融模拟交易系统 · 7 个实验项目' },
+        { module: '智能理财规划', projects: ['家庭风险测评', '教育 / 消费 / 退休规划', '保险与投资规划', '税务筹划'], product: '智能理财分析教学系统 · 13 个实验项目' },
+      ] },
+      { key: 'adv', name: '进阶实战层', en: 'ADVANCED', modules: [
+        { module: '金融风险管理', projects: ['波动率模型 ARCH / GARCH', '蒙特卡罗模拟', 'VaR 与压力测试', '希腊字母计算'], product: '金融风险管理实验平台 · 39 个实验项目' },
+        { module: '量化策略开发', projects: ['双均线 / 布林线策略', '网格与跨品种套利', 'Tick 级回测'], product: '量化投资交易系统 / 金融建模实验平台' },
+        { module: '区块链金融', projects: ['数字签名与区块', '智能合约模拟', '数字货币桥实验'], product: '区块链基础实验平台 · 17 个实验项目' },
+      ] },
+      { key: 'integrate', name: '综合创新层', en: 'INNOVATION', modules: [
+        { module: 'AI 智能投顾实战', projects: ['用户画像构建', '投资组合优化', '智能调仓建议'], product: 'AI 智能投顾机器人' },
+        { module: '供应链金融综合', projects: ['存货质押 / 保兑仓', '保理融资综合实验'], product: '供应链金融融资实验系统 · 7 种业务模式' },
+        { module: '财商与竞赛', projects: ['财商游戏化实训', '金融模拟交易大赛'], product: '财商素养游戏互动系统 · 7 个实验项目' },
+      ] },
+    ],
+    labs: [
+      { name: '数字金融综合实训室', desc: '以交易大厅实景为核心，配备金融模拟交易系统与实时行情终端，还原真实金融业务场景。' },
+      { name: 'AI 智能投顾体验区', desc: '部署 AI 智能投顾机器人与智能理财分析系统，开展智能资产配置与风险测评实训。' },
+      { name: '金融场景学习地图', desc: '以可视化金融产品全景地图支撑产品认知与业务流程教学。' },
+    ],
+    practice: [
+      { stage: '实验教学', en: 'TEACHING', systems: ['公司金融实验系统', '金融风险管理实验平台'] },
+      { stage: '实训教学', en: 'TRAINING', systems: ['智能理财分析教学系统', '财商素养游戏互动系统'] },
+      { stage: '竞赛演练', en: 'COMPETITION', systems: ['AI 智能投顾机器人', '金融模拟交易系统'] },
+      { stage: '科研创新', en: 'RESEARCH', systems: ['量化投资交易系统 / 金融建模实验平台', '供应链金融融资实验系统'] },
+    ],
+  },
+  {
+    id: 'digital-economy',
+    n: '02',
+    icon: Network,
+    name: '数字经济实验教学方案',
+    short: '数字经济',
+    en: 'DIGITAL ECONOMY',
+    tagline: '数实融合 · 场景驱动 · 面向数字经济人才培养',
+    goal: '对接数字产业化与产业数字化发展需求，围绕“数据要素—数字产业—产业数字—数字治理”构建覆盖数字经济运行全链条的实验教学体系，培养懂技术、通业务、能决策的数字经济应用型人才。',
+    mainline: ['数据要素', '数字产业', '产业数字', '数字治理'],
+    positioning: '数字经济应用型人才',
+    metrics: [
+      { k: '课程模块', v: '9 个' },
+      { k: '支撑产品', v: '8 套' },
+      { k: '实训空间', v: '3 区' },
+      { k: '实践阶段', v: '四阶' },
+    ],
+    products: ['数字经济基础综合实验平台', '数字供应链实验系统', '数字征信实验系统', '数字人民币实验系统', '数字营销实验系统', '数字经济与 AI 智能大数据综合实验系统', '电商互联网产品开发实验系统', '数字贸易实验系统'],
+    layers: [
+      { key: 'base', name: '基础课程层', en: 'FOUNDATION', modules: [
+        { module: '数字经济基础', projects: ['数据采集实验', '数据确权与定价', '数据交易实验'], product: '数字经济基础综合实验平台 · 25 个实验项目' },
+        { module: '数字技术认知', projects: ['图像识别 / OCR 实验', '语音与 NLP 实验', '5G 与云计算实验'], product: '数字经济基础综合实验平台' },
+      ] },
+      { key: 'core', name: '核心技能层', en: 'CORE SKILLS', modules: [
+        { module: '数字供应链运营', projects: ['应收账款转让业务', '资信与债项调查', '数字债权凭证'], product: '数字供应链实验系统 · 7 个实验项目' },
+        { module: '数字征信与风控', projects: ['征信画像 9 项实验', '个人征信评级', '企业征信评分卡'], product: '数字征信实验系统 · 19 个实验项目 / 14 学时' },
+      ] },
+      { key: 'adv', name: '进阶实战层', en: 'ADVANCED', modules: [
+        { module: '数字货币与支付', projects: ['额度控制位演练', '智能合约演练', '数字人民币反洗钱'], product: '数字人民币实验系统 · 7 个实验项目 / 10 学时' },
+        { module: '数字营销与贸易', projects: ['用户画像 RFM 分析', 'BI 可视化大屏', '跨境数字贸易实操'], product: '数字营销实验系统 · 14 个实验项目' },
+        { module: '大数据与 AI', projects: ['数据获取与清洗', '分类 / 回归 / 聚类建模', '行业应用案例'], product: '数字经济与 AI 智能大数据综合实验系统 · 27 个实验项目 / 48 学时' },
+      ] },
+      { key: 'integrate', name: '综合创新层', en: 'INNOVATION', modules: [
+        { module: '数字治理与碳金融', projects: ['碳配额 / 碳排放', '碳定价与碳交易'], product: '数字经济基础综合实验平台' },
+        { module: '电商产品开发', projects: ['市场需求挖掘', '数据化选品与定价', '投放测试与优化'], product: '电商互联网产品开发实验系统 · 18 个实验项目' },
+        { module: '数字贸易综合', projects: ['13 章 57 个实务项目', '多边央行数字货币桥'], product: '数字贸易实验系统 · 57 个实验项目' },
+      ] },
+    ],
+    labs: [
+      { name: '数字经济综合实训室', desc: '以数据可视化驾驶舱为核心，动态呈现区域数字经济运行指标。' },
+      { name: '数字贸易实训平台', desc: '覆盖电商互联网产品开发全流程，支撑数字贸易业务实训。' },
+      { name: 'AI 大数据分析平台', desc: 'Python 在线编程环境，内置超百个实验项目与行业数据仓库。' },
+    ],
+    practice: [
+      { stage: '实验教学', en: 'TEACHING', systems: ['数字经济基础综合实验平台', '数字人民币实验系统'] },
+      { stage: '实训教学', en: 'TRAINING', systems: ['数字供应链实验系统', '数字征信实验系统'] },
+      { stage: '竞赛演练', en: 'COMPETITION', systems: ['数字经济与 AI 智能大数据综合实验系统', '数字营销实验系统'] },
+      { stage: '科研创新', en: 'RESEARCH', systems: ['数字贸易实验系统', '电商互联网产品开发实验系统'] },
+    ],
+  },
+  {
+    id: 'applied-statistics',
+    n: '03',
+    icon: LineChart,
+    name: '应用统计实验教学方案',
+    short: '应用统计',
+    en: 'APPLIED STATISTICS',
+    tagline: '数据洞察 · 智能分析 · 面向数据科学人才培养',
+    goal: '面向大数据与人工智能时代的数据人才需求，以“统计方法—编程实现—业务建模—决策支持”为主线构建应用统计实验教学体系，培养能够独立完成数据采集、建模分析与商业决策的数据科学应用型人才。',
+    mainline: ['统计方法', '编程实现', '业务建模', '决策支持'],
+    positioning: '数据科学应用型人才',
+    metrics: [
+      { k: '课程模块', v: '9 个' },
+      { k: '支撑产品', v: '8 套' },
+      { k: '实训空间', v: '3 区' },
+      { k: '实践阶段', v: '四阶' },
+    ],
+    products: ['金融大数据分析挖掘平台', '数字营销实验系统', '机器学习实验系统', '金融风险管理实验平台', '量化投资交易系统 / 金融建模实验平台', '区块链基础实验平台', '数字经济与 AI 智能大数据综合实验系统', 'AI 智能陪练系统'],
+    layers: [
+      { key: 'base', name: '基础课程层', en: 'FOUNDATION', modules: [
+        { module: 'Python 编程基础', projects: ['Python 基础语法', 'NumPy 数值计算', 'pandas 统计分析'], product: '金融大数据分析挖掘平台 · 35 个实验项目' },
+        { module: '统计学基础', projects: ['描述性统计', '概率分布', '参数估计与检验'], product: '金融大数据分析挖掘平台' },
+      ] },
+      { key: 'core', name: '核心技能层', en: 'CORE SKILLS', modules: [
+        { module: '数据可视化', projects: ['Matplotlib 绘图', 'BI 大屏设计', '多维数据呈现'], product: '数字营销实验系统 · BI 可视化分析模块' },
+        { module: '机器学习建模', projects: ['线性 / 逻辑回归', '决策树与随机森林', '聚类与分群'], product: '机器学习实验系统 · 7 类模型实验' },
+      ] },
+      { key: 'adv', name: '进阶实战层', en: 'ADVANCED', modules: [
+        { module: '金融大数据分析', projects: ['金融数据爬取', '时间序列建模', '风险指标计算'], product: '金融风险管理实验平台 · 39 个实验项目' },
+        { module: '量化与建模', projects: ['因子回测框架', '策略绩效评估'], product: '量化投资交易系统 / 金融建模实验平台' },
+        { module: '区块链数据应用', projects: ['Merkle 树与时间戳', '多边央行数字货币桥'], product: '区块链基础实验平台 · 17 个实验项目' },
+      ] },
+      { key: 'integrate', name: '综合创新层', en: 'INNOVATION', modules: [
+        { module: '行业综合案例', projects: ['行业数据分析', 'AI 学情分析报告'], product: '数字经济与 AI 智能大数据综合实验系统 · 27 个实验项目 / 48 学时' },
+        { module: '竞赛与毕设', projects: ['数据建模竞赛', '毕业综合实践'], product: 'AI 智能陪练系统 · 30+ 话术训练场景' },
+      ] },
+    ],
+    labs: [
+      { name: '数据可视化驾驶舱实训区', desc: '多维度数据大屏支撑数据呈现与商业分析教学。' },
+      { name: '实时行情数据分析区', desc: '以实时行情跑马灯与多维行情数据开展时间序列与统计分析实训。' },
+      { name: 'AI 智能陪练实训区', desc: '智能陪练系统提供人机对练与即时点评，强化数据分析应用能力。' },
+    ],
+    practice: [
+      { stage: '实验教学', en: 'TEACHING', systems: ['金融大数据分析挖掘平台', '机器学习实验系统'] },
+      { stage: '实训教学', en: 'TRAINING', systems: ['量化投资交易系统 / 金融建模实验平台', '金融风险管理实验平台'] },
+      { stage: '竞赛演练', en: 'COMPETITION', systems: ['区块链基础实验平台', '数字经济与 AI 智能大数据综合实验系统'] },
+      { stage: '科研创新', en: 'RESEARCH', systems: ['AI 智能陪练系统', '智能理财分析教学系统'] },
+    ],
+  },
+  {
+    id: 'intelligent-robotics',
+    n: '04',
+    icon: Bot,
+    name: '智能机器人实验教学方案',
+    short: '智能机器人',
+    en: 'INTELLIGENT ROBOTICS',
+    tagline: '具身智能 · 软硬结合 · 面向 AI 机器人人才培养',
+    goal: '面向具身智能与机器人产业的人才需求，按“感知—决策—执行—进化”的技术闭环组织实验教学，培养掌握机器人系统集成、智能交互开发与具身智能应用能力的创新型工程技术人才。',
+    mainline: ['感知', '决策', '执行', '进化'],
+    positioning: '创新型工程技术人才',
+    metrics: [
+      { k: '课程模块', v: '9 个' },
+      { k: '支撑产品', v: '5 套' },
+      { k: '实训空间', v: '3 区' },
+      { k: '实践阶段', v: '四阶' },
+    ],
+    products: ['具身智能实验箱', '机器学习实验系统', '具身智能开发平台', 'AI 智能交互机器人', '智能服务机器人'],
+    layers: [
+      { key: 'base', name: '基础课程层', en: 'FOUNDATION', modules: [
+        { module: '机器人技术基础', projects: ['机器人机构认知', '自由度与运动学', '传感器标定'], product: '具身智能实验箱 · 基础实训载体' },
+        { module: 'Python 与 AI', projects: ['Python 编程', '机器学习入门', '视觉基础'], product: '机器学习实验系统' },
+      ] },
+      { key: 'core', name: '核心技能层', en: 'CORE SKILLS', modules: [
+        { module: 'ROS 操作系统', projects: ['节点通信机制', '话题与服务', '仿真环境搭建'], product: '具身智能开发平台' },
+        { module: '语音与视觉交互', projects: ['语音识别与合成', '目标检测识别', '多模态融合'], product: 'AI 智能交互机器人' },
+      ] },
+      { key: 'adv', name: '进阶实战层', en: 'ADVANCED', modules: [
+        { module: '机械臂运动控制', projects: ['正逆运动学求解', '轨迹规划', '视觉抓取分拣'], product: '具身智能实验箱 · 双臂协同' },
+        { module: 'SLAM 与导航', projects: ['激光雷达建图', '路径规划', '自主避障'], product: '智能服务机器人' },
+        { module: '大模型具身应用', projects: ['任务指令解析', '抓取—导航—递送闭环'], product: '智能服务机器人 · 语言大模型任务链' },
+      ] },
+      { key: 'integrate', name: '综合创新层', en: 'INNOVATION', modules: [
+        { module: '机器人综合项目', projects: ['服务机器人场景集成', '系统联调与部署'], product: '具身智能开发平台' },
+        { module: '竞赛与创新创业', projects: ['机器人技能竞赛', '创新创业实践'], product: '具身智能实验箱 + 开发平台' },
+      ] },
+    ],
+    labs: [
+      { name: '具身智能实验箱实训区', desc: '以具身智能实验箱为载体，开展双臂协同、视觉分拣等基础实训。' },
+      { name: '具身智能开发平台实验室', desc: '依托具身智能开发平台完成机器人系统集成与二次开发。' },
+      { name: '智能服务机器人体验区', desc: '部署智能服务机器人，开展导览、交互与任务执行场景实训。' },
+    ],
+    practice: [
+      { stage: '实验教学', en: 'TEACHING', systems: ['具身智能实验箱', 'AI 智能交互机器人'] },
+      { stage: '实训教学', en: 'TRAINING', systems: ['智能服务机器人', '具身智能开发平台'] },
+      { stage: '竞赛演练', en: 'COMPETITION', systems: ['具身智能开发平台', 'AI 智能交互机器人'] },
+      { stage: '科研创新', en: 'RESEARCH', systems: ['具身智能实验箱', '智能服务机器人'] },
     ],
   },
 ]
@@ -551,9 +759,10 @@ export const labCaseStats = [
   { k: '覆盖省市', v: 6, suffix: ' 个' },
 ]
 
-/* ---------------- 客户 logo 墙（自旧站 sztzjy.com「客户案例 · 合作客户」迁移）----------------
-   38 家真实服务过的单位：33 所院校 + 5 家金融机构。多为白底 / 透明 logo，故在浅色卡片里
-   object-contain 展示；kind 分 school / corp，cat 是给人看的简短类别。 */
+/* ---------------- 客户 logo 墙（院校 + 金融机构）----------------
+   院校 101 所 + 金融机构 5 家。旧站迁移的标杆 logo 多为白底 / 透明，原样保留；
+   合作名录扩充院校的真实校徽取自 Wikimedia 共享资源，经 /images/logos/ 规范化为 webp。
+   kind 分 school / corp；公开可核验的院校才带 logo，未核验者仅在 Cases 页名录中以文字呈现。 */
 export const clientLogos = [
   { name: '清华大学', img: '/images/cases/case-10.png', kind: 'school', cat: '综合' },
   { name: '南开大学', img: '/images/cases/case-09.jpg', kind: 'school', cat: '综合' },
@@ -589,6 +798,75 @@ export const clientLogos = [
   { name: '湖北商贸学院', img: '/images/cases/case-36.png', kind: 'school', cat: '民办本科' },
   { name: '西安明德理工学院', img: '/images/cases/case-37.png', kind: 'school', cat: '民办本科' },
   { name: '兴义民族师范学院', img: '/images/cases/case-38.png', kind: 'school', cat: '师范' },
+  /* ―― 合作名录扩充院校真实校徽（取自维基共享，公开可核验的部分；未抓到者仅在名录中以文字呈现）―― */
+  { name: '安徽大学', img: '/images/logos/p025.webp', kind: 'school', cat: '本科' },
+  { name: '北京理工大学', img: '/images/logos/p001.webp', kind: 'school', cat: '本科' },
+  { name: '重庆城市科技学院', img: '/images/logos/p088.webp', kind: 'school', cat: '本科' },
+  { name: '重庆第二师范学院', img: '/images/logos/p090.webp', kind: 'school', cat: '本科' },
+  { name: '重庆移通学院', img: '/images/logos/p091.webp', kind: 'school', cat: '本科' },
+  { name: '东莞理工学院', img: '/images/logos/p078.webp', kind: 'school', cat: '本科' },
+  { name: '防灾科技学院', img: '/images/logos/p006.webp', kind: 'school', cat: '本科' },
+  { name: '佛山大学', img: '/images/logos/p079.webp', kind: 'school', cat: '本科' },
+  { name: '福州大学', img: '/images/logos/p030.webp', kind: 'school', cat: '本科' },
+  { name: '福州大学至诚学院', img: '/images/logos/p031.webp', kind: 'school', cat: '本科' },
+  { name: '广东白云学院', img: '/images/logos/p066.webp', kind: 'school', cat: '本科' },
+  { name: '广东工业大学', img: '/images/logos/p064.webp', kind: 'school', cat: '本科' },
+  { name: '广东石油化工学院', img: '/images/logos/p065.webp', kind: 'school', cat: '本科' },
+  { name: '广州大学', img: '/images/logos/p069.webp', kind: 'school', cat: '本科' },
+  { name: '广州航海学院', img: '/images/logos/p070.webp', kind: 'school', cat: '本科' },
+  { name: '广州商学院', img: '/images/logos/p073.webp', kind: 'school', cat: '本科' },
+  { name: '广州应用科技学院', img: '/images/logos/p074.webp', kind: 'school', cat: '本科' },
+  { name: '贵阳学院', img: '/images/logos/p095.webp', kind: 'school', cat: '本科' },
+  { name: '哈尔滨工业大学（深圳）', img: '/images/logos/p085.webp', kind: 'school', cat: '本科' },
+  { name: '合肥工业大学', img: '/images/logos/p027.webp', kind: 'school', cat: '本科' },
+  { name: '河北民族师范学院', img: '/images/logos/p005.webp', kind: 'school', cat: '本科' },
+  { name: '河南工业大学', img: '/images/logos/p038.webp', kind: 'school', cat: '本科' },
+  { name: '湖南大学', img: '/images/logos/p049.webp', kind: 'school', cat: '本科' },
+  { name: '湖南工学院', img: '/images/logos/p052.webp', kind: 'school', cat: '本科' },
+  { name: '湖州学院', img: '/images/logos/p022.webp', kind: 'school', cat: '本科' },
+  { name: '华南理工大学', img: '/images/logos/p062.webp', kind: 'school', cat: '本科' },
+  { name: '华南农业大学', img: '/images/logos/p060.webp', kind: 'school', cat: '本科' },
+  { name: '华南师范大学', img: '/images/logos/p061.webp', kind: 'school', cat: '本科' },
+  { name: '华侨大学', img: '/images/logos/p033.webp', kind: 'school', cat: '本科' },
+  { name: '集美大学', img: '/images/logos/p032.webp', kind: 'school', cat: '本科' },
+  { name: '济南大学', img: '/images/logos/p037.webp', kind: 'school', cat: '本科' },
+  { name: '暨南大学', img: '/images/logos/p059.webp', kind: 'school', cat: '本科' },
+  { name: '江苏第二师范学院', img: '/images/logos/p015.webp', kind: 'school', cat: '本科' },
+  { name: '江西理工大学', img: '/images/logos/p035.webp', kind: 'school', cat: '本科' },
+  { name: '兰州理工大学', img: '/images/logos/p104.webp', kind: 'school', cat: '本科' },
+  { name: '乐山师范学院', img: '/images/logos/p094.webp', kind: 'school', cat: '本科' },
+  { name: '南方科技大学', img: '/images/logos/p083.webp', kind: 'school', cat: '本科' },
+  { name: '南阳师范学院', img: '/images/logos/p041.webp', kind: 'school', cat: '本科' },
+  { name: '宁波工程学院', img: '/images/logos/p020.webp', kind: 'school', cat: '本科' },
+  { name: '山东大学', img: '/images/logos/p036.webp', kind: 'school', cat: '本科' },
+  { name: '汕头职业技术学院', img: '/images/logos/p131.webp', kind: 'school', cat: '高职' },
+  { name: '上海财经大学', img: '/images/logos/p012.webp', kind: 'school', cat: '本科' },
+  { name: '上海交通大学', img: '/images/logos/q068.webp', kind: 'school', cat: '本科' },
+  { name: '上海商学院', img: '/images/logos/p013.webp', kind: 'school', cat: '本科' },
+  { name: '深圳信息职业技术大学', img: '/images/logos/p084.webp', kind: 'school', cat: '本科' },
+  { name: '沈阳工业大学', img: '/images/logos/p008.webp', kind: 'school', cat: '本科' },
+  { name: '石河子大学', img: '/images/logos/p105.webp', kind: 'school', cat: '本科' },
+  { name: '顺德职业技术大学', img: '/images/logos/p081.webp', kind: 'school', cat: '本科' },
+  { name: '四川民族学院', img: '/images/logos/p093.webp', kind: 'school', cat: '本科' },
+  { name: '苏州城市学院', img: '/images/logos/p017.webp', kind: 'school', cat: '本科' },
+  { name: '苏州科技大学', img: '/images/logos/p018.webp', kind: 'school', cat: '本科' },
+  { name: '天津大学', img: '/images/logos/p002.webp', kind: 'school', cat: '本科' },
+  { name: '天津师范大学', img: '/images/logos/p003.webp', kind: 'school', cat: '本科' },
+  { name: '铜陵学院', img: '/images/logos/p029.webp', kind: 'school', cat: '本科' },
+  { name: '温州商学院', img: '/images/logos/p023.webp', kind: 'school', cat: '本科' },
+  { name: '五邑大学', img: '/images/logos/p076.webp', kind: 'school', cat: '本科' },
+  { name: '武昌工学院', img: '/images/logos/p055.webp', kind: 'school', cat: '本科' },
+  { name: '西安工程学院', img: '/images/logos/p098.webp', kind: 'school', cat: '本科' },
+  { name: '新乡学院', img: '/images/logos/p042.webp', kind: 'school', cat: '本科' },
+  { name: '信阳师范学院', img: '/images/logos/p040.webp', kind: 'school', cat: '本科' },
+  { name: '延安大学', img: '/images/logos/p100.webp', kind: 'school', cat: '本科' },
+  { name: '云南财经大学', img: '/images/logos/p096.webp', kind: 'school', cat: '本科' },
+  { name: '肇庆学院', img: '/images/logos/p080.webp', kind: 'school', cat: '本科' },
+  { name: '浙江大学', img: '/images/logos/p024.webp', kind: 'school', cat: '本科' },
+  { name: '中南林业科技大学', img: '/images/logos/p053.webp', kind: 'school', cat: '本科' },
+  { name: '中原科技学院', img: '/images/logos/p045.webp', kind: 'school', cat: '本科' },
+  { name: '仲恺农业工程学院', img: '/images/logos/p075.webp', kind: 'school', cat: '本科' },
+  { name: '珠海科技学院', img: '/images/logos/p077.webp', kind: 'school', cat: '本科' },
   { name: '招商证券', img: '/images/cases/case-26.jpg', kind: 'corp', cat: '证券' },
   { name: '中国银河证券', img: '/images/cases/case-28.jpg', kind: 'corp', cat: '证券' },
   { name: '广发期货', img: '/images/cases/case-29.jpg', kind: 'corp', cat: '期货' },
@@ -644,7 +922,7 @@ export const aboutBeliefs = [
 export const aboutProof = [
   { icon: BookOpenCheck, k: '发明专利', v: '4 项', note: '多智能体编排、代码沙箱、数字孪生引擎方向' },
   { icon: FileSearch, k: '软件著作权', v: '60+', note: '覆盖平台各子系统与实验模块' },
-  { icon: Network, k: '合作高校', v: '300+', note: '覆盖 26 个省市与 30+ 学科' },
+  { icon: Network, k: '合作高校', v: '180+', note: '覆盖 26 个省市与 30+ 学科' },
   { icon: Boxes, k: '在跑实训系统', v: '37 套', note: '自旧平台迁移并持续使用，含 492 条实验项目' },
 ]
 

@@ -77,7 +77,7 @@ export const advisorCtas = [
 ]
 export const advisorConsoleUrl = 'console.sztzjy.com / ai-engine'
 export const advisorStats = [
-  { value: 300, suffix: '+', label: '合作高校' },
+  { value: 180, suffix: '+', label: '合作高校' },
   { value: 30, suffix: '+', label: '覆盖学科' },
   { value: 100000, suffix: '+', label: '培养学员' },
   { value: 98, suffix: '%', label: '课堂互动率提升' },
@@ -435,7 +435,7 @@ export const ledgerAsset = {
 }
 
 /* ---------------- 合作高校 ---------------- */
-export const customersHead = { en: 'PARTNER INSTITUTIONS', zh: '已合作院校', sub: '已服务全国 300+ 高校，覆盖 26 个省市' }
+export const customersHead = { en: 'PARTNER INSTITUTIONS', zh: '已合作院校', sub: '已服务全国 180+ 高校，覆盖 26 个省市' }
 export const customers = ['清华大学', '浙江大学', '上海交通大学', '华南理工大学', '北京理工大学', '深圳职业技术大学', '北理莫斯科大学', '哈尔滨工业大学（深圳）']
 export const caseFeatured = {
   school: '北京理工大学',

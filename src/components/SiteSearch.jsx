@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Search, CornerDownLeft } from 'lucide-react'
 import { nav, anchorSections } from '../data/site'
 import { devices, deviceTypes } from '../data/devices'
-import { solutionScenes, techDetail, disciplineGroups } from '../data/pages'
+import { solutionPlans, techDetail, disciplineGroups } from '../data/pages'
 import { productMatrix } from '../data/site'
 
 /* ============================================================
@@ -22,7 +22,7 @@ function buildIndex() {
   nav.forEach((n) => out.push({ label: n.label, kind: '页面', to: n.to }))
   anchorSections.forEach((s) => out.push({ label: s.label, kind: '首页板块', to: `/#${s.id}` }))
   productMatrix.forEach((p) => out.push({ label: p.title, kind: '产品体系', to: '/#matrix', sub: p.tagline }))
-  solutionScenes.forEach((s) => out.push({ label: s.name, kind: '解决方案', to: `/solutions#${s.id}`, sub: s.line }))
+  solutionPlans.forEach((p) => out.push({ label: p.name, kind: '解决方案', to: '/solutions#plans', sub: p.tagline }))
   disciplineGroups.forEach((g) => out.push({ label: g.name, kind: '学科', to: '/solutions#disciplines', sub: g.majors.join('、') }))
   techDetail.forEach((t) => out.push({ label: t.name, kind: '技术底座', to: '/technology#bases', sub: t.thesis }))
   const typeName = (id) => deviceTypes.find((t) => t.id === id)?.zh || '设备'

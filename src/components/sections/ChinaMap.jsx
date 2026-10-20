@@ -96,6 +96,9 @@ function CityPin({ city, x, y, status, schools, on, hovered, anyHover, onHover, 
 
   const accent = '#1677ff'
   const soft = 'rgba(22,119,255,'
+  // 全息板只列该城前 5 所院校，其余以「等 N 所」收口（广州等总部城市单城院校多，避免面板撑爆）
+  const boardSchools = (schools || []).slice(0, 5)
+  const extraSchools = (schools || []).length - boardSchools.length
 
   return (
     <div
@@ -140,7 +143,7 @@ function CityPin({ city, x, y, status, schools, on, hovered, anyHover, onHover, 
               </div>
               {/* 院校：大 logo + 名称 */}
               <ul className="flex flex-col gap-3 px-4 pb-4 pt-1">
-                {(schools || []).map((s) => (
+                {boardSchools.map((s) => (
                   <li key={s} className="flex items-center gap-3">
                     <span className={`grid h-14 w-[92px] shrink-0 place-items-center overflow-hidden rounded-xl border bg-white px-2 shadow-inner ${dark ? 'border-white/10' : 'border-ink-900/[0.08]'}`}>
                       {SCHOOL_LOGO[s] ? (
@@ -152,6 +155,9 @@ function CityPin({ city, x, y, status, schools, on, hovered, anyHover, onHover, 
                     <span className={`text-[13.5px] font-medium leading-snug ${dark ? 'text-white/85' : 'text-ink-800'}`}>{s}</span>
                   </li>
                 ))}
+                {extraSchools > 0 && (
+                  <li className="pt-0.5 text-[12.5px] font-medium text-ink-400">…等 {schools.length} 所院校</li>
+                )}
               </ul>
             </div>
           </div>

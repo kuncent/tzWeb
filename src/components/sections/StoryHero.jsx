@@ -1,27 +1,29 @@
-import { Component, Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
+import { Component, Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowUpRight, ChevronDown, Radar } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowUpRight, ChevronDown } from 'lucide-react'
 import { heroScenes, heroMeta } from '../../data/heroScenes'
 import { useHeroScenes, useContent } from '../../lib/contentStore'
-import EmbodiedConsole from '../hero/EmbodiedConsole'
-import BuildStepper from '../hero/BuildStepper'
+import { productMatrix, brand } from '../../data/site'
+import { requestMatrixIndex } from '../../lib/matrixNav'
 import { getBuildStage, markHeroReady, selectDevice, skipBuild } from '../three/hero/buildBus'
 import { hasWebGL } from '../../lib/capability'
-import ChainConsole from '../hero/ChainConsole'
-import NeuralConsole from '../hero/NeuralConsole'
 
 /* ============================================================
- * 首屏：具身 / 区块链 / AI 三屏业务特效
+ * 首屏：企业型单屏（AI 3D 作背景）
  * ------------------------------------------------------------
- * 桌面端 = sticky 钉屏三切（外层撑出滚动行程，内层一整屏不动，
- * 滚动只负责换屏）；移动/平板 = 纵向堆叠，不挂 WebGL，只保留看板交互。
+ * 左栏 = 公司简介 + 五大产品体系入口色块；右栏 = 服务网络地图
+ * （HeroCoverage：六服务枢纽向全国辐射的暗色中国地图航线）；身后保留 AI 3D 舞台。
+ * 桌面端 sticky 钉屏，移动 / 平板纵向堆叠、不挂 WebGL。
  *
  * 两条硬约束：
  * 1. WebGL 一定要懒加载 + 延迟挂载。首屏的 LCP 是文案，不是 three.js。
- * 2. 看板的按钮是「演出指令」，不是装饰 —— 点它，3D 与看板必须同时有事发生。
+ * 2. cmd 仍按节拍自演、驱动身后 3D —— 看板下线了，但舞台不能静止。
  * ============================================================ */
 
 const HeroStage = lazy(() => import('../three/HeroStage'))
+/* 服务网络：复用现成的暗色中国地图 + 辐射航线组件（ECharts，单独切 chunk） */
+const HeroCoverage = lazy(() => import('./HeroCoverage'))
 
 /* 3D 出错不能影响整页。
    站点本来一个错误边界都没有，
@@ -51,7 +53,12 @@ const LAST = N - 1
 /* 每屏 76vh 滚动行程：太短切屏像被抽了一下，太长手指划到底会累 */
 const STEP_VH = 76
 const EASE = [0.22, 1, 0.36, 1]
-const CONSOLES = [EmbodiedConsole, ChainConsole, NeuralConsole]
+
+/* 五大产品入口色块的颜色：与首屏主题蓝、AgentPanels 面板同一族，
+   五支在蓝→青区间里拉开明度/饱和度，彼此可分辨又不跳色 */
+const PRODUCT_HUES = ['#5FA8FF', '#6FD4FF', '#3D7BFA', '#9CC0FF', '#4FC0E8']
+/* 色块用简称：取 title 「·」前的第一段，够短也够认 */
+const shortName = (t) => (t.includes('·') ? t.split('·')[0] : t).trim()
 
 /* 算“用户自己动了”的手势。不监听 scroll：那是程序化跳屏（下面的 jump、
    锚点链接）也会发的，用户没动我们就快进片头，等于自己掰自己 */
@@ -62,7 +69,7 @@ function Scrim({ accent, still = false }) {
   const drift = (dur, x, y) => (still ? undefined : { x, y, transition: { duration: dur, repeat: Infinity, ease: 'linear' } })
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(125%_95%_at_18%_8%,#0a1524_0%,#050a13_52%,#03060c_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(125%_95%_at_18%_8%,#10151e_0%,#080b12_52%,#05070c_100%)]" />
       <div className="absolute inset-0 opacity-70 [background-image:linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(75%_65%_at_38%_46%,black,transparent)]" />
       <motion.div
         className="absolute left-[8%] top-[6%] h-[560px] w-[560px] rounded-full opacity-70"
@@ -87,96 +94,86 @@ function Scrim({ accent, still = false }) {
   )
 }
 
-/** 一屏的文案层：进场用「上移 180px + 模糊」，退场收在下缘（参考站那套揭幕语言） */
-function Copy({ scene, cmd, still }) {
-  const cur = scene.commands.find((c) => c.id === cmd.id)
-  const lines = [0, 1]
+/** 左侧：公司简介 + 五大产品体系入口色块（替代原业务文案层） */
+function HeroIntro({ scene, still }) {
+  const enter = (delay) => ({
+    initial: still ? false : { opacity: 0, y: 22 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.55, delay, ease: EASE },
+  })
+  const rise = (delay) => ({
+    initial: still ? false : { y: '115%', filter: 'blur(5px)' },
+    animate: { y: '0%', filter: 'blur(0px)' },
+    transition: { duration: 0.62, delay, ease: EASE },
+  })
   return (
-    <div className="relative max-w-[640px]">
-      <span
-        className="pointer-events-none absolute -top-24 -left-10 select-none text-[190px] font-bold leading-none text-white/[0.045] xl:text-[240px]"
-        aria-hidden
-      >
-        {scene.no}
-      </span>
-      <motion.div
-        className="relative flex items-center gap-2.5"
-        initial={still ? false : { opacity: 0, y: 26, filter: 'blur(4px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.5, ease: EASE }}
-      >
-        <span className="h-1.5 w-1.5 rounded-full" style={{ background: scene.accent, boxShadow: `0 0 12px ${scene.accent}` }} />
-        <span className="text-[11px] font-semibold uppercase tracking-[0.3em]" style={{ color: scene.accent }}>
-          {scene.en}
+    <div className="relative max-w-[660px]">
+      {/* 品牌眉标 —— 提升存在感：圆点更大、字距更紧、色更亮 */}
+      <motion.div className="relative flex items-center gap-3" {...enter(0)}>
+        <span className="h-2 w-2 rounded-full" style={{ background: scene.accent, boxShadow: `0 0 16px ${scene.accent}` }} />
+        <span className="text-[12px] font-semibold uppercase tracking-[0.26em]" style={{ color: scene.accent }}>
+          {heroMeta.eyebrow}
         </span>
-        <span className="font-mono text-[10.5px] tracking-[0.18em] text-white/30">{scene.no} / 0{N}</span>
       </motion.div>
 
-      <h1 className="relative mt-4 text-[40px] font-bold leading-[1.08] tracking-[-0.02em] text-white sm:text-[52px] xl:text-[62px] 2xl:text-[70px]">
-        {scene.title.map((l, i) => (
-          <span key={l} className="block overflow-hidden">
-            <motion.span
-              className="block"
-              initial={still ? false : { y: '115%', filter: 'blur(5px)' }}
-              animate={{ y: '0%', filter: 'blur(0px)' }}
-              transition={{ duration: 0.62, delay: 0.04 + lines[i] * 0.09 + i * 0.04, ease: EASE }}
-              style={i === 1 ? { color: scene.accent } : undefined}
-            >
-              {l}
-            </motion.span>
-          </span>
-        ))}
+      {/* 公司主张 —— 使用 token 系统的 text-h1，比硬编码 px 更大气、响应式更好 */}
+      <h1 className="relative mt-5 text-h1 font-bold leading-[1.08] tracking-[-0.03em] text-white">
+        <span className="block overflow-hidden">
+          <motion.span className="block" {...rise(0.06)}>天择教育，</motion.span>
+        </span>
+        <span className="block overflow-hidden">
+          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.14)}>{brand.positioning}</motion.span>
+        </span>
       </h1>
 
-      <motion.p
-        className="mt-5 max-w-[560px] text-[13.5px] leading-[1.95] text-white/55 xl:text-[15px]"
-        initial={still ? false : { opacity: 0, y: 22 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, delay: 0.2, ease: EASE }}
-      >
-        {scene.desc}
+      {/* 公司简介 —— 提升对比度到 text-white/70，字号升为 text-ui (14px) */}
+      <motion.p className="mt-6 max-w-[580px] text-ui leading-[1.85] text-white/70" {...enter(0.2)}>
+        {brand.short}（{brand.en}）面向高校与职业院校，把 AI 多智能体、数字孪生与真实链路实训做成能直接开课的人才培养基础设施——五大产品体系一体交付，让前沿产业能力变成学生上手的能力。
       </motion.p>
 
-      <motion.ul
-        className="mt-6 flex flex-wrap gap-2"
-        initial={still ? false : { opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.26, ease: EASE }}
-      >
-        {scene.tags.map((t) => (
-          <li key={t} className="rounded-full border px-3.5 py-1.5 text-[12px]" style={{ borderColor: `${scene.accent}33`, background: `${scene.accent}1f`, color: 'rgba(255,255,255,0.86)' }}>
-            {t}
-          </li>
-        ))}
-      </motion.ul>
+      {/* 五大产品体系入口色块 —— 按用户要求收一档：字号/图标/内边距/间距整体缩小，
+          但 py-2.5 + 9 号图标仍保证整块 ≥ 44px 的可点高度。
+          这一轮再收长度：色块栅格限宽 580px（原随文案列 660px），单块 285px 宽 ——
+          比上一版窄约 32px，但 285 仍装得下 6 字中文 + 9px 英文名，不折行 */}
+      <motion.div className="mt-6 grid max-w-[580px] grid-cols-1 gap-2.5 sm:grid-cols-2" {...enter(0.26)}>
+        {productMatrix.map((p, i) => {
+          const hue = PRODUCT_HUES[i % PRODUCT_HUES.length]
+          const Icon = p.icon
+          return (
+            <Link
+              key={p.id}
+              to="/products"
+              onClick={() => requestMatrixIndex(i)}
+              className="group flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-12px_rgba(22,119,255,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              style={{ borderColor: `${hue}50`, background: `${hue}18` }}
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md" style={{ background: `${hue}28`, color: hue, boxShadow: `0 0 12px ${hue}20` }}>
+                <Icon className="h-[18px] w-[18px]" />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-[13px] font-semibold text-white">{shortName(p.title)}</span>
+                <span className="block truncate font-mono text-[9px] uppercase tracking-[0.12em] text-white/45">{p.en}</span>
+              </span>
+              <ArrowUpRight className="ml-auto h-3.5 w-3.5 shrink-0 text-white/40 transition-all duration-300 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          )
+        })}
+      </motion.div>
 
-      <motion.div
-        className="pointer-events-auto mt-8 flex flex-wrap items-center gap-3"
-        initial={still ? false : { opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.32, ease: EASE }}
-      >
+      {/* 主 CTA */}
+      <motion.div className="pointer-events-auto mt-7 flex flex-wrap items-center gap-3.5" {...enter(0.32)}>
         <a
           href="/#contact"
-          className="group inline-flex items-center gap-2.5 rounded-full px-6 py-3.5 text-[14px] font-semibold text-[#04070d] transition-transform duration-300 hover:-translate-y-0.5"
-          style={{ background: scene.accent, boxShadow: `0 16px 40px -14px ${scene.accent}99` }}
+          className="group inline-flex items-center gap-2.5 rounded-full px-6 py-3 text-[14px] font-semibold text-[#06080d] transition-all duration-300 hover:-translate-y-0.5"
+          style={{ background: scene.accent, boxShadow: `0 20px 48px -16px ${scene.accent}b0` }}
         >
           预约这套方案
           <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </a>
-        <a href="/#advisor" className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 text-[14px] font-medium text-white/85 transition-colors hover:border-white/45 hover:bg-white/[0.06]">
-          让 AI 方案顾问先出一版
+        <a href="/about" className="inline-flex items-center gap-2 rounded-full border border-white/25 px-5 py-3 text-[13.5px] font-medium text-white/90 transition-all duration-300 hover:border-white/55 hover:bg-white/[0.08]">
+          了解天择教育
         </a>
       </motion.div>
-
-      {/* 指令回执：看板点出来的一句话说明，读的是 heroScenes 里的 desc */}
-      <div className="mt-7 flex items-center gap-2.5 border-l-2 pl-3 font-mono text-[11.5px]" style={{ borderColor: `${scene.accent}66` }}>
-        <Radar className="h-3.5 w-3.5 shrink-0" style={{ color: scene.accent }} />
-        <span className="min-w-0 truncate text-white/45">
-          {cur ? `${cur.label} · ${cur.desc}` : '滚动切换业务 · 或点右侧看板下达指令'}
-        </span>
-        {!still && <span className="h-3.5 w-[6px] shrink-0 animate-pingslow" style={{ background: `${scene.accent}aa` }} />}
-      </div>
     </div>
   )
 }
@@ -197,7 +194,7 @@ function Uptime({ accent, still }) {
   /* 室温：拿秒数做个确定性微抖，看着像传感器而不是写死的字 */
   const temp = (22.4 + Math.sin(s * 0.31) * 0.12).toFixed(1)
   return (
-    <span className="hidden shrink-0 items-center gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-white/30 lg:flex">
+    <span className="hidden shrink-0 items-center gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-white/52 lg:flex">
       <span>UPTIME <span className="tabular-nums text-white/55">{hh}:{mm}:{ss}</span></span>
       <span className="h-3 w-px bg-white/10" />
       <span style={{ color: `${accent}99` }}>AMBIENT {temp}°C</span>
@@ -205,31 +202,27 @@ function Uptime({ accent, still }) {
   )
 }
 
-/** 移动/平板那一屏：自带一份指令状态。
-    不能复用桌面那个全局 cmd —— 桌面钉屏在 lg 以下根本没挂 scroll 监听，
-    idx 会永远停在 0，二三屏的按钮就点不动了。 */
-function MobileScene({ scene, index, still }) {
-  const Console = CONSOLES[index]
-  const [cmd, setCmd] = useState({ id: '', n: 0 })
-  const fire = useCallback((id) => setCmd((c) => ({ id, n: c.n + 1 })), [])
-  useEffect(() => {
-    if (still) return
-    const t = setInterval(() => setCmd((c) => {
-      const i = scene.commands.findIndex((x) => x.id === c.id)
-      return { id: scene.commands[(i + 1) % scene.commands.length].id, n: c.n + 1 }
-    }), 6400)
-    return () => clearInterval(t)
-  }, [scene, still])
+/** 移动 / 平板：纵向堆叠 —— 公司简介 + 色块在上，服务网络在下，不挂 WebGL */
+function MobileHero({ scene, still }) {
   return (
-    <div className="relative overflow-hidden border-b border-white/[0.06] px-6 py-12">
+    <div className="relative overflow-hidden border-b border-white/[0.06] px-6 py-14">
       <Scrim accent={scene.accent} still={still} />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(3,6,12,0.55),rgba(3,6,12,0.15)_40%,rgba(3,6,12,0.8))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(3,6,12,0.6),rgba(3,6,12,0.15)_40%,rgba(3,6,12,0.82))]" />
       <div className="relative">
-        <Copy scene={scene} cmd={cmd} still={still} />
-        <div className="mt-8">
-          {/* quiet：这一份只是堆叠版里的看板，不往 3D 总线里写状态
-              （桌面那份与 WebGL 同屏，两份都写就把同一个数字写出两个值） */}
-          <Console scene={scene} cmd={cmd} fire={fire} quiet />
+        <HeroIntro scene={scene} still={still} />
+        <div className="relative mt-10 rounded-2xl border border-white/12 p-5 shadow-[0_12px_40px_-16px_rgba(0,0,0,0.5)] overflow-hidden">
+          {/* 独立暗底隔离下方 3D */}
+          <div className="absolute inset-0 bg-[#070b12] rounded-2xl" aria-hidden />
+          <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]" aria-hidden />
+          <div className="relative">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.24em]" style={{ color: scene.accent }}>服务网络</p>
+            <p className="mt-1.5 text-[13px] text-white/60">以深圳总部为中心，六大服务枢纽辐射全国</p>
+            <div className="relative mt-4 h-[320px] overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a111f]">
+              <Suspense fallback={null}>
+                <HeroCoverage reduced={still} />
+              </Suspense>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -242,10 +235,6 @@ export default function StoryHero() {
   const idxRef = useRef(0)
   idxRef.current = idx /* 自动演示定时器里读「现在第几屏」而不进依赖数组，
                           省得每滚一格就把 interval 重挂一遍 */
-  /* 进度条走 DOM 而不是 state：滚动每帧 setState 会把整块看板重渲一遍，
-     看板里十几个动画子树，那是白白拿 60fps 去换一条 2px 的线 */
-  const barRef = useRef(null)
-  const pctRef = useRef(null)
   const [cmd, setCmd] = useState({ id: '', n: 0 })
   const lastUser = useRef(0)
   /* 首屏可编辑文案：从发布 overlay 取（后台"内容编辑 → 首屏三屏"改了就生效），
@@ -329,7 +318,7 @@ export default function StoryHero() {
   const [stagePainted, setStagePainted] = useState(false)
   const [scrimGone, setScrimGone] = useState(false)
   useEffect(() => {
-    /* 必须等 stagePainted：canvas 未真在画就把动底拆了，会露出 #04070d 纯黑。
+    /* 必须等 stagePainted：canvas 未真在画就把动底拆了，会露出 #06080d 纯黑。
        帧不来（弱机首帧编译、后台失焦、GPU 被抢）则动底一直亮着 —— 读到的是
        设计好的深色渐变 + 文案，不是黑。淡入（1.4s）走完再加 0.3s 余量才摘 */
     if (!stageOn || stageDead || !stagePainted) return
@@ -337,14 +326,7 @@ export default function StoryHero() {
     return () => clearTimeout(id)
   }, [stageOn, stageDead, stagePainted])
 
-  const fire = useCallback((id) => {
-    lastUser.current = Date.now()
-    /* 看板按钮是“演出指令”，而装配未完时 3D 那边把指令门控掉了（一台还没装好
-       的臂不该在跑轨迹）—— 于是片头期间点看板是死的。点它就是想看反应，
-       那就先把片头快进完再给反应 */
-    skipBuild()
-    setCmd((c) => ({ id, n: c.n + 1 }))
-  }, [])
+  /* 看板已下线，不再需要 fire；cmd 由下面的节拍定时器自演，继续驱动身后 3D */
 
   /* 滚动 → 屏序号（只在首屏附近挂监听，做法与产品矩阵一致） */
   useEffect(() => {
@@ -358,8 +340,6 @@ export default function StoryHero() {
       const span = rect.height - window.innerHeight
       if (span <= 0) return
       const v = Math.min(1, Math.max(0, -rect.top / span))
-      if (barRef.current) barRef.current.style.width = `${(v * 100).toFixed(1)}%`
-      if (pctRef.current) pctRef.current.textContent = `${String(Math.round(v * 100)).padStart(3, '0')}%`
       setIdx((cur) => {
         const i = Math.min(LAST, Math.floor(v * N))
         return cur === i ? cur : i
@@ -407,10 +387,6 @@ export default function StoryHero() {
     if (env.reduced) return
     const id = setInterval(() => {
       if (Date.now() - lastUser.current < 7000) return
-      /* 具身屏装配没走完不下发：3D 里臂还没吊装落位，看板却报「轨迹执行中」，
-         两头说的不是一回事 —— 装配期间（stage 0~5）自动演示先憋着 */
-      const bs = getBuildStage()
-      if (idxRef.current === 0 && bs >= 0 && bs < 6) return
       setCmd((c) => {
         const list = heroScenes[idxRef.current].commands
         const i = list.findIndex((x) => x.id === c.id)
@@ -434,11 +410,10 @@ export default function StoryHero() {
   }
 
   const scene = scenes[idx]
-  const Console = CONSOLES[idx]
   const still = env.reduced
 
   return (
-    <section id="hero" className="relative bg-[#04070d] text-white">
+    <section id="hero" className="relative bg-[#06080d] text-white">
       {/* ―― 桌面：钉屏三切 ―― */}
       <div ref={outerRef} className="hidden lg:block" style={{ height: `calc(100vh + ${LAST * STEP_VH}vh)` }}>
         <div className="sticky top-0 h-screen overflow-hidden">
@@ -488,8 +463,8 @@ export default function StoryHero() {
             className="pointer-events-none absolute inset-0"
             style={{
               backgroundImage:
-                'linear-gradient(to top, rgba(3,6,12,0.92), transparent), radial-gradient(120% 100% at 100% 100%, rgba(3,6,12,0.9), transparent 72%), linear-gradient(90deg, rgba(3,6,12,0.86) 0%, rgba(3,6,12,0.62) 26%, rgba(3,6,12,0.46) 37%, rgba(3,6,12,0.12) 46%, rgba(3,6,12,0.03) 62%, rgba(3,6,12,0.22) 100%)',
-              backgroundSize: '100% 160px, 48% 72%, 100% 100%',
+                'linear-gradient(to top, rgba(3,6,12,0.95), transparent), radial-gradient(120% 100% at 100% 100%, rgba(3,6,12,0.85), transparent 72%), linear-gradient(90deg, rgba(3,6,12,0.9) 0%, rgba(3,6,12,0.72) 26%, rgba(3,6,12,0.5) 37%, rgba(3,6,12,0.08) 48%, rgba(3,6,12,0.02) 62%, rgba(3,6,12,0.18) 100%)',
+              backgroundSize: '100% 180px, 48% 72%, 100% 100%',
               backgroundPosition: '0 100%, 100% 100%, 0 0',
               backgroundRepeat: 'no-repeat',
             }}
@@ -507,7 +482,10 @@ export default function StoryHero() {
                左半屏的指针事件全截走 —— 链屏那条看板线伸到 x 230 起，左边几块牌
                点不到就是这么被吃掉的（实测 elementFromPoint 在牌心返回的是文案
                那个 motion 容器）。真正要交互的只有下面那两个按钮，它们自己接回 auto */}
-            <div className="pointer-events-none absolute inset-y-0 left-10 flex max-w-[640px] flex-col justify-center pt-[80px] pb-[150px] wide:max-w-[720px]">
+            {/* 左文案列：这一轮整体收窄约 24px（660→636，宽屏 740→716）——
+                正好一个中文字宽，标题仍按原来的断行位置换行（9 + 4 字），
+                右侧让出的 24px 给 3D 展板；整块再往下沉 28px（pt 80→132 的净效果） */}
+            <div className="pointer-events-none absolute inset-y-0 left-10 flex max-w-[636px] flex-col justify-center pt-[132px] pb-[156px] wide:max-w-[716px]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={scene.id}
@@ -520,51 +498,54 @@ export default function StoryHero() {
                      进场带着整块看板的内部错峰，要跟着 3D 落位的拍子走 */
                   transition={{ duration: 0.46, delay: 0.08, ease: EASE }}
                 >
-                  <Copy scene={scene} cmd={cmd} still={still} />
+                  <HeroIntro scene={scene} still={still} />
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* ―― 装配工序进度条：只在具身屏、装配未完时出现（自带显隐）――
-                3D 里正在演「怎么搭一间实验室」，这条把它用文字钉住 */}
-            <div className="pointer-events-none absolute bottom-[104px] left-10 hidden max-w-[600px] lg:block">
-              <BuildStepper accent={scene.accent} />
-            </div>
+            {/* ―― 服务网络：贴着右下角的地图面板（半透明，尽量不遮挡 3D 实验室）――
+                位置在这一轮又上移了 20px（bottom-0 → bottom-[20px]），与首屏底沿拉开
+                一点呼吸，也给低位的商务数据分析展板让出下沿 */}
+            <div className="pointer-events-none absolute right-0 bottom-[20px] hidden w-[clamp(340px,30vw,460px)] xl:block" data-lenis-prevent>
+              <motion.div
+                className="pointer-events-auto relative rounded-2xl border border-white/12 p-4 shadow-[0_16px_48px_-18px_rgba(0,0,0,0.55)] overflow-hidden"
+                initial={still ? false : { opacity: 0, y: 34 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: still ? 0 : 0.16, ease: EASE }}
+              >
+                {/* 半透明暗底：既要能透出 3D 舞台，又要托住面板内的文字 */}
+                <div className="absolute inset-0 rounded-2xl" style={{ background: 'rgba(7,11,18,0.34)' }} aria-hidden />
+                {/* 顶部 1px 高光内描边 */}
+                <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]" aria-hidden />
 
-            {/* ―― 控制舱：右下角一枚，不再占据整列 ―― */}
-            <div className="pointer-events-auto absolute bottom-[104px] right-10 w-[380px] max-w-[30vw]" data-lenis-prevent>
-              {/* 高头按视口算而不是拍一个 vh 数：实测 54vh 在 900 高下正好
-                  把面板最下面那一排规格条切成一半，看着像坏了 */}
-              <div className="max-h-[calc(100vh-236px)] overflow-y-auto overscroll-contain no-scrollbar">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={scene.id}
-                    initial={still ? false : { opacity: 0, y: 34 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -22, transition: { duration: 0.22, ease: 'easeIn' } }}
-                    /* 比文案再晚一拍：右下角那块比主标题大得多，同起会抢 */
-                    transition={{ duration: 0.44, delay: still ? 0 : 0.16, ease: EASE }}
-                  >
-                    <Console scene={scene} cmd={cmd} fire={fire} />
-                    <p className="mt-2.5 flex items-center gap-2 pl-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-white/28">
-                      <span className="inline-block h-[2px] w-4" style={{ background: `${scene.accent}88` }} />
-                      {scene.hint || '看板指令实时驱动左侧场景'}
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
+                <div className="relative">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: scene.accent }}>服务网络</p>
+                      <p className="mt-1 text-[12px] text-white/55">六大服务枢纽辐射全国</p>
+                    </div>
+                    <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-white/40">NETWORK</span>
+                  </div>
+                  <div className="relative mt-3 h-[clamp(240px,32vh,340px)] overflow-hidden rounded-xl border border-white/[0.06] bg-[rgba(10,17,31,0.22)]">
+                    <Suspense fallback={null}>
+                      <HeroCoverage reduced={still} />
+                    </Suspense>
+                  </div>
+                  <div className="mt-3 flex items-center gap-4 font-mono text-[9px] uppercase tracking-[0.12em] text-white/45">
+                    <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full" style={{ background: '#CFE6FF', boxShadow: '0 0 6px #CFE6FF' }} />总部</span>
+                    <span className="inline-flex items-center gap-1.5"><span className="h-1 w-1 rounded-full" style={{ background: scene.accent }} />枢纽</span>
+                    <span className="inline-flex items-center gap-1.5"><span className="h-1 w-1 rounded-full bg-white/35" />城市</span>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
 
-          {/* ―― 底部横条：三屏切换 + 进度 + 滚动提示 ―― */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[70] flex h-[92px] items-center">
+          {/* ―― 底部横条：仅在多屏时显示切换按钮，否则完全移除 ―― */}
+          {scenes.length > 1 && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[70] flex h-[64px] items-center">
             <div className="mx-auto flex w-full max-w-[1440px] items-center gap-6 px-10 2xl:max-w-[1640px] 3xl:max-w-[1780px]">
-              <span className="hidden shrink-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/32 xl:flex">
-                <span className="h-[3px] w-[3px] rounded-full" style={{ background: scene.accent }} />
-                LAB-01 · {scene.en}
-              </span>
-
-              <div className="pointer-events-auto flex items-center gap-1.5">
+              <div className="pointer-events-auto flex items-center gap-2">
                 {scenes.map((s, i) => {
                   const on = i === idx
                   return (
@@ -572,14 +553,14 @@ export default function StoryHero() {
                       key={s.id}
                       onClick={() => jump(i)}
                       aria-current={on}
-                      className={`group relative flex items-center gap-2 rounded-full px-3.5 py-2 text-[12.5px] transition-colors duration-300 ${
-                        on ? 'text-white' : 'text-white/45 hover:text-white/80'
+                      className={`group relative flex items-center gap-2 rounded-full px-4 py-2 text-[13px] transition-colors duration-300 ${
+                        on ? 'text-white' : 'text-white/60 hover:text-white'
                       }`}
                     >
                       {on && (
                         <motion.span layoutId="hero-scene-active" transition={{ type: 'spring', stiffness: 360, damping: 32 }} className="absolute inset-0 rounded-full border" style={{ borderColor: `${s.accent}55`, background: `${s.accent}1f` }} />
                       )}
-                      <span className="relative font-mono text-[10px] tabular-nums" style={{ color: on ? s.accent : undefined }}>
+                      <span className="relative font-mono text-[11px] tabular-nums" style={{ color: on ? s.accent : undefined }}>
                         {s.no}
                       </span>
                       <span className="relative whitespace-nowrap">{s.nav}</span>
@@ -587,36 +568,19 @@ export default function StoryHero() {
                   )
                 })}
               </div>
-
-              <div className="pointer-events-none flex flex-1 items-center gap-3">
-                <div className="relative h-[2px] flex-1 overflow-hidden rounded-full bg-white/10">
-                  <div ref={barRef} className="absolute inset-y-0 left-0 w-0 rounded-full" style={{ background: scene.accent, boxShadow: `0 0 12px ${scene.accent}` }} />
-                </div>
-                <span ref={pctRef} className="font-mono text-[10px] tabular-nums text-white/35">
-                  000%
-                </span>
-              </div>
-
-              <Uptime accent={scene.accent} still={still} />
-
-              <div className="flex items-center gap-2 text-[11.5px] text-white/40">
-                <ChevronDown className="h-4 w-4 animate-bounce" style={{ color: scene.accent }} />
-                {idx === LAST ? '继续滚动，进入正片' : '滚动切换业务场景'}
-              </div>
             </div>
           </div>
+          )}
         </div>
       </div>
 
       {/* ―― 移动 / 平板：纵向堆叠，纯 CSS 动底 + 看板照旧可点 ―― */}
       <div className="lg:hidden">
         <div className="border-b border-white/[0.06] px-6 pb-3 pt-16">
-          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/35">{heroEyebrow}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/52">{heroEyebrow}</p>
           <p className="mt-1 text-[12px] text-white/50">{heroBrand}</p>
         </div>
-        {scenes.map((s, i) => (
-          <MobileScene key={s.id} scene={s} index={i} still={still} />
-        ))}
+        <MobileHero scene={scenes[0]} still={still} />
       </div>
     </section>
   )

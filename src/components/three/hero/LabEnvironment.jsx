@@ -516,93 +516,507 @@ function wallChain(g, ink, panel, rand) {
   g.fill()
 }
 
-/** AI 屏：注意力热力 + 收敛曲线 + 掌握漏斗 */
-function wallAi(g, ink, panel, rand) {
-  panel(40, 52, 300, 284)
-  const cell = 30
-  for (let r = 0; r < 9; r++)
-    for (let k = 0; k < 9; k++) {
-      const v = Math.max(0, 1 - Math.abs(r - k) / 4.2) * (0.45 + 0.55 * Math.abs(Math.sin((r + 1) * 0.8 + k * 0.55)))
-      g.fillStyle = `rgba(169,139,255,${(0.07 + v * 0.75).toFixed(3)})`
-      g.fillRect(58 + k * cell, 64 + r * cell, cell - 3, cell - 3)
-    }
-  /* 当前 token 那一行 / 那一列：热力图没有这根游标就是一片紫格子壁纸。
-     压到 0.55 —— 柱状橙是这屏的 accent，但墙在文案后面，抢不得 */
-  g.strokeStyle = 'rgba(255,196,106,0.55)'
-  g.lineWidth = 1.6
-  g.strokeRect(58, 64 + 3 * cell - 2, 268, cell - 1)
-  g.strokeRect(58 + 5 * cell - 2, 64, cell - 1, 268)
-  panel(360, 52, 300, 284)
-  g.strokeStyle = ink.soft
+/** AI 屏的背景墙：知识图谱 + 数据流 + 产业产线
+    ------------------------------------------------------------
+ * 换掉上一版的 9×9 注意力热力格：30px 的方格画在 7.2m 宽的大屏上，
+ * 隔着玻璃斜看就是一片紫色马赛克，远看只剩"廉价的像素噪点"。
+ * 这一版改画三样业务里真有的图形语言：
+ * 1. 左右两簇知识图谱（节点 + 细连线 + 中央枢纽）—— 对应课程/学科的知识网络；
+ * 2. 两条横贯屏面的数据流（贝塞尔带 + 脉冲点）—— 对应教学数据在链路里跑；
+ * 3. 底边四段产线（采集 → 治理 → 分析 → 决策）—— 五大方案共用的那条主线。
+ * 全部是矢量粗线、冷色低对比：墙在展板后面，任务是给纵深，不抢主体。
+ * 不写字 —— 后景里任何小字都会被透视缩成噪点，读节奏比读字有用。 */
+function wallAi(g) {
+  const W = 1024
+  const H = 384
+
+  /* ―― 底：品牌深蓝渐变 + 中央冷光。远墙先要"亮得有层次"，不能是一块黑 ―― */
+  const bg = g.createLinearGradient(0, 0, 0, H)
+  bg.addColorStop(0, '#0c1b38')
+  bg.addColorStop(0.55, '#071127')
+  bg.addColorStop(1, '#040a14')
+  g.fillStyle = bg
+  g.fillRect(0, 0, W, H)
+  const halo = g.createRadialGradient(500, 150, 24, 500, 150, 360)
+  halo.addColorStop(0, 'rgba(95,168,255,0.28)')
+  halo.addColorStop(0.5, 'rgba(95,168,255,0.10)')
+  halo.addColorStop(1, 'rgba(95,168,255,0)')
+  g.fillStyle = halo
+  g.fillRect(0, 0, W, H)
+
+  /* ―― 稀疏经纬线：64px 一格、0.07 —— 给"这是一块屏"的尺度感，不做棋盘 ―― */
+  g.strokeStyle = 'rgba(120,180,255,0.07)'
   g.lineWidth = 1
-  for (let i = 1; i < 5; i++) {
+  for (let x = 0; x <= W; x += 64) {
     g.beginPath()
-    g.moveTo(378, 74 + i * 52)
-    g.lineTo(642, 74 + i * 52)
+    g.moveTo(x, 0)
+    g.lineTo(x, H)
     g.stroke()
   }
-  const curve = (from, to, w, col, dash) => {
-    g.strokeStyle = col
-    g.lineWidth = w
-    if (dash) g.setLineDash([8, 6])
+  for (let y = 0; y <= H; y += 64) {
     g.beginPath()
-    for (let i = 0; i <= 16; i++) {
-      const u = i / 16
-      const x = 380 + u * 258
-      const y = from + (to - from) * (1 - Math.exp(-u * 3.4)) / (1 - Math.exp(-3.4)) + Math.sin(u * 9) * 4
-      i ? g.lineTo(x, y) : g.moveTo(x, y)
-    }
+    g.moveTo(0, y)
+    g.lineTo(W, y)
+    g.stroke()
+  }
+
+  /* ―― 知识图谱：左右各一簇，坐标写死（每块屏、每次刷新都同一张图）―― */
+  const clusters = [
+    [[98, 96], [188, 62], [286, 108], [120, 196], [216, 168], [300, 236], [150, 292]],
+    [[926, 104], [836, 60], [738, 112], [904, 200], [806, 172], [724, 240], [872, 292]],
+  ]
+  const links = [[0, 1], [1, 2], [0, 3], [3, 4], [4, 2], [3, 6], [4, 5], [6, 4]]
+  g.lineWidth = 1.3
+  clusters.forEach((nodes) => {
+    g.strokeStyle = 'rgba(122,178,255,0.26)'
+    links.forEach(([a, b]) => {
+      g.beginPath()
+      g.moveTo(nodes[a][0], nodes[a][1])
+      g.lineTo(nodes[b][0], nodes[b][1])
+      g.stroke()
+    })
+    nodes.forEach(([x, y], i) => {
+      const big = i === 4
+      g.fillStyle = big ? 'rgba(170,212,255,0.95)' : 'rgba(95,168,255,0.6)'
+      g.beginPath()
+      g.arc(x, y, big ? 6.5 : 4, 0, Math.PI * 2)
+      g.fill()
+      if (big) {
+        g.strokeStyle = 'rgba(95,168,255,0.42)'
+        g.lineWidth = 1.4
+        g.beginPath()
+        g.arc(x, y, 12, 0, Math.PI * 2)
+        g.stroke()
+      }
+    })
+  })
+
+  /* ―― 中央枢纽：左右两簇都收束到这一点（多智能体共享同一套知识）―― */
+  g.strokeStyle = 'rgba(150,200,255,0.34)'
+  g.lineWidth = 1.6
+  ;[270, 742].forEach((x) => {
+    g.beginPath()
+    g.moveTo(x, 168)
+    g.quadraticCurveTo(512, 92, 512, 150)
+    g.stroke()
+  })
+  g.fillStyle = 'rgba(235,245,255,0.92)'
+  g.beginPath()
+  g.arc(512, 150, 8, 0, Math.PI * 2)
+  g.fill()
+  g.strokeStyle = 'rgba(95,168,255,0.46)'
+  g.lineWidth = 1.4
+  ;[16, 28].forEach((r) => {
+    g.beginPath()
+    g.arc(512, 150, r, 0, Math.PI * 2)
+    g.stroke()
+  })
+
+  /* ―― 数据流：两条横贯屏面，方向"从左到右"远看也成立 ―― */
+  const flow = (y0, alpha, dash) => {
+    g.strokeStyle = `rgba(95,168,255,${alpha})`
+    g.lineWidth = 2.2
+    if (dash) g.setLineDash([14, 10])
+    g.beginPath()
+    g.moveTo(24, y0)
+    g.bezierCurveTo(240, y0 - 66, 404, y0 + 34, 566, y0 - 20)
+    g.bezierCurveTo(722, y0 - 72, 880, y0 + 30, 1000, y0 - 24)
     g.stroke()
     if (dash) g.setLineDash([])
   }
-  g.fillStyle = 'rgba(169,139,255,0.12)' // 置信带：两条曲线中间那一片
-  g.beginPath()
-  g.moveTo(380, 118)
-  g.lineTo(638, 232)
-  g.lineTo(638, 268)
-  g.lineTo(380, 196)
-  g.closePath()
-  g.fill()
-  curve(112, 250, 3, ink.a, false)
-  curve(150, 268, 2, ink.b, true)
-  panel(680, 52, 300, 284)
-  const stages = [0.96, 0.78, 0.61, 0.43]
-  stages.forEach((s, i) => {
-    const w0 = 244 * s
-    const w1 = 244 * (stages[i + 1] ?? s * 0.82)
-    const y0 = 74 + i * 52
+  flow(244, 0.5, false)
+  flow(270, 0.24, true)
+
+  /* 脉冲点：落在流线上，静态提示"数据在跑"（零每帧开销）*/
+  ;[
+    [180, 214, 3.6, 0.9],
+    [356, 262, 2.6, 0.58],
+    [520, 226, 4.2, 0.95],
+    [700, 220, 2.8, 0.6],
+    [872, 258, 3.4, 0.84],
+  ].forEach(([x, y, r, a]) => {
+    g.fillStyle = `rgba(212,236,255,${a})`
     g.beginPath()
-    g.moveTo(830 - w0 / 2, y0)
-    g.lineTo(830 + w0 / 2, y0)
-    g.lineTo(830 + w1 / 2, y0 + 40)
-    g.lineTo(830 - w1 / 2, y0 + 40)
-    g.closePath()
-    g.fillStyle = `rgba(169,139,255,${(0.5 - i * 0.1).toFixed(2)})`
+    g.arc(x, y, r, 0, Math.PI * 2)
     g.fill()
-    g.strokeStyle = i === 0 ? ink.b : ink.line
-    g.lineWidth = 1.6
+    g.strokeStyle = `rgba(95,168,255,${a * 0.42})`
+    g.lineWidth = 1.2
+    g.beginPath()
+    g.arc(x, y, r * 2.6, 0, Math.PI * 2)
     g.stroke()
   })
-  g.strokeStyle = ink.soft
+
+  /* ―― 底边产线：四段同宽、向右渐亮，段内一枚向右的 chevron ―― */
+  const segs = 4
+  const sw = 176
+  const gap = 20
+  for (let i = 0; i < segs; i++) {
+    const x = 132 + i * (sw + gap)
+    g.fillStyle = `rgba(95,168,255,${0.12 + i * 0.05})`
+    g.strokeStyle = `rgba(95,168,255,${0.26 + i * 0.06})`
+    g.lineWidth = 1.4
+    g.beginPath()
+    g.moveTo(x + 8, 330)
+    g.lineTo(x + sw - 10, 330)
+    g.lineTo(x + sw, 340)
+    g.lineTo(x + sw - 10, 350)
+    g.lineTo(x + 8, 350)
+    g.lineTo(x, 340)
+    g.closePath()
+    g.fill()
+    g.stroke()
+    g.strokeStyle = `rgba(215,238,255,${0.4 + i * 0.1})`
+    g.lineWidth = 2
+    g.beginPath()
+    g.moveTo(x + sw / 2 - 8, 334)
+    g.lineTo(x + sw / 2 + 2, 339)
+    g.lineTo(x + sw / 2 - 8, 344)
+    g.stroke()
+  }
+}
+
+/* ―― 墙上的"正在运行的研发空间"：三块屏幕 —— 代码编辑器 / K 线 / 走势+指标 ――
+   叠在上面那层网格与数据流上，做成一组错落的窗口：
+   1. 左：代码编辑器（行号槽、语法高亮、当前行高亮 + 光标）—— 研发空间；
+   2. 中：K 线面板（蜡烛 + 均线 + 成交量 + 报价牌）—— 金融科技；
+   3. 右：折线/面积走势 + 两枚指标卡 + 一条进度条 —— 数据看板。
+   窗口底色 0.90 不透明度：底下的图谱与流线只作若隐若现的衬底，
+   既给"机器在跑"的密度，又不会和前景五块展板抢焦点。
+   全部画在一次初始化里（纹理缓存），运行期零开销。 */
+function wallDemos(g) {
+  const CODE = {
+    kw: 'rgba(127,180,255,0.95)',
+    id: 'rgba(214,232,255,0.92)',
+    fn: 'rgba(95,224,200,0.95)',
+    str: 'rgba(255,196,106,0.92)',
+    num: 'rgba(255,176,140,0.92)',
+    prop: 'rgba(156,192,255,0.85)',
+    cm: 'rgba(110,130,160,0.8)',
+    tx: 'rgba(168,190,220,0.85)',
+  }
+  const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
+  const rr = (x, y, w, h, r) => {
+    g.beginPath()
+    g.moveTo(x + r, y)
+    g.arcTo(x + w, y, x + w, y + h, r)
+    g.arcTo(x + w, y + h, x, y + h, r)
+    g.arcTo(x, y + h, x, y, r)
+    g.arcTo(x, y, x + w, y, r)
+    g.closePath()
+  }
+  const card = (x, y, w, h, labelW) => {
+    g.fillStyle = 'rgba(8,18,34,0.9)'
+    rr(x, y, w, h, 8)
+    g.fill()
+    g.strokeStyle = 'rgba(120,180,255,0.30)'
+    g.lineWidth = 1
+    g.stroke()
+    g.fillStyle = 'rgba(95,168,255,0.09)'
+    rr(x + 1, y + 1, w - 2, 15, 7)
+    g.fill()
+    ;['#5FA8FF', 'rgba(255,196,106,0.85)', 'rgba(62,224,164,0.85)'].forEach((c, i) => {
+      g.fillStyle = c
+      g.beginPath()
+      g.arc(x + 11 + i * 11, y + 8, 2.6, 0, Math.PI * 2)
+      g.fill()
+    })
+    g.fillStyle = 'rgba(160,196,240,0.26)'
+    g.fillRect(x + 48, y + 5, labelW, 5)
+    g.fillStyle = 'rgba(95,168,255,0.45)'
+    g.fillRect(x + 48, y + 5, labelW * 0.4, 5)
+  }
+  const blk = (x, y, w, h, c = 'rgba(150,186,230,0.35)') => {
+    g.fillStyle = c
+    g.fillRect(x, y, w, h)
+  }
+
+  /* 三团冷光：先铺在窗口下面，让每块屏"亮起来"而不是贴上去 */
+  ;[
+    [200, 190, 190],
+    [564, 190, 160],
+    [872, 190, 150],
+  ].forEach(([x, y, r]) => {
+    const gr = g.createRadialGradient(x, y, 8, x, y, r)
+    gr.addColorStop(0, 'rgba(95,168,255,0.16)')
+    gr.addColorStop(1, 'rgba(95,168,255,0)')
+    g.fillStyle = gr
+    g.fillRect(x - r, y - r, r * 2, r * 2)
+  })
+
+  /* ―― 1. 代码编辑器 ―― */
+  const ax = 32
+  const ay = 46
+  const aw = 366
+  const ah = 292
+  card(ax, ay, aw, ah, 120)
+  g.fillStyle = 'rgba(255,255,255,0.035)'
+  g.fillRect(ax + 1, ay + 17, 26, ah - 30)
+  g.strokeStyle = 'rgba(120,180,255,0.14)'
+  g.beginPath()
+  g.moveTo(ax + 27, ay + 18)
+  g.lineTo(ax + 27, ay + ah - 13)
+  g.stroke()
+
+  const lines = [
+    [['const ', 'kw'], ['lab', 'id'], [' = ', 'tx'], ['await ', 'kw'], ['Agent', 'fn'], ['({', 'tx']],
+    [['  model: ', 'prop'], ["'edu-graph'", 'str'], [',', 'tx']],
+    [['  agents: ', 'prop'], ['5', 'num'], [',', 'tx']],
+    [['  stream: ', 'prop'], ['true', 'num'], [',', 'tx']],
+    [['})', 'tx']],
+    [],
+    [['for ', 'kw'], ['(', 'tx'], ['const ', 'kw'], ['a', 'id'], [' of ', 'kw'], ['agents', 'id'], [') {', 'tx']],
+    [['  a.', 'tx'], ['run', 'fn'], ['(', 'tx'], ['lesson', 'id'], [');', 'tx']],
+    [['}', 'tx']],
+    [],
+    [['// 5 agents · 1 graph', 'cm']],
+    [['export ', 'kw'], ['default ', 'kw'], ['lab', 'id']],
+  ]
+  const lh = 17
+  lines.forEach((tokens, i) => {
+    const y = ay + 36 + i * lh
+    g.font = `8px ${MONO}`
+    g.fillStyle = 'rgba(140,170,210,0.42)'
+    g.textAlign = 'right'
+    g.fillText(String(i + 1), ax + 21, y)
+    g.textAlign = 'left'
+    if (i === 7) {
+      g.fillStyle = 'rgba(95,168,255,0.13)'
+      g.fillRect(ax + 28, y - 10, aw - 34, 14)
+      g.fillStyle = 'rgba(95,168,255,0.7)'
+      g.fillRect(ax + 28, y - 10, 2, 14)
+    }
+    let x = ax + 34
+    tokens.forEach(([s, kind]) => {
+      g.font = `${kind === 'cm' ? 'italic ' : ''}9px ${MONO}`
+      g.fillStyle = CODE[kind]
+      g.fillText(s, x, y)
+      x += g.measureText(s).width
+    })
+    if (i === 7) {
+      g.fillStyle = 'rgba(235,245,255,0.92)'
+      g.fillRect(x + 2, y - 8, 1.5, 10)
+    }
+  })
+  /* 底部状态行：分支 / 编译通过 / 行号——编辑器读作"在跑"的三枚信号 */
+  g.font = `8px ${MONO}`
+  g.fillStyle = 'rgba(95,224,200,0.7)'
+  g.fillText('● ready', ax + 34, ay + ah - 10)
+  g.fillStyle = 'rgba(160,196,240,0.4)'
+  g.fillText('main', ax + 92, ay + ah - 10)
+  g.textAlign = 'right'
+  g.fillText('12:7', ax + aw - 12, ay + ah - 10)
+  g.textAlign = 'left'
+
+  /* ―― 2. K 线面板 ―― */
+  const bx = 414
+  const by = 46
+  const bw = 300
+  const bh = 292
+  card(bx, by, bw, bh, 96)
+  const px0 = bx + 16
+  const py0 = by + 32
+  const pw = bw - 40
+  const ph = 148
+  g.strokeStyle = 'rgba(120,180,255,0.12)'
+  g.lineWidth = 1
+  for (let i = 1; i <= 4; i++) {
+    const y = py0 + (ph / 4) * i
+    g.beginPath()
+    g.moveTo(px0, y)
+    g.lineTo(px0 + pw, y)
+    g.stroke()
+  }
+  const candles = [
+    [0.42, 0.58, 0.66, 0.38], [0.55, 0.47, 0.60, 0.42], [0.46, 0.60, 0.64, 0.44],
+    [0.58, 0.68, 0.74, 0.52], [0.66, 0.58, 0.72, 0.54], [0.54, 0.44, 0.58, 0.40],
+    [0.42, 0.52, 0.58, 0.36], [0.50, 0.64, 0.70, 0.46], [0.62, 0.74, 0.80, 0.58],
+    [0.72, 0.66, 0.78, 0.60], [0.64, 0.54, 0.70, 0.50], [0.52, 0.62, 0.68, 0.46],
+    [0.60, 0.72, 0.78, 0.54], [0.70, 0.64, 0.76, 0.56], [0.62, 0.56, 0.68, 0.48],
+    [0.56, 0.66, 0.72, 0.50],
+  ]
+  const cw = 16
+  candles.forEach(([o, c, hi, lo], i) => {
+    const cx = px0 + 10 + i * cw
+    const up = c >= o
+    const col = up ? 'rgba(47,214,180,0.95)' : 'rgba(255,122,138,0.95)'
+    const yh = py0 + ph * (1 - hi)
+    const yl = py0 + ph * (1 - lo)
+    const yo = py0 + ph * (1 - o)
+    const yc = py0 + ph * (1 - c)
+    g.strokeStyle = col
+    g.lineWidth = 1.2
+    g.beginPath()
+    g.moveTo(cx, yh)
+    g.lineTo(cx, yl)
+    g.stroke()
+    g.fillStyle = col
+    g.fillRect(cx - 3, Math.min(yo, yc), 6, Math.max(3, Math.abs(yc - yo)))
+    /* 成交量：底部一列小柱，跟着涨跌同一支色 */
+    blk(cx - 3, by + 214 - (hi - 0.2) * 46, 6, (hi - 0.2) * 46, up ? 'rgba(47,214,180,0.30)' : 'rgba(255,122,138,0.30)')
+  })
+  /* 均线：四条收盘价的滚动平均，横穿整张图 */
+  g.strokeStyle = 'rgba(143,196,255,0.85)'
   g.lineWidth = 1.4
-  g.beginPath() // 智能体点名行：五个点一条总线，与看板上那五个角色同构
-  g.moveTo(706, 320)
-  g.lineTo(954, 320)
+  g.beginPath()
+  candles.forEach(([o, c], i) => {
+    const win = candles.slice(Math.max(0, i - 3), i + 1)
+    const avg = win.reduce((s, [, cl]) => s + cl, 0) / win.length
+    const x = px0 + 10 + i * cw
+    const y = py0 + ph * (1 - avg)
+    i ? g.lineTo(x, y) : g.moveTo(x, y)
+  })
+  g.stroke()
+  /* 报价牌：右上角一枚，数字不必逐字可读，形状与色阶才是信息 */
+  g.fillStyle = 'rgba(47,214,180,0.16)'
+  rr(px0 + pw - 70, by + 36, 68, 15, 4)
+  g.fill()
+  g.strokeStyle = 'rgba(47,214,180,0.45)'
+  g.stroke()
+  g.font = `8px ${MONO}`
+  g.fillStyle = 'rgba(120,240,210,0.9)'
+  g.fillText('1,284.60', px0 + pw - 64, by + 46)
+  g.fillStyle = 'rgba(47,214,180,0.9)'
+  g.beginPath()
+  g.moveTo(px0 + pw - 14, by + 43)
+  g.lineTo(px0 + pw - 9, by + 38)
+  g.lineTo(px0 + pw - 4, by + 43)
+  g.fill()
+
+  /* ―― 3. 走势 + 指标卡 + 进度条 ―― */
+  const cx0 = 730
+  const cy0 = 46
+  const cw0 = 262
+  const ch0 = 292
+  card(cx0, cy0, cw0, ch0, 84)
+  const gx = cx0 + 14
+  const gy = cy0 + 32
+  const gw = cw0 - 28
+  const gh = 86
+  g.strokeStyle = 'rgba(120,180,255,0.12)'
+  for (let i = 1; i <= 3; i++) {
+    const y = gy + (gh / 3) * i
+    g.beginPath()
+    g.moveTo(gx, y)
+    g.lineTo(gx + gw, y)
+    g.stroke()
+  }
+  const vals = [0.34, 0.46, 0.40, 0.58, 0.50, 0.66, 0.60, 0.74, 0.82]
+  const area = (fill) => {
+    g.beginPath()
+    vals.forEach((v, i) => {
+      const x = gx + (gw / (vals.length - 1)) * i
+      const y = gy + gh * (1 - v)
+      i ? g.lineTo(x, y) : g.moveTo(x, y)
+    })
+    if (fill) {
+      g.lineTo(gx + gw, gy + gh)
+      g.lineTo(gx, gy + gh)
+      g.closePath()
+      const grad = g.createLinearGradient(0, gy, 0, gy + gh)
+      grad.addColorStop(0, 'rgba(95,168,255,0.38)')
+      grad.addColorStop(1, 'rgba(95,168,255,0.02)')
+      g.fillStyle = grad
+      g.fill()
+    } else {
+      g.strokeStyle = 'rgba(143,196,255,0.95)'
+      g.lineWidth = 1.6
+      g.stroke()
+    }
+  }
+  area(true)
+  area(false)
+  /* 最新点：白心 + 蓝环，和五块展板的"当前节点"同一套标记 */
+  const lastX = gx + gw
+  const lastY = gy + gh * (1 - vals[vals.length - 1])
+  g.fillStyle = 'rgba(235,245,255,0.95)'
+  g.beginPath()
+  g.arc(lastX, lastY, 2.6, 0, Math.PI * 2)
+  g.fill()
+  g.strokeStyle = 'rgba(95,168,255,0.6)'
+  g.lineWidth = 1
+  g.beginPath()
+  g.arc(lastX, lastY, 6, 0, Math.PI * 2)
+  g.stroke()
+
+  /* 两枚指标卡：数值 + 箭头 + 迷你走势 */
+  const tiles = [
+    { x: cx0 + 14, w: 112, v: '+12.4%', up: true, spark: [0.3, 0.42, 0.38, 0.5, 0.62, 0.58, 0.7] },
+    { x: cx0 + 136, w: 112, v: '98.2%', up: true, spark: [0.5, 0.46, 0.54, 0.58, 0.52, 0.64, 0.68] },
+  ]
+  tiles.forEach((t, ti) => {
+    g.fillStyle = 'rgba(255,255,255,0.03)'
+    rr(t.x, cy0 + 132, t.w, 58, 5)
+    g.fill()
+    g.strokeStyle = 'rgba(120,180,255,0.16)'
+    g.lineWidth = 1
+    g.stroke()
+    blk(t.x + 10, cy0 + 142, 34, 4, 'rgba(160,196,240,0.33)')
+    g.font = `600 12px ${MONO}`
+    g.fillStyle = ti === 0 ? 'rgba(120,240,210,0.95)' : 'rgba(255,196,106,0.95)'
+    g.fillText(t.v, t.x + 10, cy0 + 162)
+    g.fillStyle = t.up ? 'rgba(120,240,210,0.8)' : 'rgba(255,122,138,0.8)'
+    g.beginPath()
+    g.moveTo(t.x + 73, cy0 + 153)
+    g.lineTo(t.x + 79, cy0 + 160)
+    g.lineTo(t.x + 67, cy0 + 160)
+    g.fill()
+    g.strokeStyle = t.up ? 'rgba(120,240,210,0.65)' : 'rgba(255,122,138,0.65)'
+    g.lineWidth = 1.2
+    g.beginPath()
+    t.spark.forEach((v, i) => {
+      const x = t.x + 10 + (t.w - 20) / (t.spark.length - 1) * i
+      const y = cy0 + 180 - v * 14
+      i ? g.lineTo(x, y) : g.moveTo(x, y)
+    })
+    g.stroke()
+  })
+  /* 进度条：一条轨道 + 72% 的填充 + 刻度 */
+  blk(cx0 + 14, cy0 + 208, 120, 4, 'rgba(160,196,240,0.28)')
+  rr(cx0 + 14, cy0 + 244, 234, 7, 3.5)
+  g.fillStyle = 'rgba(255,255,255,0.08)'
+  g.fill()
+  const prog = g.createLinearGradient(cx0 + 14, 0, cx0 + 14 + 234 * 0.72, 0)
+  prog.addColorStop(0, 'rgba(95,168,255,0.9)')
+  prog.addColorStop(1, 'rgba(95,224,200,0.9)')
+  g.fillStyle = prog
+  rr(cx0 + 14, cy0 + 244, 234 * 0.72, 7, 3.5)
+  g.fill()
+
+  /* ―― 底部一行：五个节点连成一条链，亮两个（与前景五块展板同构）―― */
+  g.strokeStyle = 'rgba(120,180,255,0.22)'
+  g.lineWidth = 1
+  g.beginPath()
+  g.moveTo(70, 356)
+  g.lineTo(954, 356)
   g.stroke()
   for (let i = 0; i < 5; i++) {
-    g.fillStyle = i === 0 ? ink.b : ink.a
+    const x = 70 + i * 221
+    const on = i === 1 || i === 3
+    g.fillStyle = on ? 'rgba(235,245,255,0.95)' : 'rgba(95,168,255,0.45)'
     g.beginPath()
-    g.arc(716 + i * 58, 320, 6 + (i === 0 ? rand() * 2 : 0), 0, Math.PI * 2)
+    g.arc(x, 356, on ? 3.6 : 2.6, 0, Math.PI * 2)
     g.fill()
+    if (on) {
+      g.strokeStyle = 'rgba(95,168,255,0.5)'
+      g.lineWidth = 1
+      g.beginPath()
+      g.arc(x, 356, 8, 0, Math.PI * 2)
+      g.stroke()
+    }
   }
 }
 
 function labScreenTexture(variant = 'embodied') {
   const ink = WALL_INK[variant] || WALL_INK.embodied
+  /* 纹理分辨率：AI 屏是首屏最近的一面大屏（7.2m 宽、隔着玻璃斜看），
+     1024×384 在 2x 屏上会读成马赛克。按 2 倍栅格画，逻辑坐标仍按 1024×384 写，
+     画布本身 2048×768 —— 线与节点的边缘因此落在 1/2 逻辑像素上，干净一圈 */
+  const k = variant === 'ai' ? 2 : 1
   const c = document.createElement('canvas')
-  c.width = 1024
-  c.height = 384
+  c.width = 1024 * k
+  c.height = 384 * k
   const g = c.getContext('2d')
+  g.scale(k, k)
   g.fillStyle = ink.bg
   g.fillRect(0, 0, 1024, 384)
   /* 底网格：屏要有像素感，纯色一块读作贴纸 */
@@ -642,11 +1056,18 @@ function labScreenTexture(variant = 'embodied') {
     g.lineWidth = 1.5
     g.strokeRect(px, py, pw, ph)
   }
-  const draw = { embodied: wallEmbodied, chain: wallChain, ai: wallAi }[variant] || wallEmbodied
+  /* AI 屏 = 底层品牌图谱 / 数据流 + 上层三块错落的研发与金融窗口。
+     先铺底，再盖窗口：窗口之间留出的缝里能看到图谱与流线，读作"墙后面还有东西" */
+  const aiScreen = (gg, kk, pp, rand) => {
+    wallAi(gg, kk, pp, rand)
+    wallDemos(gg)
+  }
+  const draw = { embodied: wallEmbodied, chain: wallChain, ai: aiScreen }[variant] || wallEmbodied
   draw(g, ink, panel, rng(WALL_SEED[variant] || 1))
   const t = new THREE.CanvasTexture(c)
   t.colorSpace = THREE.SRGBColorSpace
-  t.anisotropy = 4
+  /* 大屏是斜着看的：各向异性拉到 8 才能让斜向的流线与节点不糊成一条带 */
+  t.anisotropy = 8
   return t
 }
 

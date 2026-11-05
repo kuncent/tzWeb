@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { Reveal, StatBand } from './ui'
 import { scrollToId } from '../hooks/useLenis'
 
@@ -16,16 +16,44 @@ import { scrollToId } from '../hooks/useLenis'
  * 那种「秩序感」有一半是靠常驻的位置提示撑的。
  * ============================================================ */
 
-/* 暗底 + 品牌蓝辉光 + 极淡网格。网格用 CSS 渐变画，不引图片资源 */
+/* 暗底 + 双尺度网格 + 一条地平线光。
+   原来那两团大半径蓝雾是「模板感」的来源：越大越糊，谁家的官网都长这样。
+   改成结构先行 —— 光只留一道压在顶部的窄地平线（读作「画面上方有光源」），
+   纵深交给顶部渐变与两级网格：88px 主格给秩序，22px 次格给精度。
+   科技感来自刻度与层次，不来自亮度。 */
 function HeroBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[#04070d]" />
-      <div className="absolute -top-40 left-1/2 h-[560px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(22,119,255,0.28),transparent)] blur-[8px]" />
-      <div className="absolute bottom-[-180px] right-[-120px] h-[420px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(101,191,255,0.16),transparent)]" />
-      <div className="absolute inset-0 opacity-[0.16] [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:64px_64px] [mask-image:radial-gradient(80%_60%_at_50%_0%,#000,transparent)]" />
+      <div className="absolute inset-0 bg-[#06080d]" />
+      <div className="absolute inset-x-0 top-0 h-[460px] bg-gradient-to-b from-[#0a0e16] via-[#080b12]/70 to-transparent" />
+      {/* 地平线：1px 亮线 + 上方一道窄辉光，中心略亮、两端收干 */}
+      <div className="absolute inset-x-0 top-[118px] h-px bg-gradient-to-r from-transparent via-brand-400/30 to-transparent" />
+      <div className="absolute left-1/2 top-[94px] h-[150px] w-[min(1180px,96%)] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(22,119,255,0.14),transparent_72%)] blur-[18px]" />
+      {/* 88px 主格 + 22px 次格：只在顶部渐隐，像工程图纸而不是背景图 */}
+      <div className="absolute inset-0 opacity-[0.13] [background-image:linear-gradient(to_right,rgba(255,255,255,0.10)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.10)_1px,transparent_1px)] [background-size:88px_88px] [mask-image:radial-gradient(130%_85%_at_50%_-10%,#000_42%,transparent_80%)]" />
+      <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(90%_62%_at_50%_8%,#000,transparent_74%)]" />
       {/* 底边一道收口，避免暗块生硬切断 */}
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#04070d]" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#06080d]" />
+    </div>
+  )
+}
+
+/* 浅色首屏底：与内页浅色分区同一色语言（白 → mist-100 微渐）。
+   保留暗底那套「地平线 + 双级网格」结构，只把亮度反转：格线换成 ink 的极低不透明
+   度（浅底上读作淡灰图纸格），辉光压到很淡的蓝。科技感保留，底不再黑。 */
+function HeroBackdropLight() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-white to-mist-100" />
+      <div className="absolute inset-x-0 top-0 h-[460px] bg-gradient-to-b from-mist-100/70 via-white/40 to-transparent" />
+      {/* 地平线：1px 细线 + 上方一道窄辉光，中心略亮、两端收干 */}
+      <div className="absolute inset-x-0 top-[118px] h-px bg-gradient-to-r from-transparent via-brand/25 to-transparent" />
+      <div className="absolute left-1/2 top-[94px] h-[150px] w-[min(1180px,96%)] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(22,119,255,0.10),transparent_72%)] blur-[18px]" />
+      {/* 88px 主格 + 22px 次格：ink 极低不透明度，只在顶部渐隐 */}
+      <div className="absolute inset-0 opacity-[0.6] [background-image:linear-gradient(to_right,rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.05)_1px,transparent_1px)] [background-size:88px_88px] [mask-image:radial-gradient(130%_85%_at_50%_-10%,#000_42%,transparent_80%)]" />
+      <div className="absolute inset-0 opacity-[0.4] [background-image:linear-gradient(to_right,rgba(15,23,42,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.06)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(90%_62%_at_50%_8%,#000,transparent_74%)]" />
+      {/* 底边收口到 mist-100，给暗色产品矩阵屏让出一道干净的浅色过渡 */}
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-mist-100" />
     </div>
   )
 }
@@ -48,17 +76,18 @@ function cjkTitle(text) {
   })
 }
 
-export function PageHero({ eyebrow, title, sub, stats, crumbs, cta, children }) {
+export function PageHero({ eyebrow, title, sub, stats, crumbs, cta, children, backdrop, tone = 'dark' }) {
+  const dark = tone !== 'light'
   return (
-    <section className="relative isolate overflow-hidden pt-[64px] text-white">
-      <HeroBackdrop />
-      <div className="container-x relative pb-16 pt-14 md:pb-20 md:pt-20">
+    <section className={`relative isolate overflow-hidden pt-[64px] ${dark ? 'text-white' : 'text-ink-900'}`}>
+      {backdrop || (dark ? <HeroBackdrop /> : <HeroBackdropLight />)}
+      <div className="container-x relative pb-20 pt-14 md:pb-28 md:pt-24">
         {crumbs && (
           <Reveal y={10}>
-            <nav aria-label="面包屑" className="flex items-center gap-2 text-[12px] text-white/45">
-              <Link to="/" className="transition-colors hover:text-white">首页</Link>
+            <nav aria-label="面包屑" className={`flex items-center gap-2 text-ui-sm ${dark ? 'text-white/52' : 'text-ink-400'}`}>
+              <Link to="/" className={`transition-colors ${dark ? 'hover:text-white' : 'text-ink-500 hover:text-ink-900'}`}>首页</Link>
               <span aria-hidden>/</span>
-              <span className="text-white/70">{crumbs}</span>
+              <span className={dark ? 'text-white/80' : 'text-ink-700'}>{crumbs}</span>
             </nav>
           </Reveal>
         )}
@@ -66,36 +95,38 @@ export function PageHero({ eyebrow, title, sub, stats, crumbs, cta, children }) 
         <div className={`gap-12 ${children ? 'lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-center' : ''}`}>
           <div className="min-w-0">
             <Reveal y={12}>
+              {/* HUD 式标签行：菱形刻度 + 渐隐细线 + 小字，比原来一根 8px 短线更像仪表 */}
               <div className="mt-6 flex items-center gap-3">
-                <span className="h-px w-8 bg-brand-400/70" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brand-300">{eyebrow}</span>
+                <span aria-hidden className="h-1.5 w-1.5 rotate-45 bg-brand-400/90" />
+                <span aria-hidden className="h-px w-10 bg-gradient-to-r from-brand-400/60 to-transparent" />
+                <span className={`text-caption font-semibold uppercase tracking-[0.3em] ${dark ? 'text-brand-300' : 'text-brand'}`}>{eyebrow}</span>
               </div>
             </Reveal>
             <Reveal delay={0.06} y={16}>
-              <h1 className="mt-5 max-w-[26ch] text-[38px] font-bold leading-[1.1] tracking-tight text-balance md:text-[54px] md:leading-[1.06]">
+              <h1 className="mt-6 max-w-[26ch] text-[38px] font-bold leading-[1.1] tracking-[-0.025em] text-balance md:text-[52px] md:leading-[1.06] xl:text-[60px]">
                 {cjkTitle(title)}
               </h1>
             </Reveal>
             {sub && (
               <Reveal delay={0.12}>
-                <p className="mt-6 max-w-2xl text-[15px] leading-[1.85] text-white/60">{sub}</p>
+                <p className={`mt-6 max-w-[58ch] text-ui-lg leading-[1.9] ${dark ? 'text-white/66' : 'text-ink-500'}`}>{sub}</p>
               </Reveal>
             )}
             {cta && (
               <Reveal delay={0.18}>
-                <div className="mt-9 flex flex-wrap items-center gap-3">
+                <div className="mt-10 flex flex-wrap items-center gap-3">
                   {cta.map((c) =>
                     c.primary ? (
                       <Link
                         key={c.label}
                         to={c.to}
-                        className="group inline-flex items-center gap-2.5 rounded-full bg-white px-6 py-3 text-sm font-medium text-ink-900 transition-all duration-300 hover:shadow-glow"
+                        className={`group inline-flex items-center gap-2.5 rounded-full px-6 py-3 text-sm font-medium transition-all duration-300 ${dark ? 'bg-white text-ink-900 hover:shadow-glow' : 'bg-ink-900 text-white hover:shadow-lift'}`}
                       >
                         {c.label}
                         <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                       </Link>
                     ) : (
-                      <Link key={c.label} to={c.to} className="btn-outline-light">
+                      <Link key={c.label} to={c.to} className={dark ? 'btn-outline-light' : 'btn-ghost'}>
                         {c.label}
                       </Link>
                     )
@@ -109,8 +140,8 @@ export function PageHero({ eyebrow, title, sub, stats, crumbs, cta, children }) 
         </div>
 
         {stats && stats.length > 0 && (
-          <div className="mt-14 border-t border-white/10 pt-8">
-            <StatBand tone="dark" items={stats} cols="sm:grid-cols-4" />
+          <div className={`mt-16 border-t pt-10 ${dark ? 'border-white/10' : 'border-ink-900/10'}`}>
+            <StatBand tone={dark ? 'dark' : 'light'} items={stats} cols="sm:grid-cols-4" />
           </div>
         )}
       </div>
@@ -121,28 +152,73 @@ export function PageHero({ eyebrow, title, sub, stats, crumbs, cta, children }) 
 /* ============================================================
  * 首屏统一外框 HeroFrame
  * ------------------------------------------------------------
- * 五个内页首屏共用同一套「视觉外框」：同一圆角 / 描边 / 顶部光条 /
- * 四角 HUD / 居中标签胶囊 / 底部提示。各页只往里塞自己那套按业务定制
- * 的动画（轮播 / 科技核 / 3D 转台 / 地图 / 数字），风格一致、动效各异。
+ * 六个内页首屏共用同一台「仪器」的外壳：同一圆角 / 描边 / 顶部光条 /
+ * 四角 HUD / 左右刻度尺 / 左上编号 / 右上状态 / 居中标签 / 底部提示。
+ * 各页只往里塞自己那套按业务定制的动画（目录轨 / 科技核 / 轮播 /
+ * 3D 转台 / 地图 / 实景拼贴），外壳一致、动效各异。
+ *
+ * 开机扫描只走一遍（1.6s 后收），不做常驻循环：首屏已经有轮播、
+ * 轨道、地图流光这些常驻动画，外壳再加一条无限扫线只会更吵。
  * ============================================================ */
-export function HeroFrame({ label, hint, children, bodyClass = '', className = '' }) {
+export function HeroFrame({ index, label, hint, status = 'LIVE', children, bodyClass = '', className = '' }) {
+  const reduced = useReducedMotion()
   return (
     <div className={`relative w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] shadow-[0_30px_70px_-30px_rgba(0,0,0,0.75)] ${className}`}>
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-20 h-px bg-gradient-to-r from-transparent via-brand-400/60 to-transparent" />
+
+      {/* 开机扫描：一道横光自上而下走一遍即止 */}
+      {!reduced && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-30"
+          style={{
+            background:
+              'linear-gradient(to bottom, transparent 38%, rgba(120,190,255,0.07) 48%, rgba(190,225,255,0.15) 50%, rgba(120,190,255,0.07) 52%, transparent 62%)',
+          }}
+          initial={{ y: '-100%' }}
+          animate={{ y: '100%' }}
+          transition={{ duration: 1.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+        />
+      )}
+
+      {/* 左右刻度尺：12px 短线 + 60px 长线，中段显形、上下消隐 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-10 left-2 z-20 w-1.5 opacity-40 [background-image:repeating-linear-gradient(to_bottom,rgba(255,255,255,0.28)_0_1px,transparent_1px_12px),repeating-linear-gradient(to_bottom,rgba(120,190,255,0.45)_0_1px,transparent_1px_60px)] [mask-image:linear-gradient(to_bottom,transparent,#000_16%,#000_84%,transparent)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-10 right-2 z-20 w-1.5 opacity-40 [background-image:repeating-linear-gradient(to_bottom,rgba(255,255,255,0.28)_0_1px,transparent_1px_12px),repeating-linear-gradient(to_bottom,rgba(120,190,255,0.45)_0_1px,transparent_1px_60px)] [mask-image:linear-gradient(to_bottom,transparent,#000_16%,#000_84%,transparent)]"
+      />
+
       <div aria-hidden className="pointer-events-none absolute inset-0 z-20">
         <span className="absolute left-3.5 top-3.5 h-4 w-4 border-l border-t border-white/[0.14]" />
         <span className="absolute right-3.5 top-3.5 h-4 w-4 border-r border-t border-white/[0.14]" />
         <span className="absolute bottom-3.5 left-3.5 h-4 w-4 border-b border-l border-white/[0.14]" />
         <span className="absolute bottom-3.5 right-3.5 h-4 w-4 border-b border-r border-white/[0.14]" />
       </div>
+
+      {index && (
+        <div className="pointer-events-none absolute left-9 top-[13px] z-30 hidden items-center gap-2 font-mono text-micro tabular-nums tracking-eyebrow text-white/30 sm:flex">
+          <span aria-hidden className="h-1 w-1 rounded-full bg-brand-400/90" />
+          {index}
+        </div>
+      )}
+      {status && (
+        <div className="pointer-events-none absolute right-9 top-[13px] z-30 hidden items-center gap-1.5 font-mono text-micro uppercase tracking-eyebrow text-white/28 sm:flex">
+          <span aria-hidden className="h-1 w-1 animate-pulse rounded-full bg-brand-300/90 motion-reduce:animate-none" />
+          {status}
+        </div>
+      )}
+
       {label && (
         <div className="pointer-events-none absolute left-1/2 top-3.5 z-30 -translate-x-1/2">
-          <span className="whitespace-nowrap rounded-full border border-brand/25 bg-[#04070d]/70 px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-brand-300 backdrop-blur-sm">{label}</span>
+          <span className="whitespace-nowrap rounded-full border border-brand/25 bg-[#06080d]/70 px-3 py-1 text-caption font-semibold uppercase tracking-[0.14em] text-brand-300 backdrop-blur-sm">{label}</span>
         </div>
       )}
       {hint && (
         <div className="pointer-events-none absolute bottom-3.5 left-1/2 z-30 -translate-x-1/2">
-          <p className="whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-white/35">{hint}</p>
+          <p className="whitespace-nowrap font-mono text-micro uppercase tracking-eyebrow text-white/35">{hint}</p>
         </div>
       )}
       <div className={bodyClass}>{children}</div>
@@ -186,7 +262,7 @@ export function InnerNav({ items, tone = 'light' }) {
   const jump = (id) => scrollToId(id, -116)
 
   return (
-    <div className={`sticky top-[64px] z-40 border-b backdrop-blur-xl ${dark ? 'border-white/[0.06] bg-[#04070d]/85' : 'border-ink-900/[0.06] bg-white/85'}`}>
+    <div className={`sticky top-[64px] z-40 border-b backdrop-blur-xl ${dark ? 'border-white/[0.06] bg-[#06080d]/85' : 'border-ink-900/[0.06] bg-white/85'}`}>
       <div className="container-x flex gap-1 overflow-x-auto py-2.5 no-scrollbar">
         {items.map((s) => {
           const on = active === s.id
@@ -195,7 +271,7 @@ export function InnerNav({ items, tone = 'light' }) {
               key={s.id}
               type="button"
               onClick={() => jump(s.id)}
-              className={`relative shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
+              className={`relative shrink-0 rounded-full px-3.5 py-1.5 text-ui-sm font-medium transition-colors ${
                 on ? 'text-white' : dark ? 'text-white/55 hover:text-white' : 'text-ink-500 hover:text-ink-900'
               }`}
             >
@@ -225,13 +301,13 @@ export function PageSection({ id, tone = 'light', head, children, className = ''
           <div className="mb-12">
             <div className="flex items-center gap-3">
               {head.n && (
-                <span className={`font-mono text-[11px] tabular-nums tracking-[0.18em] ${tone === 'dark' ? 'text-brand-400' : 'text-brand'}`}>
+                <span className={`font-mono text-caption tabular-nums tracking-label ${tone === 'dark' ? 'text-brand-400' : 'text-brand'}`}>
                   {head.n}
                 </span>
               )}
               <span className={`h-px w-6 ${tone === 'dark' ? 'bg-white/25' : 'bg-ink-900/15'}`} />
               {head.en && (
-                <span className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${tone === 'dark' ? 'text-white/45' : 'text-ink-400'}`}>
+                <span className={`text-caption font-semibold uppercase tracking-eyebrow ${tone === 'dark' ? 'text-white/45' : 'text-ink-400'}`}>
                   {head.en}
                 </span>
               )}
@@ -253,7 +329,7 @@ export function PageSection({ id, tone = 'light', head, children, className = ''
 /* 收口 CTA：每个内页最后都回到同一句话 —— 先聊需求，再谈方案 */
 export function PageCTA({ title = '先聊聊贵校的情况，再谈方案', sub = '留下联系方式，方案顾问与教研老师会在 1 个工作日内对接；也可以直接索取一份同类院校的建设方案初稿。', to = '/#contact', link = '预约演示', back = null }) {
   return (
-    <section className="relative isolate overflow-hidden bg-[#04070d] py-20 text-white md:py-24">
+    <section className="relative isolate overflow-hidden bg-[#06080d] py-20 text-white md:py-24">
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-[-160px] h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(22,119,255,0.3),transparent)]" />
         <div className="absolute inset-0 opacity-[0.14] [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(70%_70%_at_50%_50%,#000,transparent)]" />
@@ -261,7 +337,7 @@ export function PageCTA({ title = '先聊聊贵校的情况，再谈方案', sub
       <div className="container-x relative flex flex-wrap items-end justify-between gap-8">
         <Reveal className="min-w-0 max-w-2xl flex-1">
           <h2 className="text-[30px] font-bold leading-tight tracking-tight md:text-[40px]">{title}</h2>
-          <p className="mt-4 text-[14.5px] leading-[1.85] text-white/55">{sub}</p>
+          <p className="mt-4 text-ui leading-[1.85] text-white/55">{sub}</p>
         </Reveal>
         <Reveal delay={0.1} className="flex shrink-0 flex-wrap items-center gap-3">
           <Link

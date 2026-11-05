@@ -26,7 +26,7 @@ export function Field({ label, hint, error, required, children, className }) {
   return (
     <label className={cx('block', className)}>
       {label && (
-        <span className="mb-1.5 flex items-center gap-1 text-[13px] font-medium text-ink-700">
+        <span className="mb-1.5 flex items-center gap-1 text-ui-sm font-medium text-ink-700">
           {label}
           {required && <span className="text-brand">*</span>}
         </span>
@@ -69,7 +69,7 @@ export function Btn({ variant = 'primary', size = 'md', loading, className, chil
       disabled={p.disabled || loading}
       className={cx(
         'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60',
-        size === 'sm' ? 'px-3 py-1.5 text-[13px]' : 'px-4 py-2.5 text-sm',
+        size === 'sm' ? 'px-3 py-1.5 text-ui-sm' : 'px-4 py-2.5 text-sm',
         btnVariants[variant],
         className,
       )}
@@ -113,13 +113,13 @@ const badgeTones = {
   red: 'bg-[#DC2626]/10 text-[#B91C1C]',
 }
 export function Badge({ tone = 'neutral', className, children }) {
-  return <span className={cx('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11.5px] font-medium', badgeTones[tone], className)}>{children}</span>
+  return <span className={cx('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-caption font-medium', badgeTones[tone], className)}>{children}</span>
 }
 
 export function Banner({ kind = 'error', children }) {
   if (!children) return null
   const tone = kind === 'error' ? 'border-[#DC2626]/25 bg-[#DC2626]/[0.06] text-[#B91C1C]' : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-  return <div className={cx('rounded-xl border px-4 py-3 text-[13px] leading-relaxed', tone)} role={kind === 'error' ? 'alert' : 'status'}>{children}</div>
+  return <div className={cx('rounded-xl border px-4 py-3 text-ui-sm leading-relaxed', tone)} role={kind === 'error' ? 'alert' : 'status'}>{children}</div>
 }
 
 /* 抽屉/弹窗：轻量遮罩 + Esc 关闭 + 焦点移入。不自带滚动锁定，页面本身不复杂。 */
@@ -149,7 +149,7 @@ export function Modal({ open, onClose, title, children, wide }) {
         className={cx('relative z-10 flex h-full w-full flex-col bg-mist-100 shadow-elev-lg outline-none', wide ? 'max-w-2xl' : 'max-w-lg')}
       >
         <div className="flex items-center justify-between border-b border-ink-900/8 bg-white px-5 py-4">
-          <h3 className="text-[15px] font-semibold text-ink-900">{title}</h3>
+          <h3 className="text-ui-lg font-semibold text-ink-900">{title}</h3>
           <button onClick={onClose} className="rounded-lg p-1.5 text-ink-400 transition-colors hover:bg-mist-200 hover:text-ink-900" aria-label="关闭">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
           </button>
@@ -181,8 +181,8 @@ export function EmptyState({ icon: Icon, title, hint, action, className }) {
           <Icon className="h-5 w-5" />
         </span>
       )}
-      <p className="text-[13.5px] font-semibold text-ink-900">{title}</p>
-      {hint && <p className="mt-1 max-w-sm text-[12.5px] leading-relaxed text-ink-400">{hint}</p>}
+      <p className="text-ui font-semibold text-ink-900">{title}</p>
+      {hint && <p className="mt-1 max-w-sm text-ui-sm leading-relaxed text-ink-400">{hint}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   )
@@ -219,7 +219,7 @@ export function AuditList({ items }) {
       return next
     })
   if (!items?.length) {
-    return <p className="px-4 py-6 text-center text-[13px] text-ink-400">没有可展示的条目。</p>
+    return <p className="px-4 py-6 text-center text-ui-sm text-ink-400">没有可展示的条目。</p>
   }
   return (
     <ul className="divide-y divide-ink-900/6">
@@ -231,7 +231,7 @@ export function AuditList({ items }) {
             <div className="flex items-start gap-3">
               <span
                 className={cx(
-                  'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold',
+                  'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-caption font-bold',
                   it.pass ? 'bg-emerald-50 text-emerald-600' : 'bg-[#DC2626]/10 text-[#B91C1C]',
                 )}
                 aria-hidden
@@ -239,20 +239,20 @@ export function AuditList({ items }) {
                 {it.pass ? '✓' : '!'}
               </span>
               <div className="min-w-0 flex-1">
-                <p className={cx('text-[13.5px] font-medium leading-snug', it.pass ? 'text-ink-900' : 'text-[#B91C1C]')}>{it.label}</p>
-                {it.detail && <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink-500">{it.detail}</p>}
+                <p className={cx('text-ui font-medium leading-snug', it.pass ? 'text-ink-900' : 'text-[#B91C1C]')}>{it.label}</p>
+                {it.detail && <p className="mt-0.5 text-ui-sm leading-relaxed text-ink-500">{it.detail}</p>}
                 {hasAdvice && (
                   <>
                     <button
                       type="button"
                       onClick={() => toggle(it.key)}
-                      className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium text-brand hover:underline"
+                      className="mt-1.5 inline-flex items-center gap-1 text-ui-sm font-medium text-brand hover:underline"
                       aria-expanded={isOpen}
                     >
                       {isOpen ? '收起建议' : '查看建议'}
                     </button>
                     {isOpen && (
-                      <div className="mt-2 rounded-lg border border-brand/20 bg-brand-50/60 px-3 py-2 text-[12.5px] leading-relaxed text-ink-700">
+                      <div className="mt-2 rounded-lg border border-brand/20 bg-brand-50/60 px-3 py-2 text-ui-sm leading-relaxed text-ink-700">
                         {it.advice}
                       </div>
                     )}
@@ -286,7 +286,7 @@ export function ToastProvider({ children }) {
           <div
             key={i.id}
             className={cx(
-              'pointer-events-auto rounded-full px-4 py-2 text-[13px] font-medium shadow-elev-lg',
+              'pointer-events-auto rounded-full px-4 py-2 text-ui-sm font-medium shadow-elev-lg',
               i.kind === 'error' ? 'bg-[#B91C1C] text-white' : i.kind === 'success' ? 'bg-emerald-600 text-white' : 'bg-ink-900 text-white',
             )}
           >

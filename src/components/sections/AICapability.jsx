@@ -113,7 +113,7 @@ export default function AICapability() {
           en={aiHead.en}
           zh={aiHead.zh}
           sub={aiHead.desc}
-          action={{ to: '/technology#agents', children: '看四个自研引擎' }}
+          action={{ to: '/products', children: '看产品体系' }}
         />
 
         <div className="mt-16 grid gap-8 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:gap-10">

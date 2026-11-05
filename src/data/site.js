@@ -37,10 +37,11 @@ export const brand = {
 export const nav = [
   { label: '首页', to: '/' },
   { label: '解决方案', to: '/solutions' },
-  { label: '技术方向', to: '/technology' },
+  { label: '产品体系', to: '/products' },
   { label: '产品设备', to: '/devices' },
-  { label: '实训实验室', to: '/laboratories' },
+  { label: '智能产品', to: '/smart-products' },
   { label: '高校案例', to: '/cases' },
+  { label: '校企合作', to: '/partnership' },
   { label: '关于我们', to: '/about' },
 ]
 export const navCta = { label: '预约演示', to: '/#contact' }
@@ -55,12 +56,8 @@ export const navCta = { label: '预约演示', to: '/#contact' }
 export const anchorSections = [
   { id: 'problems', label: '挑战与问题' },
   { id: 'advisor', label: 'AI 方案顾问' },
-  { id: 'matrix', label: '产品矩阵' },
   { id: 'architecture', label: '技术架构' },
   { id: 'ai', label: 'AI 能力' },
-  { id: 'delivery', label: '交付路径' },
-  { id: 'customers', label: '合作高校' },
-  { id: 'resources', label: '资源专区' },
   { id: 'contact', label: '联系我们' },
 ]
 
@@ -458,19 +455,19 @@ export const resources = [
   {
     title: '产品文档',
     items: [
-      { label: '平台简介与技术栈', to: '/technology#stack', kind: '在线' },
-      { label: '多智能体课堂引擎', to: '/technology#bases', kind: '在线' },
-      { label: '实验沙箱与代码生成', to: '/technology#bases', kind: '在线' },
-      { label: '部署、安全与运维约束', to: '/technology#assurance', kind: '在线' },
+      { label: '平台简介与技术栈', to: '/products', kind: '在线' },
+      { label: '多智能体课堂引擎', to: '/products', kind: '在线' },
+      { label: '实验沙箱与代码生成', to: '/products', kind: '在线' },
+      { label: '部署、安全与运维约束', to: '/products', kind: '在线' },
     ],
   },
   {
     title: '开发者指南',
     items: [
-      { label: '开放课堂协议接入', to: '/technology#open', kind: '在线' },
-      { label: '三条接入路径与源码授权', to: '/technology#open', kind: '在线' },
-      { label: '教务系统对接与统一认证', to: '/technology#assurance', kind: '在线' },
-      { label: '课堂描述文件字段说明', to: '/technology#pipeline', kind: '在线' },
+      { label: '开放课堂协议接入', to: '/products', kind: '在线' },
+      { label: '三条接入路径与源码授权', to: '/products', kind: '在线' },
+      { label: '教务系统对接与统一认证', to: '/partnership', kind: '在线' },
+      { label: '课堂描述文件字段说明', to: '/products', kind: '在线' },
     ],
   },
   {
@@ -479,7 +476,7 @@ export const resources = [
       { label: '《高校 AI 实训建设方案》模板', to: '/#contact', kind: '洽谈提供' },
       { label: 'Demo 体验环境申请', to: '/#contact', kind: '申请开通' },
       { label: '同类院校案例集', to: '/cases', kind: '洽谈提供' },
-      { label: '产品实机演示（链 / 课堂 / 具身）', to: '/#matrix', kind: '在线' },
+      { label: '产品实机演示（链 / 课堂 / 具身）', to: '/products', kind: '在线' },
     ],
   },
 ]
@@ -490,7 +487,7 @@ export const contactProducts = ['AI 多智能体课堂', '自然语言实验平�
 export const contact = {
   phone: '400-000-0000',
   email: 'contact@sztzjy.com',
-  address: '深圳市南山区 · 科技园',
+  address: '深圳市光明区 · 金融科技大厦',
 }
 export const offices = ['深圳总部', '北京', '重庆', '郑州', '西安', '长沙']
 
@@ -501,7 +498,6 @@ export const footerNav = [
     links: [
       { label: 'AI 多智能体课堂', to: '/#ai' },
       { label: '自然语言实验平台', to: '/#ai' },
-      { label: '数字孪生实验室', to: '/laboratories' },
       { label: '学情分析引擎', to: '/#ai' },
     ],
   },
@@ -513,15 +509,6 @@ export const footerNav = [
       { label: '区块链实验室', to: '/solutions' },
       { label: '工程实训中心', to: '/solutions' },
       { label: '未来校园 · 创新中心', to: '/solutions' },
-    ],
-  },
-  {
-    title: '资源',
-    links: [
-      { label: '技术文档', to: '/#resources' },
-      { label: '白皮书下载', to: '/#resources' },
-      { label: 'Demo 申请', to: '/#resources' },
-      { label: '高校案例', to: '/cases' },
     ],
   },
   {

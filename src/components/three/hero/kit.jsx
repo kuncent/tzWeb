@@ -133,7 +133,7 @@ export function Floor({ accent = '#5FA8FF', size = 46 }) {
     () => ({
       uColor: { value: new THREE.Color(accent) },
       /* 与场景 background / fog 同色：不然这块 46×46 的方地会露出一个矩形边 */
-      uBase: { value: new THREE.Color('#04070d') },
+      uBase: { value: new THREE.Color('#06080d') },
       uSize: { value: size },
     }),
     [size],

@@ -17,13 +17,13 @@ export default function Footer() {
     return m && sections[m[1]]?.enabled === false
   }
   return (
-    <footer className="bg-[#0A0E16] text-white">
+    <footer className="bg-night text-white">
       <div className="container-x py-16">
         <div className="grid gap-12 lg:grid-cols-[1.2fr_2fr_1fr]">
           {/* 品牌 */}
           <div>
             <BrandLockup tone="dark" />
-            <p className="mt-5 max-w-xs text-xs leading-relaxed text-white/45">
+            <p className="mt-5 max-w-xs text-xs leading-relaxed text-white/66">
               {brand.positioning}。为高校提供 AI 多智能体课堂、自然语言实验平台与数字孪生实验室的全栈未来教育基础设施。
             </p>
             {/* 社交位不装样：只有这三条是真的能拨出去 / 发出去 / 落到联系屏 */}
@@ -58,7 +58,7 @@ export default function Footer() {
                 <ul className="mt-4 space-y-2.5">
                   {links.map((l) => (
                     <li key={l.label}>
-                      <Link to={l.to} className="text-[13px] text-white/45 transition-colors hover:text-white">
+                      <Link to={l.to} className="text-[13px] text-white/66 transition-colors hover:text-white">
                         {l.label}
                       </Link>
                     </li>
@@ -72,7 +72,7 @@ export default function Footer() {
           {/* 联系 */}
           <div>
             <h4 className="text-xs font-semibold tracking-wider text-white/70">联系我们</h4>
-            <div className="mt-4 space-y-3 text-[13px] text-white/45">
+            <div className="mt-4 space-y-3 text-[13px] text-white/66">
               <div className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5" />
                 {phone}
@@ -94,11 +94,11 @@ export default function Footer() {
 
         <div className="mt-14 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-white/[0.08] pt-6">
           {nav.map((n) => (
-            <Link key={n.to} to={n.to} className="text-xs text-white/35 transition-colors hover:text-white/70">
+            <Link key={n.to} to={n.to} className="text-xs text-white/52 transition-colors hover:text-white">
               {n.label}
             </Link>
           ))}
-          <span className="ml-auto text-xs text-white/35">© 2026 {brand.name} · {brand.en}. All rights reserved.</span>
+          <span className="ml-auto text-xs text-white/52">© 2026 {brand.name} · {brand.en}. All rights reserved.</span>
         </div>
       </div>
     </footer>

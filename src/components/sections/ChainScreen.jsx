@@ -34,7 +34,7 @@ function TopBar({ clip, product, t, dur, playing, show, onToggle, onReplay, onEx
     'grid h-6 w-6 shrink-0 place-items-center rounded-md border border-white/12 bg-white/[0.04] text-white/70 transition-colors hover:border-brand/60 hover:bg-brand/20 hover:text-white'
   return (
     <div
-      className={`absolute inset-x-0 top-0 z-10 flex items-center gap-2 bg-gradient-to-b from-[#04070d]/92 via-[#04070d]/55 to-transparent px-3 pb-7 pt-2 transition-opacity duration-300 ${
+      className={`absolute inset-x-0 top-0 z-10 flex items-center gap-2 bg-gradient-to-b from-[#06080d]/92 via-[#06080d]/55 to-transparent px-3 pb-7 pt-2 transition-opacity duration-300 ${
         show ? 'opacity-100' : 'pointer-events-none opacity-0'
       }`}
     >
@@ -83,7 +83,7 @@ function TopBar({ clip, product, t, dur, playing, show, onToggle, onReplay, onEx
 function BottomBar({ at, chapters, t, dur, onSeek, index }) {
   const pct = dur ? Math.min(100, (t / dur) * 100) : 0
   return (
-    <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[#04070d] via-[#04070d]/80 to-transparent px-3 pb-2 pt-6">
+    <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[#06080d] via-[#06080d]/80 to-transparent px-3 pb-2 pt-6">
       <div className="flex items-center gap-2.5">
         <span className="h-3 w-[2px] shrink-0 rounded-full bg-brand" />
         <AnimatePresence mode="wait">

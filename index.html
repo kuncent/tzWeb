@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#F5F8FC" />
-    <!-- 内联 SVG 图标（与顶栏 / 页脚同一枚“甄选之升”品牌标记）：不引外部文件，
+    <meta name="theme-color" content="#06080D" />
+    <!-- 内联 SVG 图标（与顶栏 / 页脚同一枚圆徽标记）：不引外部文件，
          浏览器也就不会去请求 /favicon.ico（默认会留一条 404） -->
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='4' y1='2' x2='28' y2='30' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2365BFFF'/%3E%3Cstop offset='1' stop-color='%231677FF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M9.4 18.6L16 10.4L22.6 18.6' stroke='white' stroke-opacity='0.96' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='8' r='2' fill='white'/%3E%3Cpath d='M11 23.6L21 23.6' stroke='white' stroke-opacity='0.4' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='7' y1='3' x2='25' y2='30' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2374ADEC'/%3E%3Cstop offset='1' stop-color='%233A78C6'/%3E%3C/linearGradient%3E%3CclipPath id='c'%3E%3Crect x='9' y='7.4' width='14' height='17.2'/%3E%3C/clipPath%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='15' fill='url(%23g)'/%3E%3Cg clip-path='url(%23c)'%3E%3Cpath d='M9 7.4H23V9.6H11.2V22.4H23V24.6H9V7.4Z' fill='white'/%3E%3Cline x1='23' y1='8.5' x2='9.6' y2='23.5' stroke='white' stroke-width='2.7'/%3E%3C/g%3E%3C/svg%3E"
     />
     <title>天择教育 · 下一代人才培养基础设施｜AI 多智能体课堂 · 数字孪生实验室 · 自然语言实验平台</title>
     <meta
@@ -56,7 +56,7 @@
       "logo": "https://www.sztzjy.com/images/tech_orb.webp",
       "description": "AI 多智能体课堂·数字孪生实验室·自然语言实验平台，覆盖全学科下一代人才培养基础设施",
       "email": "contact@sztzjy.com",
-      "address": { "@type": "PostalAddress", "addressRegion": "广东", "addressLocality": "深圳市", "streetAddress": "南山区科技园" },
+      "address": { "@type": "PostalAddress", "addressRegion": "广东", "addressLocality": "深圳市", "streetAddress": "光明区金融科技大厦" },
       "sameAs": [ "https://www.sztzjy.com" ]
     }
     </script>
@@ -109,7 +109,7 @@
          不占排版的胶囊：pointer-events:none，页面从头到尾可读可点。
          字体不写 Inter（它还在路上），直接用系统里就在的那一档 */
       html {
-        background: #04070d;
+        background: #06080d;
       }
       #boot {
         position: fixed;
@@ -124,7 +124,7 @@
         overflow: hidden;
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 999px;
-        background: rgba(4, 7, 13, 0.62);
+        background: rgba(6, 8, 13, 0.62);
         color: rgba(255, 255, 255, 0.72);
         pointer-events: none;
         font-family: 'HarmonyOS Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
@@ -177,10 +177,10 @@
     </style>
     <!-- 管理后台是亮色壳（bg-mist-100），但上面为官网 3D 首屏把 html 底色钉成了近黑 #04070d；
          直接开 /admin 时 React 尚未挂载，会先闪一片黑。这里在首次绘制前用同步内联脚本
-         把 html 底色改回加载后的亮色 #f5f8fc（与后台加载完成后的背景一致）。 -->
+         把 html 底色改回加载后的亮色 #f7f8fa（与后台加载完成后的背景一致）。 -->
     <script>
       if (/^\/admin(?:\/|$)/.test(location.pathname)) {
-        document.documentElement.style.background = '#f5f8fc'
+        document.documentElement.style.background = '#f7f8fa'
       }
     </script>
   </head>

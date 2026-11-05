@@ -2,9 +2,9 @@ import { startTransition, useEffect, useState } from 'react'
 import StoryHero from '../components/sections/StoryHero'
 import { useSectionEnabled } from '../lib/contentStore'
 
-/* ―― 首屏之下那 11 屏：从入口 chunk 里摘出去，改成「并行预取的异步块」 ――
+/* ―― 首屏之下那 9 屏：从入口 chunk 里摘出去，改成「并行预取的异步块」 ――
    静态 import 会把整棵 section 树打进落地页的入口 JS（实测入口 347 KB gzip）。
-   访客第一帧只看得到 StoryHero，下面 11 屏此刻既看不见、也不该挡着首屏下载。
+   访客第一帧只看得到 StoryHero，下面 9 屏此刻既看不见、也不该挡着首屏下载。
    做法：每屏一条 () => import(...) 动态语句（Rollup 据此单独切块，dev 下 Vite
    也按需单发该模块），并在模块顶层立刻 forEach 触发一次 —— 于是这些块在首屏
    渲染的空档里就并行开始下载/编译，等下面那个 idle 门控放行时基本已就位。
@@ -19,24 +19,16 @@ import { useSectionEnabled } from '../lib/contentStore'
    异步块稍晚到位不会让它失灵。 */
 const importProblems = () => import('../components/sections/Problems')
 const importAIAdvisor = () => import('../components/sections/AIAdvisor')
-const importProductMatrix = () => import('../components/sections/ProductMatrix')
 const importArchitecture = () => import('../components/sections/Architecture')
 const importAICapability = () => import('../components/sections/AICapability')
-const importDelivery = () => import('../components/sections/Delivery')
-const importCustomers = () => import('../components/sections/Customers')
-const importResources = () => import('../components/sections/Resources')
 const importContact = () => import('../components/sections/Contact')
 
 /* 首屏渲染的空档就把这些并行拉下来；失败无妨（下面 useModule 会再取一次） */
 ;[
   importProblems,
   importAIAdvisor,
-  importProductMatrix,
   importArchitecture,
   importAICapability,
-  importDelivery,
-  importCustomers,
-  importResources,
   importContact,
 ].forEach((m) => m())
 
@@ -63,7 +55,7 @@ function Sec({ id, loader }) {
 }
 
 export default function Home() {
-  /* ―― 首屏之下那 12 屏，延后一轮再挂 ――
+  /* ―― 首屏之下那 10 屏，延后一轮再挂 ――
      归因（tmp/boot-perf.mjs）：入口 JS 的下载+解析只要 104ms（拿 /nowhere 那条
      空路由量的），而首页从顶到底一整棵树是 1262ms 的长任务 —— 差的 1.16s 全是
      用户此刻还看不见的 section。首屏文案因此压到 ~1.5s 才落地，这才是「首屏
@@ -90,12 +82,8 @@ export default function Home() {
           <Sec id="problems" loader={importProblems} />
           {/* 一站式 AI 方案顾问前置：痛点之后先让方案顾问出场引导需求，再进产品矩阵 */}
           <Sec id="advisor" loader={importAIAdvisor} />
-          <Sec id="matrix" loader={importProductMatrix} />
           <Sec id="architecture" loader={importArchitecture} />
           <Sec id="ai" loader={importAICapability} />
-          <Sec id="delivery" loader={importDelivery} />
-          <Sec id="customers" loader={importCustomers} />
-          <Sec id="resources" loader={importResources} />
           <Sec id="contact" loader={importContact} />
         </>
       )}

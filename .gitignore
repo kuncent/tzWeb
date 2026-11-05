@@ -6,6 +6,9 @@ dist/
 # 临时件：录屏、截图、下载的二进制（tmp/ 下体积大且含机器本地路径）
 tmp/
 
+# 浏览器探针/截图工具的临时落盘（.screenshots/.tmp 下的 png，非站点资源）
+.screenshots/
+
 # 离线原始素材：机器人官方 CAD/网格与减面前的源模型（~1GB，非网站源码；
 # 运行时只用 public/models 下处理好的 -min.glb）。unitree_ros 还是内嵌 git 仓库。
 tools/

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Home from './pages/Home'
@@ -17,10 +17,11 @@ import useTracker from './hooks/useTracker'
    改成 lazy 后每个内页单独成块，只在真正导航过去时才取；首页保持静态 import，
    落地页零额外往返。（Navbar/Footer 仍静态：它们是全站骨架，不该闪。 ） */
 const Solutions = lazy(() => import('./pages/Solutions'))
-const Technology = lazy(() => import('./pages/Technology'))
+const Products = lazy(() => import('./pages/Products'))
 const Devices = lazy(() => import('./pages/Devices'))
-const Laboratories = lazy(() => import('./pages/Laboratories'))
+const SmartProducts = lazy(() => import('./pages/SmartProducts'))
 const Cases = lazy(() => import('./pages/Cases'))
+const SchoolEnterprise = lazy(() => import('./pages/SchoolEnterprise'))
 const About = lazy(() => import('./pages/About'))
 
 /* 管理后台整棵子树懒加载：/admin 才拉自己的块，不进营销首屏的 entry chunk。
@@ -79,10 +80,13 @@ function SiteShell() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/solutions" element={<Solutions />} />
-              <Route path="/technology" element={<Technology />} />
+              {/* 技术方案页已清空并入产品体系：旧 /technology 深链重定向过去，不断链 */}
+              <Route path="/technology" element={<Navigate to="/products" replace />} />
+              <Route path="/products" element={<Products />} />
               <Route path="/devices" element={<Devices />} />
-              <Route path="/laboratories" element={<Laboratories />} />
+              <Route path="/smart-products" element={<SmartProducts />} />
               <Route path="/cases" element={<Cases />} />
+              <Route path="/partnership" element={<SchoolEnterprise />} />
               <Route path="/about" element={<About />} />
               {/* 兜底路由保留：导航里万一又少接一个页，Placeholder 会直接
                   把路径显示出来（见 pages/Placeholder.jsx），比白屏好查 */}

@@ -82,8 +82,8 @@ function Board({ board, n }) {
   const done = n >= board.text.length
   return (
     <div className="relative mt-3 overflow-hidden rounded-xl border border-white/[0.07] bg-[#070c14] px-4 py-3">
-      <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-500">{board.kind === 'formula' ? 'BOARD · 推导' : 'BOARD · 示意'}</p>
-      <p className="mt-1 wrap-break-word font-mono text-[14px] leading-relaxed text-brand-200 xl:text-[16px]">
+      <p className="font-mono text-caption uppercase tracking-label text-ink-500">{board.kind === 'formula' ? 'BOARD · 推导' : 'BOARD · 示意'}</p>
+      <p className="mt-1 wrap-break-word font-mono text-ui leading-relaxed text-brand-200 xl:text-ui-lg">
         {board.text.slice(0, n)}
         <span className={`ml-0.5 inline-block h-[1em] w-[6px] translate-y-[2px] bg-brand-400 ${done ? 'opacity-0' : 'animate-pulse'}`} />
       </p>
@@ -110,7 +110,7 @@ function Scene({ scene, b, answer, onAnswer }) {
     const judged = answer != null
     return (
       <div className="mt-3">
-        <p className="text-[16px] font-semibold leading-snug text-white xl:text-[17px]">{scene.question}</p>
+        <p className="text-ui-lg font-semibold leading-snug text-white xl:text-title">{scene.question}</p>
         <ul className="mt-3 space-y-1.5">
           {scene.options.map((o, oi) => {
             const on = oi < b.shown
@@ -132,9 +132,9 @@ function Scene({ scene, b, answer, onAnswer }) {
                   data-classroom="opt"
                   disabled={!on || judged}
                   onClick={() => onAnswer(oi)}
-                  className={`flex w-full items-start gap-2.5 rounded-lg border px-3 py-2 text-left text-[13px] transition-colors xl:text-[14px] ${state}`}
+                  className={`flex w-full items-start gap-2.5 rounded-lg border px-3 py-2 text-left text-ui-sm transition-colors xl:text-ui ${state}`}
                 >
-                  <span className="mt-[1px] shrink-0 font-mono text-[11.5px] tabular-nums text-ink-500">{String.fromCharCode(65 + oi)}</span>
+                  <span className="mt-[1px] shrink-0 font-mono text-caption tabular-nums text-ink-500">{String.fromCharCode(65 + oi)}</span>
                   <span className="min-w-0 flex-1">{o}</span>
                   {judged && right && <Check className="h-3.5 w-3.5 shrink-0 text-emerald-400" />}
                   {judged && picked && !right && <X className="h-3.5 w-3.5 shrink-0 text-rose-400" />}
@@ -149,16 +149,16 @@ function Scene({ scene, b, answer, onAnswer }) {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="mt-2.5 rounded-lg border-l-2 border-brand/60 bg-brand/[0.07] px-3 py-2 text-[13px] leading-relaxed text-brand-100"
+              className="mt-2.5 rounded-lg border-l-2 border-brand/60 bg-brand/[0.07] px-3 py-2 text-ui-sm leading-relaxed text-brand-100"
             >
-              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand-300">AI 教师判分 / </span>
+              <span className="font-mono text-caption uppercase tracking-[0.16em] text-brand-300">AI 教师判分 / </span>
               {answer === scene.answer ? '答对了。' : '再想想。'}
               {scene.explain}
             </motion.p>
           )}
         </AnimatePresence>
         {!judged && b.shown >= scene.options.length && (
-          <p className="mt-2.5 text-[12.5px] text-ink-500">点选一个选项，AI 教师当堂判分 · 不动也会继续往下放</p>
+          <p className="mt-2.5 text-ui-sm text-ink-500">点选一个选项，AI 教师当堂判分 · 不动也会继续往下放</p>
         )}
       </div>
     )
@@ -166,7 +166,7 @@ function Scene({ scene, b, answer, onAnswer }) {
   if (scene.type === 'discussion') {
     return (
       <div className="mt-3">
-        <p className="text-[14px] font-medium leading-snug text-brand-200 xl:text-[16px]">{scene.topic}</p>
+        <p className="text-ui font-medium leading-snug text-brand-200 xl:text-ui-lg">{scene.topic}</p>
         <ul className="mt-3 space-y-2">
           {scene.turns.slice(0, b.shown).map((t, ti) => {
             const a = agentOf(t.who)
@@ -179,11 +179,11 @@ function Scene({ scene, b, answer, onAnswer }) {
                 transition={{ duration: 0.4, ease: EASE }}
                 className="flex items-start gap-2.5"
               >
-                <span className={`mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.05] text-[12.5px] font-semibold ${a.color}`}>
+                <span className={`mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.05] text-ui-sm font-semibold ${a.color}`}>
                   {a.name.replace('AI 同学 · ', '').replace('AI 教师', '师').slice(0, 1)}
                 </span>
-                <p className={`min-w-0 flex-1 rounded-xl rounded-tl-sm border px-3 py-2 text-[13px] leading-relaxed transition-colors ${last ? 'border-brand/30 bg-brand/[0.08] text-white' : 'border-white/[0.07] bg-white/[0.03] text-ink-400'}`}>
-                  <span className={`mr-2 font-mono text-[11px] uppercase tracking-[0.12em] ${a.color}`}>{t.who}</span>
+                <p className={`min-w-0 flex-1 rounded-xl rounded-tl-sm border px-3 py-2 text-ui-sm leading-relaxed transition-colors ${last ? 'border-brand/30 bg-brand/[0.08] text-white' : 'border-white/[0.07] bg-white/[0.03] text-ink-400'}`}>
+                  <span className={`mr-2 font-mono text-caption uppercase tracking-[0.12em] ${a.color}`}>{t.who}</span>
                   {t.text}
                 </p>
               </motion.li>
@@ -210,7 +210,7 @@ function Scene({ scene, b, answer, onAnswer }) {
               <span className="flex items-start gap-2.5">
                 {/* 激光笔：落在正在讲的那一条上 */}
                 <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${lit ? 'bg-brand shadow-[0_0_0_4px_rgba(22,119,255,0.18)]' : 'bg-white/20'}`} />
-                <span className={`text-[13.5px] leading-relaxed xl:text-[15px] ${lit ? 'text-white' : 'text-white/70'}`}>{bl}</span>
+                <span className={`text-ui leading-relaxed xl:text-ui-lg ${lit ? 'text-white' : 'text-white/70'}`}>{bl}</span>
               </span>
             </motion.li>
           )
@@ -524,9 +524,9 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand text-white shadow-glow">
               <Icon className="h-4 w-4" />
             </span>
-            <p className="text-[12.5px] font-semibold uppercase tracking-[0.22em] text-brand-400">{p.en}</p>
+            <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{p.en}</p>
             {withIndex && (
-              <p className="text-[12.5px] tabular-nums text-ink-400">
+              <p className="text-ui-sm tabular-nums text-ink-400">
                 {pad(i)} / {pad(LAST)}
               </p>
             )}
@@ -535,14 +535,14 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                 {online && <span className="absolute inline-flex h-full w-full animate-pingslow rounded-full bg-emerald-400" />}
                 <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${online ? 'bg-emerald-400' : 'bg-ink-500'}`} />
               </span>
-              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-400">
+              <span className="font-mono text-caption uppercase tracking-[0.14em] text-ink-400">
                 {busy ? 'GENERATING…' : online ? `QWEN · ${status.model || lesson.model || 'ONLINE'}` : '离线演示 · 内置教案'}
               </span>
             </span>
           </div>
-          <h3 className="mt-2.5 text-[22px] font-bold tracking-tight text-white md:text-[27px] xl:text-[32px]">{p.title}</h3>
-          <p className="mt-1 text-[13.5px] font-medium text-brand-300 xl:text-[15px]">{p.tagline}</p>
-          <p className="mt-1.5 line-clamp-2 max-w-3xl text-[13px] leading-[1.7] text-ink-400 [@media(max-height:860px)]:line-clamp-1" title={p.desc}>
+          <h3 className="mt-2.5 text-title font-bold tracking-tight text-white md:text-[27px] xl:text-[32px]">{p.title}</h3>
+          <p className="mt-1 text-ui font-medium text-brand-300 xl:text-ui-lg">{p.tagline}</p>
+          <p className="mt-1.5 line-clamp-2 max-w-3xl text-ui-sm leading-[1.7] text-ink-400 [@media(max-height:860px)]:line-clamp-1" title={p.desc}>
             {p.desc}
           </p>
 
@@ -563,7 +563,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                     setTab(t.id)
                     if (t.id === 'prep') setPrepSeen(true)
                   }}
-                  className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-medium transition-colors ${
+                  className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-ui-sm font-medium transition-colors ${
                     on ? 'border-brand/55 bg-brand/15 text-white' : 'border-white/[0.08] text-ink-400 hover:border-white/25 hover:text-white/85'
                   }`}
                 >
@@ -572,7 +572,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                 </button>
               )
             })}
-            <p className="ml-1 hidden truncate text-[12.5px] text-ink-500 lg:block">
+            <p className="ml-1 hidden truncate text-ui-sm text-ink-500 lg:block">
               {tab === 'class' ? 'AI 教师与同学同堂放映，可随时打断提问' : '贴一段课程内容，换回一份带讲稿的讲课 PPT'}
             </p>
           </div>
@@ -592,9 +592,9 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                 <span className="h-2 w-2 rounded-full bg-white/15" />
                 <span className="h-2 w-2 rounded-full bg-brand/70" />
               </span>
-              <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-white/85">
+              <p className="min-w-0 flex-1 truncate text-ui-sm font-semibold text-white/85">
                 {lesson.title}
-                <span className="ml-2 font-mono text-[11px] uppercase tracking-[0.14em] text-brand-300">{scene?.title || ''}</span>
+                <span className="ml-2 font-mono text-caption uppercase tracking-[0.14em] text-brand-300">{scene?.title || ''}</span>
               </p>
               <button type="button" onClick={() => setView(view === 'stage' ? 'map' : 'stage')} title="切换投影/课堂图谱" className={btn}>
                 {view === 'stage' ? <ListTree className="h-3 w-3" /> : <Presentation className="h-3 w-3" />}
@@ -618,8 +618,8 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
               </button>
             </div>
             <div className="relative mt-1 flex shrink-0 items-baseline justify-between gap-3 border-b border-white/[0.06] pb-1.5">
-              <p className="line-clamp-1 min-w-0 flex-1 text-[12.5px] text-ink-400">{lesson.subtitle}</p>
-              <span className="shrink-0 font-mono text-[11px] tabular-nums tracking-[0.12em] text-ink-500">
+              <p className="line-clamp-1 min-w-0 flex-1 text-ui-sm text-ink-400">{lesson.subtitle}</p>
+              <span className="shrink-0 font-mono text-caption tabular-nums tracking-[0.12em] text-ink-500">
                 SCENE {pad(sceneIdx)} / {pad(scenes.length - 1)}
               </span>
             </div>
@@ -649,10 +649,10 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                 </AnimatePresence>
                 {/* 口播：逐字打出的教师讲稿 */}
                 <div className="relative mt-2 shrink-0 border-t border-white/[0.06] pt-2">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand-300">
+                  <p className="font-mono text-caption uppercase tracking-[0.16em] text-brand-300">
                     {scene?.type === 'quiz' ? 'AI 教师 · 等待作答' : scene?.type === 'discussion' ? 'AI 教师 · 组织讨论' : 'AI 教师 · 口播'}
                   </p>
-                  <p className="mt-0.5 line-clamp-2 min-h-[2.9em] text-[13px] leading-[1.6] text-white/70">
+                  <p className="mt-0.5 line-clamp-2 min-h-[2.9em] text-ui-sm leading-[1.6] text-white/70">
                     {scene?.type === 'slides'
                       ? `${(scene.speech || '').slice(0, b.typed)}${b.typed < (scene.speech || '').length ? '▍' : ''}`
                       : scene?.type === 'quiz'
@@ -673,7 +673,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                   type="button"
                   onClick={() => goto(si)}
                   title={s.title}
-                  className={`min-w-0 flex-1 truncate rounded-sm px-1.5 py-1 text-left font-mono text-[11px] uppercase tracking-[0.1em] transition-colors ${
+                  className={`min-w-0 flex-1 truncate rounded-sm px-1.5 py-1 text-left font-mono text-caption uppercase tracking-[0.1em] transition-colors ${
                     si === sceneIdx && view === 'stage' ? 'bg-brand text-white' : si < sceneIdx ? 'text-brand-300 hover:bg-white/[0.08]' : 'text-ink-400 hover:bg-white/[0.08] hover:text-white/85'
                   }`}
                 >
@@ -691,14 +691,14 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
           <div className="flex min-h-0 flex-col gap-2.5">
             <div data-lenis-prevent className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pr-1">
             <div className="shrink-0 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3">
-              <p className="text-[12.5px] font-semibold uppercase tracking-[0.2em] text-brand-400">课堂生成流水线 · 两阶段</p>
+              <p className="text-ui-sm font-semibold uppercase tracking-label text-brand-400">课堂生成流水线 · 两阶段</p>
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 {classroomTopics.map((t) => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => applyLesson(pickLesson(t))}
-                    className={`rounded-full border px-2.5 py-1 text-[12.5px] transition-colors ${
+                    className={`rounded-full border px-2.5 py-1 text-ui-sm transition-colors ${
                       cur === t ? 'border-brand/50 bg-brand/15 text-white' : 'border-white/[0.08] text-ink-400 hover:border-white/25 hover:text-white/85'
                     }`}
                   >
@@ -717,12 +717,12 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                   value={topic}
                   onChange={(ev) => setTopic(ev.target.value)}
                   placeholder="输入任意主题，如「傅里叶变换的直觉」"
-                  className="min-w-0 flex-1 rounded-lg border border-white/[0.09] bg-[#060a11] px-2.5 py-1.5 text-[13px] text-white outline-none transition-colors placeholder:text-ink-500 focus:border-brand/60"
+                  className="min-w-0 flex-1 rounded-lg border border-white/[0.09] bg-[#060a11] px-2.5 py-1.5 text-ui-sm text-white outline-none transition-colors placeholder:text-ink-500 focus:border-brand/60"
                 />
                 <button
                   type="submit"
                   disabled={busy}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-brand-500 disabled:opacity-60"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-action px-3 py-1.5 text-ui-sm font-medium text-white transition-colors hover:bg-brand-press disabled:opacity-60"
                 >
                   <Sparkles className={`h-3.5 w-3.5 ${busy ? 'animate-spin' : ''}`} />
                   {busy ? '生成中' : '生成这堂课'}
@@ -733,7 +733,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                 <div className="overflow-hidden">
                   <div className="flex items-center gap-2">
                     {['生成教学大纲', '装配课堂场景'].map((label, si) => (
-                      <span key={label} className="flex items-center gap-1.5 text-[12.5px]">
+                      <span key={label} className="flex items-center gap-1.5 text-ui-sm">
                         <span className={`h-1.5 w-1.5 rounded-full ${phase > si ? 'bg-brand' : 'bg-white/15'}`} />
                         <span className={phase > si ? 'text-white/85' : 'text-ink-500'}>{label}</span>
                       </span>
@@ -745,7 +745,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                 </div>
               </div>
               {lesson.source !== 'qwen' && !busy && (
-                <p className="mt-2 text-[12.5px] leading-relaxed text-ink-500">
+                <p className="mt-2 text-ui-sm leading-relaxed text-ink-500">
                   当前为内置教案演示{lesson.reason ? `（${lesson.reason}）` : ''}。服务端 .env 配好 QWEN_API_KEY 后，这里换成模型实时生成的课堂。
                 </p>
               )}
@@ -753,14 +753,14 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
 
             {/* 智能体花名册 */}
             <div className="shrink-0 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-2.5">
-              <p className="text-[12.5px] font-semibold uppercase tracking-[0.2em] text-brand-400">同堂智能体</p>
+              <p className="text-ui-sm font-semibold uppercase tracking-label text-brand-400">同堂智能体</p>
               <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 [@media(max-height:820px)]:grid-cols-4 [@media(max-height:820px)]:gap-y-1">
                 {classroomAgents.map((a) => (
                   <li key={a.id} className="flex min-w-0 items-center gap-1.5">
                     <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${a.dot}`} />
-                    <span className={`truncate text-[12.5px] ${a.color}`}>{a.name}</span>
+                    <span className={`truncate text-ui-sm ${a.color}`}>{a.name}</span>
                     {/* 768 高的笔记本上这一栏只给一行高：角色描述不如名字重要 */}
-                    <span className="hidden truncate text-[12px] text-ink-500 [@media(min-height:820px)]:inline">{a.role}</span>
+                    <span className="hidden truncate text-ui-sm text-ink-500 [@media(min-height:820px)]:inline">{a.role}</span>
                   </li>
                 ))}
               </ul>
@@ -774,7 +774,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                 让位的是上方会滚的生成区，不牺牲 ASK 常驻。标题是独立不滚的头部，
                 消息在下面的滚动层里，新消息进来自动滚到底 */}
             <div className="flex h-[clamp(140px,18vh,200px)] shrink-0 flex-col overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02]">
-              <p className="shrink-0 px-3.5 pb-1 pt-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-500">
+              <p className="shrink-0 px-3.5 pb-1 pt-2.5 font-mono text-caption uppercase tracking-[0.16em] text-ink-500">
                 课堂实录 · LIVE
               </p>
               <div ref={feedRef} data-lenis-prevent className="min-h-0 flex-1 space-y-1.5 overflow-y-auto px-3.5 pb-2.5">
@@ -783,15 +783,15 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                   return (
                     <div key={m.key} className="flex items-start gap-2">
                       <span className={`mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full ${a.dot}`} />
-                      <p className="min-w-0 flex-1 text-[12.5px] leading-[1.6]">
+                      <p className="min-w-0 flex-1 text-ui-sm leading-[1.6]">
                         <span className={`mr-1.5 font-medium ${a.color}`}>{m.who}</span>
                         <span className="text-white/70">{m.text}</span>
-                        {m.off && <span className="ml-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-500">离线演示</span>}
+                        {m.off && <span className="ml-1.5 font-mono text-caption uppercase tracking-[0.1em] text-ink-500">离线演示</span>}
                       </p>
                     </div>
                   )
                 })}
-                {pending && <p className="text-[12.5px] text-ink-400">AI 教师正在作答…</p>}
+                {pending && <p className="text-ui-sm text-ink-400">AI 教师正在作答…</p>}
               </div>
             </div>
 
@@ -801,12 +801,12 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
               data-classroom="ask"
               className="flex shrink-0 items-center gap-1.5 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3 py-2"
             >
-              <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.16em] text-brand-300">ASK</span>
+              <span className="shrink-0 font-mono text-caption uppercase tracking-[0.16em] text-brand-300">ASK</span>
               <input
                 value={draft}
                 onChange={(ev) => setDraft(ev.target.value)}
                 placeholder="打断一下，问个具体问题…"
-                className="min-w-0 flex-1 bg-transparent text-[13px] text-white outline-none placeholder:text-ink-500"
+                className="min-w-0 flex-1 bg-transparent text-ui-sm text-white outline-none placeholder:text-ink-500"
               />
               <button type="submit" disabled={pending || !draft.trim()} aria-label="发送提问" className="shrink-0 text-brand-200 transition-colors hover:text-white disabled:text-ink-500">
                 <Send className="h-3.5 w-3.5" />
@@ -820,7 +820,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
           <Suspense
             fallback={
               <div className="mt-3 grid min-h-[300px] flex-1 place-items-center rounded-2xl border border-white/[0.09] bg-[#060a11] lg:min-h-[190px] xl:min-h-[225px]">
-                <p className="text-[12.5px] text-ink-500">备课台加载中…</p>
+                <p className="text-ui-sm text-ink-500">备课台加载中…</p>
               </div>
             }
           >
@@ -832,7 +832,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
         <div className="mt-3 flex shrink-0 flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/[0.07] pt-2.5">
           <ul className="flex flex-wrap gap-2">
             {p.bullets.map((bl) => (
-              <li key={bl} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[13px] text-white/75">
+              <li key={bl} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-ui-sm text-white/75">
                 {bl}
               </li>
             ))}
@@ -840,8 +840,8 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
           <div className="flex items-center gap-5 sm:ml-auto">
             {p.stats.map((s) => (
               <div key={s.k}>
-                <p className="text-[12.5px] text-ink-400">{s.k}</p>
-                <p className="text-[19px] font-bold tracking-tight text-white">{s.v}</p>
+                <p className="text-ui-sm text-ink-400">{s.k}</p>
+                <p className="text-title font-bold tracking-tight text-white">{s.v}</p>
               </div>
             ))}
             <a
@@ -850,7 +850,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                 e.preventDefault()
                 requestProductContact({ name: p.title, intent: p.intent, source: `classroom-${p.id}`, cta: '预约课堂演示' })
               }}
-              className="group inline-flex items-center gap-2 rounded-xl border border-brand/40 bg-brand/10 px-4 py-2 text-[13px] font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
+              className="group inline-flex items-center gap-2 rounded-xl border border-brand/40 bg-brand/10 px-4 py-2 text-ui-sm font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
             >
               预约课堂演示
               <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

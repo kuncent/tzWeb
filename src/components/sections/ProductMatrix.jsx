@@ -7,6 +7,7 @@ import { useContent, useContentData } from '../../lib/contentStore'
 import ChainScreen from './ChainScreen'
 import ClassroomScreen from './ClassroomScreen'
 import SystemsScreen from './SystemsScreen'
+import { subscribeMatrix, takePending } from '../../lib/matrixNav'
 
 /* 3D 环形展台（自 KUN 具身教育实验室项目复用）：体积较大，按需懒加载。
    把 import 工厂提到具名变量，是为了在矩阵接近视口时先手动 trigger 一次 ——
@@ -45,9 +46,9 @@ function MatrixScreen({ p, i, withIndex }) {
             <Icon className="h-6 w-6" />
           </span>
           <div>
-            <p className="text-[12.5px] font-semibold uppercase tracking-[0.22em] text-brand-400">{p.en}</p>
+            <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{p.en}</p>
             {withIndex && (
-              <p className="text-[13px] tabular-nums text-ink-400">
+              <p className="text-ui-sm tabular-nums text-ink-400">
                 {pad(i)} / {pad(LAST)}
               </p>
             )}
@@ -55,14 +56,14 @@ function MatrixScreen({ p, i, withIndex }) {
         </div>
 
         <h3 className="mt-6 text-[26px] font-bold tracking-tight text-white md:text-[34px] xl:text-[42px]">{p.title}</h3>
-        <p className="mt-3 text-[15px] font-medium text-brand-300 xl:text-[16px]">{p.tagline}</p>
-        <p className="mt-4 max-w-2xl text-[14px] leading-[1.9] text-ink-400 xl:text-[15px]">{p.desc}</p>
+        <p className="mt-3 text-ui-lg font-medium text-brand-300 xl:text-ui-lg">{p.tagline}</p>
+        <p className="mt-4 max-w-2xl text-ui leading-[1.9] text-ink-400 xl:text-ui-lg">{p.desc}</p>
 
         <ul className="mt-7 flex flex-wrap gap-2.5">
           {p.bullets.map((b) => (
             <li
               key={b}
-              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[13.5px] text-white/80 backdrop-blur-sm"
+              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-ui text-white/80 backdrop-blur-sm"
             >
               {b}
             </li>
@@ -72,7 +73,7 @@ function MatrixScreen({ p, i, withIndex }) {
         <div className="mt-8 flex flex-wrap items-stretch gap-3">
           {p.stats.map((s) => (
             <div key={s.k} className="min-w-[146px] rounded-2xl border border-white/[0.08] bg-white/[0.03] px-5 py-4">
-              <p className="text-[12.5px] text-ink-400">{s.k}</p>
+              <p className="text-ui-sm text-ink-400">{s.k}</p>
               <p className="mt-1 text-[21px] font-bold tracking-tight text-white">{s.v}</p>
             </div>
           ))}
@@ -82,7 +83,7 @@ function MatrixScreen({ p, i, withIndex }) {
               e.preventDefault()
               requestProductContact({ name: p.title, intent: p.intent, source: `matrix-${p.id}`, cta: '咨询产品体系' })
             }}
-            className="group inline-flex items-center gap-2 self-center rounded-2xl border border-brand/40 bg-brand/10 px-5 py-4 text-[14px] font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
+            className="group inline-flex items-center gap-2 self-center rounded-2xl border border-brand/40 bg-brand/10 px-5 py-4 text-ui font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
           >
             咨询该产品体系
             <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -119,17 +120,17 @@ function EmbodiedScreen({ p, i, withIndex }) {
               <Icon className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-[12.5px] font-semibold uppercase tracking-[0.22em] text-brand-400">{p.en}</p>
+              <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{p.en}</p>
               {withIndex && (
-                <p className="text-[12.5px] tabular-nums text-ink-400">
+                <p className="text-ui-sm tabular-nums text-ink-400">
                   {pad(i)} / {pad(LAST)}
                 </p>
               )}
             </div>
           </div>
           <h3 className="mt-3 text-[23px] font-bold tracking-tight text-white md:text-[28px] xl:text-[34px] [@media(max-height:820px)]:xl:text-[28px]">{p.title}</h3>
-          <p className="mt-1.5 text-[14px] font-medium text-brand-300 xl:text-[15px]">{p.tagline}</p>
-          <p className="mt-1.5 max-w-3xl text-[13px] leading-[1.75] text-ink-400 [@media(max-height:820px)]:line-clamp-2">{p.desc}</p>
+          <p className="mt-1.5 text-ui font-medium text-brand-300 xl:text-ui-lg">{p.tagline}</p>
+          <p className="mt-1.5 max-w-3xl text-ui-sm leading-[1.75] text-ink-400 [@media(max-height:820px)]:line-clamp-2">{p.desc}</p>
         </div>
 
         {/* 产品选择器 */}
@@ -144,9 +145,9 @@ function EmbodiedScreen({ p, i, withIndex }) {
                   on ? 'border-brand/50 bg-brand/15 text-white' : 'border-white/[0.08] text-ink-400 hover:border-white/20 hover:text-white/80'
                 }`}
               >
-                <span className={`font-mono text-[11.5px] tabular-nums ${on ? 'text-brand-300' : 'text-ink-500'}`}>{pad(k)}</span>
-                <span className="text-[13.5px] font-medium">{pr.name}</span>
-                <span className={`hidden font-mono text-[11px] tracking-[0.1em] sm:inline ${on ? 'text-brand-200' : 'text-ink-500'}`}>
+                <span className={`font-mono text-caption tabular-nums ${on ? 'text-brand-300' : 'text-ink-500'}`}>{pad(k)}</span>
+                <span className="text-ui font-medium">{pr.name}</span>
+                <span className={`hidden font-mono text-caption tracking-[0.1em] sm:inline ${on ? 'text-brand-200' : 'text-ink-500'}`}>
                   {pr.code}
                 </span>
               </button>
@@ -170,7 +171,7 @@ function EmbodiedScreen({ p, i, withIndex }) {
               </Suspense>
             ) : (
               <div className="absolute inset-0 grid place-items-center">
-                <span className="font-mono text-[11.5px] uppercase tracking-[0.2em] text-ink-500">INITIALIZING PRODUCT RING…</span>
+                <span className="font-mono text-caption uppercase tracking-label text-ink-500">INITIALIZING PRODUCT RING…</span>
               </div>
             )}
 
@@ -185,13 +186,13 @@ function EmbodiedScreen({ p, i, withIndex }) {
                 <span className="absolute inline-flex h-full w-full animate-pingslow rounded-full bg-brand-400" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-400" />
               </span>
-              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-white/70">PRODUCT RING · {cur.code}</span>
+              <span className="font-mono text-caption uppercase tracking-[0.16em] text-white/70">PRODUCT RING · {cur.code}</span>
             </div>
             <div className="pointer-events-none absolute bottom-4 left-4">
-              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-500">⟳ DRAG TO ROTATE</span>
+              <span className="font-mono text-caption uppercase tracking-[0.16em] text-ink-500">⟳ DRAG TO ROTATE</span>
             </div>
             <div className="pointer-events-none absolute bottom-4 right-4">
-              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-500">{cur.en} · ON STAGE</span>
+              <span className="font-mono text-caption uppercase tracking-[0.16em] text-ink-500">{cur.en} · ON STAGE</span>
             </div>
           </div>
 
@@ -208,17 +209,17 @@ function EmbodiedScreen({ p, i, withIndex }) {
               className="my-auto flex flex-col"
             >
               <div className="flex items-baseline justify-between gap-3">
-                <p className="text-[12.5px] font-semibold uppercase tracking-[0.2em] text-brand-400">{cur.en}</p>
-                <span className="font-mono text-[11.5px] text-ink-400">{cur.code}</span>
+                <p className="text-ui-sm font-semibold uppercase tracking-label text-brand-400">{cur.en}</p>
+                <span className="font-mono text-caption text-ink-400">{cur.code}</span>
               </div>
-              <h4 className="mt-1.5 text-[19px] font-bold tracking-tight text-white">{cur.name}</h4>
-              <p className="mt-0.5 text-[13px] text-brand-300">{cur.tag}</p>
-              <p className="mt-2 text-[13px] leading-[1.75] text-ink-400">{cur.desc}</p>
+              <h4 className="mt-1.5 text-title font-bold tracking-tight text-white">{cur.name}</h4>
+              <p className="mt-0.5 text-ui-sm text-brand-300">{cur.tag}</p>
+              <p className="mt-2 text-ui-sm leading-[1.75] text-ink-400">{cur.desc}</p>
               <dl className="mt-4 grid grid-cols-2 gap-x-5 gap-y-1">
                 {cur.specs.map(([k, v]) => (
                   <div key={k} className="flex items-baseline justify-between gap-2 border-b border-white/[0.06] pb-1">
-                    <dt className="shrink-0 text-[12.5px] text-ink-400">{k}</dt>
-                    <dd className="whitespace-nowrap text-right text-[13px] font-medium text-white/90">{v}</dd>
+                    <dt className="shrink-0 text-ui-sm text-ink-400">{k}</dt>
+                    <dd className="whitespace-nowrap text-right text-ui-sm font-medium text-white/90">{v}</dd>
                   </div>
                 ))}
               </dl>
@@ -228,12 +229,12 @@ function EmbodiedScreen({ p, i, withIndex }) {
                   e.preventDefault()
                   requestProductContact({ name: cur.name, code: cur.code, intent: p.intent, source: `embodied-${cur.code}`, cta: `索取 ${cur.name} 参数手册` })
                 }}
-                className="group mt-4 inline-flex items-center gap-1.5 text-[13px] text-brand-200 transition-colors hover:text-white"
+                className="group mt-4 inline-flex items-center gap-1.5 text-ui-sm text-brand-200 transition-colors hover:text-white"
               >
                 索取 {cur.code} 完整参数手册
                 <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
               </a>
-              <p className="mt-5 flex items-center gap-2 border-t border-white/[0.06] pt-3 text-[12.5px] text-ink-500">
+              <p className="mt-5 flex items-center gap-2 border-t border-white/[0.06] pt-3 text-ui-sm text-ink-500">
                 <span className="inline-block h-1 w-1 shrink-0 rounded-full bg-brand-400" />
                 按住画面拖动可 360° 自由旋转机型 · 点击上方型号切换机型
               </p>
@@ -243,16 +244,16 @@ function EmbodiedScreen({ p, i, withIndex }) {
 
         {/* 实验室交付：一间实验室的完整交付 */}
         <div className="mt-3.5 shrink-0">
-          <p className="text-[12.5px] font-semibold uppercase tracking-[0.2em] text-brand-400">实验室交付 · 一间实验室的完整交付</p>
+          <p className="text-ui-sm font-semibold uppercase tracking-label text-brand-400">实验室交付 · 一间实验室的完整交付</p>
           <ul className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {labModules.map((m, mi) => (
               <li key={m.code} className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2">
-                <p className="text-[13px] font-semibold text-white">
-                  <span className="mr-1.5 font-mono text-[11px] tabular-nums text-ink-500">{pad(mi)}</span>
+                <p className="text-ui-sm font-semibold text-white">
+                  <span className="mr-1.5 font-mono text-caption tabular-nums text-ink-500">{pad(mi)}</span>
                   {m.name}
                 </p>
-                <p className="mt-0.5 text-[12px] uppercase tracking-[0.14em] text-brand-300 [@media(max-height:820px)]:hidden">{m.code}</p>
-                <p className="mt-1 text-[12.5px] leading-4 text-ink-400 line-clamp-4 [@media(max-height:820px)]:line-clamp-2">{m.desc}</p>
+                <p className="mt-0.5 text-ui-sm uppercase tracking-[0.14em] text-brand-300 [@media(max-height:820px)]:hidden">{m.code}</p>
+                <p className="mt-1 text-ui-sm leading-4 text-ink-400 line-clamp-4 [@media(max-height:820px)]:line-clamp-2">{m.desc}</p>
               </li>
             ))}
           </ul>
@@ -262,7 +263,7 @@ function EmbodiedScreen({ p, i, withIndex }) {
         <div className="mt-4 flex shrink-0 flex-wrap items-center gap-x-5 gap-y-3 border-t border-white/[0.07] pt-4 [@media(max-height:820px)]:mt-3 [@media(max-height:820px)]:pt-3">
           <ul className="flex flex-wrap gap-2">
             {p.bullets.map((b) => (
-              <li key={b} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[13px] text-white/75">
+              <li key={b} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-ui-sm text-white/75">
                 {b}
               </li>
             ))}
@@ -270,8 +271,8 @@ function EmbodiedScreen({ p, i, withIndex }) {
           <div className="flex items-center gap-5 sm:ml-auto">
             {p.stats.map((s) => (
               <div key={s.k}>
-                <p className="text-[12.5px] text-ink-400">{s.k}</p>
-                <p className="text-[19px] font-bold tracking-tight text-white">{s.v}</p>
+                <p className="text-ui-sm text-ink-400">{s.k}</p>
+                <p className="text-title font-bold tracking-tight text-white">{s.v}</p>
               </div>
             ))}
             <a
@@ -280,7 +281,7 @@ function EmbodiedScreen({ p, i, withIndex }) {
                 e.preventDefault()
                 requestProductContact({ name: p.title, intent: p.intent, source: 'embodied-lab', cta: '咨询实验室方案' })
               }}
-              className="group inline-flex items-center gap-2 rounded-xl border border-brand/40 bg-brand/10 px-4 py-2.5 text-[13.5px] font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
+              className="group inline-flex items-center gap-2 rounded-xl border border-brand/40 bg-brand/10 px-4 py-2.5 text-ui font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
             >
               咨询实验室方案
               <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -387,6 +388,18 @@ export default function ProductMatrix() {
     else window.scrollTo({ top: y, behavior: 'smooth' })
   }
 
+  /* 顶栏「产品体系」下拉跳过来：进矩阵并切到指定产品。
+     本页只有这一处消费总线；jump 仅读 ref 与常量，首帧实例稳定，故 [] 依赖即可。 */
+  useEffect(() => {
+    const off = subscribeMatrix((i) => {
+      takePending()
+      requestAnimationFrame(() => jump(i))
+    })
+    const p = takePending()
+    if (p != null) requestAnimationFrame(() => jump(p))
+    return off
+  }, [])
+
   return (
     <section id="matrix" className="relative bg-night">
       {/* ―― 桌面端：sticky 钉屏 + 竖立导航 + 整屏轮播 ―― */}
@@ -405,12 +418,12 @@ export default function ProductMatrix() {
             {/* 竖立导航 */}
             <div className="flex h-full min-h-0 flex-col justify-center py-6 xl:py-8">
               <div className="flex items-center gap-3">
-                <span className="font-mono text-[11px] tabular-nums tracking-[0.18em] text-brand-400">03</span>
+                <span className="font-mono text-caption tabular-nums tracking-label text-brand-400">03</span>
                 <span className="h-px w-6 bg-white/25" />
-                <span className="text-[12.5px] font-semibold uppercase tracking-[0.22em] text-brand-400">{matrixHead.en}</span>
+                <span className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{matrixHead.en}</span>
               </div>
               <h2 className="text-h2 mt-3 font-bold text-white">{mHeadZh}</h2>
-              <p className="mt-3 text-[13.5px] leading-relaxed text-ink-400">{mHeadDesc}</p>
+              <p className="mt-3 text-ui leading-relaxed text-ink-400">{mHeadDesc}</p>
 
               <nav className="mt-7 space-y-0.5" aria-label="产品矩阵">
                 {P.map((p, i) => {
@@ -431,11 +444,11 @@ export default function ProductMatrix() {
                           className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-brand"
                         />
                       )}
-                      <span className={`w-5 text-[12.5px] font-semibold tabular-nums ${active ? 'text-brand-300' : 'text-ink-400'}`}>
+                      <span className={`w-5 text-ui-sm font-semibold tabular-nums ${active ? 'text-brand-300' : 'text-ink-400'}`}>
                         {pad(i)}
                       </span>
                       <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-brand' : 'text-ink-400 group-hover:text-white/70'}`} />
-                      <span className={`truncate text-[14px] ${active ? 'font-semibold text-white' : 'text-ink-400 group-hover:text-white/80'}`}>
+                      <span className={`truncate text-ui ${active ? 'font-semibold text-white' : 'text-ink-400 group-hover:text-white/80'}`}>
                         {p.title}
                       </span>
                     </button>
@@ -450,11 +463,11 @@ export default function ProductMatrix() {
                     style={{ width: `${((idx + 1) / N) * 100}%` }}
                   />
                 </div>
-                <span className="text-[12.5px] tabular-nums text-ink-400">
+                <span className="text-ui-sm tabular-nums text-ink-400">
                   {pad(idx)} / {pad(LAST)}
                 </span>
               </div>
-              <p className="mt-3 flex items-center gap-1.5 text-[12.5px] text-ink-400">
+              <p className="mt-3 flex items-center gap-1.5 text-ui-sm text-ink-400">
                 <ChevronDown className="h-3.5 w-3.5 animate-bounce" />
                 {idx === LAST ? '继续滚动，离开产品矩阵' : '滚动切换下一产品 · 画面保持不动'}
               </p>
@@ -483,12 +496,12 @@ export default function ProductMatrix() {
       {/* ―― 移动 / 平板：常规纵向堆叠，保证可读与可滚 ―― */}
       <div className="container-x py-20 lg:hidden">
         <div className="flex items-center gap-3">
-          <span className="font-mono text-[11px] tabular-nums tracking-[0.18em] text-brand-400">03</span>
+          <span className="font-mono text-caption tabular-nums tracking-label text-brand-400">03</span>
           <span className="h-px w-6 bg-white/25" />
-          <span className="text-[12.5px] font-semibold uppercase tracking-[0.22em] text-brand-400">{matrixHead.en}</span>
+          <span className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{matrixHead.en}</span>
         </div>
         <h2 className="text-h2 mt-3 font-bold text-white">{mHeadZh}</h2>
-        <p className="mt-3 text-[14px] leading-relaxed text-ink-400">{mHeadDesc}</p>
+        <p className="mt-3 text-ui leading-relaxed text-ink-400">{mHeadDesc}</p>
         <div className="mt-10 divide-y divide-white/[0.07]">
           {P.map((p, i) => (
             <div key={p.id} className="py-10">

@@ -64,12 +64,12 @@ export function ClipThumb({ pr, k, on, onPick }) {
         preload="none"
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <span className="absolute inset-0 bg-gradient-to-t from-[#04070d] via-transparent to-[#04070d]/25" />
+      <span className="absolute inset-0 bg-gradient-to-t from-[#06080d] via-transparent to-[#06080d]/25" />
       <span className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 px-2 pb-1">
         <span className={`font-mono text-[11px] tabular-nums ${on ? 'text-brand-300' : 'text-ink-400'}`}>{pad(k)}</span>
         <span className="min-w-0 flex-1 truncate text-left text-[12.5px] font-medium text-white/90">{pr.name}</span>
       </span>
-      <span className="absolute right-1.5 top-1.5 rounded-sm bg-[#04070d]/70 px-1 font-mono text-[8px] tabular-nums tracking-[0.1em] text-white/70">
+      <span className="absolute right-1.5 top-1.5 rounded-sm bg-[#06080d]/70 px-1 font-mono text-[8px] tabular-nums tracking-[0.1em] text-white/70">
         {pr.clip.chapters.length} 幕
       </span>
       {on && (

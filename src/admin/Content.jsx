@@ -351,8 +351,8 @@ export default function Content() {
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         {/* 左栏：表单 */}
         <div className="space-y-5 min-w-0">
-          <Section title="首屏三屏文案" desc="具身 / 区块链 / AI 三屏的标题、描述、标签与看板小字（留空 / 等于默认即不覆盖 heroScenes）">
-            <Field label="品牌行（三屏上方，heroMeta.brand）">
+          <Section title="首屏文案" desc="AI 首屏的标题、描述、标签与看板小字（留空 / 等于默认即不覆盖 heroScenes）">
+            <Field label="品牌行（首屏上方，heroMeta.brand）">
               <Input
                 value={brand}
                 disabled={!editable}

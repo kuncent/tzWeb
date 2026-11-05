@@ -9,7 +9,8 @@ import {
   Sparkles,
   useGLTF,
 } from '@react-three/drei'
-import { Bloom, DepthOfField, EffectComposer, Noise, SMAA, Vignette } from '@react-three/postprocessing'
+import { EffectComposer, Noise, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing'
+import { ToneMappingMode } from 'postprocessing'
 import * as THREE from 'three'
 import { useCanvasVisibility } from '../../hooks/useCanvasVisibility'
 import { boostModelMaterials } from './boost'
@@ -23,7 +24,7 @@ const _box = new THREE.Box3()
 const _tmp = new THREE.Box3()
 const _size = new THREE.Vector3()
 const _center = new THREE.Vector3()
-function measureLocalBox(root) {
+export function measureLocalBox(root) {
   root.updateMatrixWorld(true)
   const inv = new THREE.Matrix4().copy(root.matrixWorld).invert()
   _box.makeEmpty()
@@ -41,7 +42,7 @@ function measureLocalBox(root) {
 /* 支撑面投影：只取高度底部 18% 的顶点算 XZ 包围盒。
    机械臂这类「底座在一侧、臂身探出去」的机型，按整体包围盒居中会把底座推离台心、看起来悬空。 */
 const _v = new THREE.Vector3()
-function measureSupport(root, box) {
+export function measureSupport(root, box) {
   const inv = new THREE.Matrix4().copy(root.matrixWorld).invert()
   const rel = new THREE.Matrix4()
   const h = box.max.y - box.min.y
@@ -63,7 +64,7 @@ function measureSupport(root, box) {
   return Number.isFinite(s.minX) ? s : null
 }
 
-/* LED 推到 HDR（>1）：配合 Bloom 高阈值，只有指示灯/灯条发光，白壳不再整体发虚 */
+/* LED 推到 HDR（>1）：泛光拆掉之后这些件不再有“光晕”帮忙，靠过曝的亮度本身读作发光体 */
 const hdr = (hex, mul) => new THREE.Color(hex).multiplyScalar(mul)
 /* ---------- 共享 PBR 材质（与 GLB 白壳/枪灰金属同语言，保证整机一致性） ---------- */
 const M = {
@@ -160,11 +161,11 @@ function useModel(src) {
     return cloned
   }, [scene])
 }
-function HumanoidModel() {
+export function HumanoidModel() {
   const model = useModel('/models/t800-min.glb')
   return <primitive object={model} />
 }
-function ArmModel() {
+export function ArmModel() {
   const model = useModel('/models/z1-min.glb')
   // GLB 本身底面贴地、沿 +Z 水平伸展；只绕 Y 转一个 3/4 位，不绕 X 仰（仰角会让臂展探到台面以下，看起来像摊在地上）
   return (
@@ -173,7 +174,7 @@ function ArmModel() {
     </group>
   )
 }
-function MobileModel() {
+export function MobileModel() {
   /* 换用与具身首屏同一台官方 go2-official.glb（urdf-to-glb 烘的干净壳面）。
      官方版机头在局部 +x、旧 go2-min 在 +z，差 90°：按「新 yaw = 旧 yaw − π/2」
      换算，保持原来那个 -0.5 的 3/4 侧脸机位不变（尺寸由 Station 的包围盒归一自动兜底）*/
@@ -184,7 +185,7 @@ function MobileModel() {
     </group>
   )
 }
-function WheeledModel() {
+export function WheeledModel() {
   const model = useModel('/models/turtlebot3-min.glb')
   return (
     <group rotation-y={-0.5}>
@@ -194,7 +195,7 @@ function WheeledModel() {
 }
 
 /* ---------- 程序化：视觉模组（双目 RGB-D）—— 补镜头罩/IR 投射器/排线/螺钉等细节 ---------- */
-function VisionModel() {
+export function VisionModel() {
   const cable = useMemo(
     () =>
       new THREE.CatmullRomCurve3([
@@ -276,7 +277,7 @@ function VisionModel() {
 }
 
 /* ---------- 程序化：AI 算力平台 —— 补鳍片/热管/接口/格栅/螺钉等细节 ---------- */
-function ComputeModel() {
+export function ComputeModel() {
   return (
     <group>
       {/* 主机箱 */}
@@ -318,7 +319,7 @@ function ComputeModel() {
             <circleGeometry args={[0.006, 16]} />
           </mesh>
         ))}
-        {/* 底部发光条（Bloom 拾取） */}
+        {/* 底部发光条（过曝亮点，不再靠泛光撑） */}
         <mesh position={[0, 0.012, 0.006]} material={M.ledBlue}>
           <boxGeometry args={[0.42, 0.005, 0.002]} />
         </mesh>
@@ -357,7 +358,7 @@ function ComputeModel() {
 /* 与产品体系数据同序：人形 / 机械臂 / 移动 / 轮式 / 视觉 / 算力
    target = 上台后的最长边（世界单位），保证 6 台机型视觉体量一致
    anchor = 'support'（默认）把底座投影对齐台心；'bbox' 则按整体包围盒居中 */
-const PRODUCTS = [
+export const PRODUCTS = [
   { Comp: HumanoidModel, target: 1.62 },
   { Comp: ArmModel, target: 1.22 },
   { Comp: MobileModel, target: 1.44 },
@@ -523,7 +524,12 @@ function Carousel({ active }) {
   )
 }
 
-/* ---------- 地面：镜面反射 + 极淡网格（弱性能设备退化为普通地面） ---------- */
+/* ---------- 地面：镜面反射 + 极淡网格（弱性能设备退化为普通地面） ----------
+   resolution 是反射 FBO 的边长，而 MeshReflectorMaterial 每帧都要用镜像相机把
+   整个场景重画一遍（drei：gl.render(scene, virtualCamera)）—— 成本随 resolution² 走。
+   实测（Intel HD 630 / 同像素数 A/B / tmp/showcase-cost.mjs）：64→512 把帧间隔从
+   15.3ms 拉到 32.3ms。倒影这里只给 0.2 的 mirror，本就是一层很弱的亮痕，
+   拿一半帧率去换它不值 —— 钉回 64。 */
 function Floor({ hi }) {
   return (
     <group>
@@ -688,9 +694,21 @@ function Scene({ active, hi }) {
 
       <CameraRig />
 
+      {/* ―― 后处理：只留「不会把画面摊糊」的那部分 ――
+         Bloom 与景深是这层“毛玻璃”的本体，一起拆掉：
+         · 泛光 —— mipmapBlur 把白壳机身上过阈值的亮面摊成几百像素的一层幕，
+           实测截图里整机轮廓外面套着一圈白晕、背景五台机型糊成一团
+           （tmp/showcase-sharp.mjs → tmp/shots/sharp/stage-*.png）。用户读作
+           “画面蒙了磨砂玻璃”，读不作“灯光氛围”。
+         · 景深 —— 这块转台不到半屏大，主体与背景只隔 1~2 米，bokehScale 0.95 +
+           resolutionScale 0.4 的结果就是整机不在焦上。
+         顺带省下泛光的整条 mipmap 链与景深的半分辨率 pass。 */}
       <EffectComposer multisampling={0}>
-        <Bloom intensity={0.62} luminanceThreshold={1.02} luminanceSmoothing={0.12} mipmapBlur radius={0.55} />
-        {hi && <DepthOfField worldFocusDistance={3.6} worldFocusRange={3.6} bokehScale={0.95} resolutionScale={0.4} />}
+        {/* AGX 必须显式挂着：EffectComposer 会把渲染器的 toneMapping 强制成
+            NoToneMapping（见首屏 HeroStage 同一坑的实测），不挂的话线性值 >1
+            直接削成死白 —— 白壳机械臂糊成一团、看不到任何表面细节。
+            它只有一趟全屏，是这条链里唯一“买清晰度”的钱。 */}
+        <ToneMapping mode={ToneMappingMode.AGX} />
         <Vignette eskil={false} offset={0.26} darkness={0.72} />
         <Noise opacity={0.022} />
         <SMAA />
@@ -702,13 +720,13 @@ function Scene({ active, hi }) {
 /** 机器人产品：3D 环形展台，active 决定哪个产品走到镜头前 */
 export default function ProductShowcase({ active }) {
   const { ref, frameloop } = useCanvasVisibility()
-  /* 弱性能设备（双核及以下）退化：去掉镜面反射与景深，保留材质与灯光 */
+  /* 弱性能设备（双核及以下）退化：去掉镜面反射，保留材质与灯光 */
   const hi = typeof navigator === 'undefined' ? true : (navigator.hardwareConcurrency || 4) >= 4
-  /* 核数 ≠ 显卡好坏：4 核的轻薄本常常是 Intel 集显，满 60fps + 全量后处理照样抽。
-     运行时量真实帧率（PerformanceMonitor 要连续 2.5s 落在 40fps 以下才判掉帧，
-     单帧毛刺不算），超预算就降 dpr 上限——只降不升：升档会让 composer 反复重建，
-     观感是“画质在呼吸”，比一直低一点跑稳更糟。强机 onDecline 永不触发 → 分辨率不动、零回归。
-     dpr 是同时给后处理 / 景深 / 辉光打折的那一个旋钮（与首屏消融同一结论：贵的是像素）。 */
+  /* ―― 分辨率上限：保持原样（1.2），不拿帧率换清晰度 ――
+     试过把上限抬到 2（2x 屏上按设备像素渲染）：高分屏背板确实从 0.8 倍拉伸
+     变成 1.5 倍，但像素数 ×(2/1.2)²≈2.8 —— 同机同像素的 A/B 里帧时直接翻倍。
+     而“看着糊”的真因是后处理那层白幕（见下面的 EffectComposer），不是采样不足。
+     要买真实分辨率只改这一行与下面那一行的地板即可。 */
   const [dprMax, setDprMax] = useState(hi ? 1.2 : 1)
   return (
     <Canvas
@@ -716,9 +734,11 @@ export default function ProductShowcase({ active }) {
       frameloop={frameloop}
       dpr={[1, dprMax]}
       camera={{ position: [0, 1.02, 6.9], fov: 36 }}
-      gl={{ antialias: false, powerPreference: 'high-performance', toneMappingExposure: 0.98 }}
+      gl={{ antialias: false, powerPreference: 'high-performance', toneMappingExposure: 1.05 }}
     >
       <Scene active={active} hi={hi} />
+      {/* 降档地板 0.8：与原来一致 —— 跑不动就先保帧率，这片 3D 本来就带辉光，
+          0.8 看不出来；DOM 层的标题与参数文字始终按设备像素渲染，不受它影响。 */}
       <PerformanceMonitor onDecline={() => setDprMax((d) => Math.max(0.8, +(d - 0.2).toFixed(2)))} />
     </Canvas>
   )

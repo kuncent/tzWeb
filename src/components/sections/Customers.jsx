@@ -32,11 +32,9 @@ export default function Customers() {
 
       <div className="relative z-10 container-x">
         <SectionHead
-          id="customers" n="07"
-          en={customersHead.en}
+          id="customers"
           zh={customersHead.zh}
           sub={customersHead.sub}
-          action={{ to: '/cases#labcases', children: '看标杆实验室案例集' }}
         />
 
         {/* ―― 标杆院校建设方案与成果实景：双层自动轮播（院校 + 图片）―― */}

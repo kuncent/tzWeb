@@ -22,7 +22,7 @@ export default function Resources() {
           en={resourcesHead.en}
           zh={resourcesHead.zh}
           sub="能在线看的技术栈、引擎与对接约束都摆在页面上；需要盖章的方案模板与案例集，留个联系方式即可获取。"
-          action={{ to: '/technology', children: '看全部技术文档' }}
+          action={{ to: '/products', children: '看全部技术文档' }}
         />
 
         <div className="mt-12 grid gap-5 md:grid-cols-3">

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { ZoomIn } from 'lucide-react'
 import { PageHero, InnerNav, PageSection, PageCTA, HeroFrame } from '../components/PageShell'
+import RippleHero from '../components/RippleHero'
 import { Reveal, StatBand, EASE } from '../components/ui'
 import { aboutBeliefs, aboutProof, aboutServices } from '../data/pages'
 import { brand, contact, offices, advisorStats, productMatrix } from '../data/site'
@@ -31,6 +32,14 @@ const heroShots = [
 
 const PANEL_GAP = 14
 const PANEL_MARGIN = 16
+
+/* 首屏背景：光明科技金融大厦三张高清外观（白天天际线 / 航拍 / 单塔），
+   由 RippleHero 做 react-bits 风格的水波纹自动切换。 */
+const towerShots = [
+  { src: '/images/about/tower-01.webp', label: '光明科技金融大厦 · 凤凰城天际线' },
+  { src: '/images/about/tower-02.webp', label: '光明科技金融大厦 · 航拍' },
+  { src: '/images/about/tower-03.webp', label: '光明科技金融大厦 · 主塔' },
+]
 
 /* 悬停放大浮层：portal 到 body 的 fixed 面板，按视口空间与格子位置
  * 智能挑左右侧摆放（放不下时居中），按原图长宽比尽量放大到可读尺寸。
@@ -76,7 +85,7 @@ function ZoomPreview({ shot, rect, reduce, withBackdrop, onClose }) {
             />
           )}
           <motion.div
-            className="pointer-events-none fixed z-[60] overflow-hidden rounded-2xl border border-white/15 bg-[#04070d] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.85)]"
+            className="pointer-events-none fixed z-[60] overflow-hidden rounded-2xl border border-white/15 bg-[#06080d] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.85)]"
             style={{ left: geo.left, top: geo.top, width: geo.w, height: geo.h }}
             initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -84,9 +93,9 @@ function ZoomPreview({ shot, rect, reduce, withBackdrop, onClose }) {
             transition={{ duration: reduce ? 0 : 0.2, ease: EASE }}
           >
             <img src={shot.src} alt={`天择科技 · ${shot.label}`} className="h-full w-full object-contain" />
-            <div className="absolute inset-x-0 bottom-0 flex items-baseline gap-2 bg-gradient-to-t from-[#04070d]/90 to-transparent p-3">
-              <span className="text-[12.5px] font-medium text-white/95">{shot.label}</span>
-              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">{shot.en}</span>
+            <div className="absolute inset-x-0 bottom-0 flex items-baseline gap-2 bg-gradient-to-t from-[#06080d]/90 to-transparent p-3">
+              <span className="text-ui-sm font-medium text-white/95">{shot.label}</span>
+              <span className="font-mono text-micro uppercase tracking-label text-white/45">{shot.en}</span>
             </div>
           </motion.div>
         </Fragment>
@@ -118,28 +127,29 @@ function HeroGallery() {
   const toggle = (i, el) => setPv((p) => (p && p.i === i ? null : { i, rect: el.getBoundingClientRect() }))
 
   return (
-    <HeroFrame label="走进天择 · 实景">
-      <div className="relative pt-12">
-        {/* 周期掠光：一道斜向高光从左扫到右，给静态图组一点活着的光影 */}
+    <HeroFrame index="06 / 06" label="走进天择 · 实景" hint="悬停 / 点按放大细节">
+      <div className="relative pb-6 pt-12">
+        {/* 周期掠光：一道斜向高光从左扫到右，给静态图组一点活着的光影。
+            周期从 ~7.8s 拉到 ~12s，光更淡 —— 常驻动效在这儿只该是「呼吸」，不该抢图。 */}
         <motion.div
           aria-hidden
-          className="pointer-events-none absolute -inset-y-4 left-0 z-20 w-1/3 bg-gradient-to-r from-transparent via-white/[0.14] to-transparent"
+          className="pointer-events-none absolute -inset-y-4 left-0 z-20 w-1/3 bg-gradient-to-r from-transparent via-white/[0.10] to-transparent"
           style={{ transform: 'skewX(-18deg)' }}
           initial={{ x: '-120%' }}
-          animate={{ x: '460%' }}
-          transition={{ duration: 4.2, repeat: Infinity, repeatDelay: 3.6, ease: 'easeInOut' }}
+          animate={reduce ? undefined : { x: '460%' }}
+          transition={{ duration: 5.4, repeat: reduce ? 0 : Infinity, repeatDelay: 6.8, ease: 'easeInOut' }}
         />
         <div className="grid h-[380px] grid-cols-3 grid-rows-3 gap-2.5 md:h-[448px]">
           {heroShots.map((s, i) => (
             <motion.figure
               key={s.src}
               initial={{ opacity: 0, y: 16, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.24 + i * 0.08, duration: 0.5, ease: EASE }}
+              animate={{ opacity: pv && pv.i !== i ? 0.42 : 1, y: 0, scale: 1 }}
+              transition={{ delay: pv ? 0 : 0.24 + i * 0.08, duration: 0.5, ease: EASE }}
               onPointerEnter={(e) => { if (canHover && e.pointerType === 'mouse') setPv({ i, rect: e.currentTarget.getBoundingClientRect() }) }}
               onPointerLeave={() => { if (canHover) setPv((p) => (p && p.i === i ? null : p)) }}
               onClick={canHover ? undefined : (e) => toggle(i, e.currentTarget)}
-              className={`group relative overflow-hidden rounded-xl ring-1 ring-inset ring-white/10 ${canHover ? 'cursor-zoom-in' : 'cursor-pointer'} ${s.span}`}
+              className={`group relative overflow-hidden rounded-xl ring-1 ring-inset transition-shadow duration-300 ${pv && pv.i === i ? 'ring-brand/45' : 'ring-white/10'} ${canHover ? 'cursor-zoom-in' : 'cursor-pointer'} ${s.span}`}
             >
               <img
                 src={s.src}
@@ -147,12 +157,12 @@ function HeroGallery() {
                 decoding="async"
                 className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.07]"
               />
-              <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#04070d]/85 via-[#04070d]/10 to-transparent" />
+              <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#06080d]/85 via-[#06080d]/10 to-transparent" />
               <span aria-hidden className="pointer-events-none absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full bg-black/45 text-white/80 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
                 <ZoomIn className="h-3.5 w-3.5" />
               </span>
               <figcaption className="absolute inset-x-0 bottom-0 flex items-baseline gap-1.5 p-2.5">
-                <span className="text-[11.5px] font-medium text-white/95">{s.label}</span>
+                <span className="text-caption font-medium text-white/95">{s.label}</span>
                 <span className="font-mono text-[8.5px] uppercase tracking-[0.16em] text-white/45">{s.en}</span>
               </figcaption>
             </motion.figure>
@@ -177,11 +187,15 @@ export default function About() {
           { label: '联系我们', to: '/#contact', primary: true },
           { label: '看解决方案', to: '/solutions' },
         ]}
-      >
-        <HeroGallery />
-      </PageHero>
+        backdrop={<RippleHero images={towerShots} caption="深圳市光明区 · 光明科技金融大厦" />}
+      />
 
       <InnerNav items={SECTIONS} />
+
+      {/* 原首屏右栏的公司实景 bento 图组下移到此处，内容不丢 */}
+      <section className="container-x py-14 md:py-16">
+        <HeroGallery />
+      </section>
 
       {/* ―― 我们做什么 ―― */}
       <PageSection
@@ -200,18 +214,18 @@ export default function About() {
             return (
               <Reveal key={p.id} delay={i * 0.06}>
                 <Link
-                  to="/#matrix"
+                  to="/products"
                   className="group flex h-full flex-col rounded-2xl border border-ink-900/[0.07] bg-white p-6 shadow-card transition-all duration-500 hover:-translate-y-1 hover:border-brand/30 hover:shadow-lift"
                 >
                   <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand transition-colors duration-300 group-hover:bg-brand group-hover:text-white">
                     <Icon className="h-5 w-5" />
                   </span>
-                  <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-400">{p.en}</p>
-                  <h3 className="mt-1 text-[15.5px] font-semibold leading-snug tracking-tight text-ink-900">{p.title}</h3>
-                  <p className="mt-2.5 text-[13px] leading-relaxed text-ink-500">{p.tagline}</p>
+                  <p className="mt-5 font-mono text-micro uppercase tracking-label text-ink-400">{p.en}</p>
+                  <h3 className="mt-1 text-ui-lg font-semibold leading-snug tracking-tight text-ink-900">{p.title}</h3>
+                  <p className="mt-2.5 text-ui-sm leading-relaxed text-ink-500">{p.tagline}</p>
                   <div className="mt-auto flex flex-wrap gap-x-4 gap-y-1.5 border-t border-ink-900/[0.07] pt-4">
                     {p.stats.map((s) => (
-                      <span key={s.k} className="text-[12px] text-ink-400">
+                      <span key={s.k} className="text-ui-sm text-ink-400">
                         {s.k} <span className="font-semibold text-ink-900">{s.v}</span>
                       </span>
                     ))}
@@ -224,7 +238,7 @@ export default function About() {
 
         <Reveal delay={0.1} className="mt-8">
           <div className="rounded-2xl border border-ink-900/[0.07] bg-white p-7 shadow-soft md:p-9">
-            <p className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-brand">METHOD</p>
+            <p className="font-mono text-caption uppercase tracking-[0.24em] text-brand">METHOD</p>
             <div className="mt-4 grid gap-8 md:grid-cols-3">
               {[
                 { t: '从岗位能力倒推', d: '先看这个行业现在在招什么人、要什么技能，再定课程，最后才选设备与系统。顺序反了就会建成一间展示厅。' },
@@ -232,8 +246,8 @@ export default function About() {
                 { t: '可验证才算完成', d: '作品、证书、竞赛、学情报告 —— 四项里至少两项要能拿给别人看，项目才算闭环。' },
               ].map((x) => (
                 <div key={x.t}>
-                  <h3 className="text-[16px] font-semibold tracking-tight text-ink-900">{x.t}</h3>
-                  <p className="mt-2 text-[13.5px] leading-[1.8] text-ink-500">{x.d}</p>
+                  <h3 className="text-ui-lg font-semibold tracking-tight text-ink-900">{x.t}</h3>
+                  <p className="mt-2 text-ui leading-[1.8] text-ink-500">{x.d}</p>
                 </div>
               ))}
             </div>
@@ -265,8 +279,8 @@ export default function About() {
                     <Icon className="h-5 w-5" />
                   </span>
                   <div className="relative min-w-0">
-                    <h3 className="text-[17px] font-semibold tracking-tight text-ink-900">{b.title}</h3>
-                    <p className="mt-2 text-[13.5px] leading-[1.8] text-ink-500">{b.desc}</p>
+                    <h3 className="text-title font-semibold tracking-tight text-ink-900">{b.title}</h3>
+                    <p className="mt-2 text-ui leading-[1.8] text-ink-500">{b.desc}</p>
                   </div>
                 </div>
               </Reveal>
@@ -296,8 +310,8 @@ export default function About() {
                     <Icon className="h-[18px] w-[18px]" />
                   </span>
                   <p className="mt-5 text-[28px] font-bold leading-none tracking-tight text-ink-900">{p.v}</p>
-                  <p className="mt-2 text-[14px] font-semibold tracking-tight text-ink-900">{p.k}</p>
-                  <p className="mt-2 text-[12.5px] leading-relaxed text-ink-400">{p.note}</p>
+                  <p className="mt-2 text-ui font-semibold tracking-tight text-ink-900">{p.k}</p>
+                  <p className="mt-2 text-ui-sm leading-relaxed text-ink-400">{p.note}</p>
                 </div>
               </Reveal>
             )
@@ -312,7 +326,7 @@ export default function About() {
               '全栈私有化交付能力',
               '源码授权可选',
             ].map((t) => (
-              <p key={t} className="flex items-center gap-2.5 text-[13.5px] text-ink-700">
+              <p key={t} className="flex items-center gap-2.5 text-ui text-ink-700">
                 <svg width="13" height="13" viewBox="0 0 12 12" fill="none" className="shrink-0 text-brand">
                   <path d="M2 6.5 4.8 9 10 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -344,11 +358,11 @@ export default function About() {
                     <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand transition-colors duration-300 group-hover:bg-brand group-hover:text-white">
                       <Icon className="h-[18px] w-[18px]" />
                     </span>
-                    <h3 className="text-[17px] font-semibold tracking-tight text-ink-900">{s.stage}</h3>
+                    <h3 className="text-title font-semibold tracking-tight text-ink-900">{s.stage}</h3>
                   </div>
                   <ul className="mt-5 space-y-2.5">
                     {s.items.map((x) => (
-                      <li key={x} className="flex items-start gap-2.5 text-[13.5px] leading-snug text-ink-700">
+                      <li key={x} className="flex items-start gap-2.5 text-ui leading-snug text-ink-700">
                         <span className="mt-[7px] inline-block h-1 w-1 shrink-0 rounded-full bg-brand" />
                         {x}
                       </li>
@@ -375,10 +389,10 @@ export default function About() {
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
           <Reveal>
             <div className="h-full rounded-2xl border border-ink-900/[0.07] bg-white p-7 shadow-soft">
-              <p className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-ink-400">LEGAL NAME</p>
-              <h3 className="mt-2 text-[22px] font-bold tracking-tight text-ink-900">{brand.name}</h3>
-              <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.22em] text-brand">{brand.en} · {brand.tagline}</p>
-              <p className="mt-5 text-[13.5px] leading-[1.85] text-ink-500">
+              <p className="font-mono text-caption uppercase tracking-[0.24em] text-ink-400">LEGAL NAME</p>
+              <h3 className="mt-2 text-title font-bold tracking-tight text-ink-900">{brand.name}</h3>
+              <p className="mt-1 font-mono text-caption uppercase tracking-eyebrow text-brand">{brand.en} · {brand.tagline}</p>
+              <p className="mt-5 text-ui leading-[1.85] text-ink-500">
                 法定全称用于合同、发票与投标材料；日常与产品口径使用「{brand.short}」。需要正式文件的，请在联系时说明用途，我们按主体出具。
               </p>
               <div className="mt-7 space-y-3 border-t border-ink-900/[0.07] pt-6">
@@ -387,17 +401,17 @@ export default function About() {
                   { k: '商务邮箱', v: contact.email },
                   { k: '总部地址', v: contact.address },
                 ].map((r) => (
-                  <div key={r.k} className="flex flex-wrap items-baseline gap-x-4 text-[14px]">
+                  <div key={r.k} className="flex flex-wrap items-baseline gap-x-4 text-ui">
                     <span className="w-[5em] shrink-0 text-ink-400">{r.k}</span>
                     <span className="min-w-0 font-medium text-ink-900">{r.v}</span>
                   </div>
                 ))}
               </div>
               <div className="mt-7">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-400">服务网络</p>
+                <p className="text-ui-sm font-semibold uppercase tracking-[0.16em] text-ink-400">服务网络</p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {offices.map((o) => (
-                    <span key={o} className="rounded-full border border-ink-900/[0.08] bg-mist-100 px-3 py-1.5 text-[12.5px] text-ink-700">
+                    <span key={o} className="rounded-full border border-ink-900/[0.08] bg-mist-100 px-3 py-1.5 text-ui-sm text-ink-700">
                       {o}
                     </span>
                   ))}
@@ -409,16 +423,16 @@ export default function About() {
           <div className="space-y-5">
             <Reveal delay={0.06}>
               <div className="rounded-2xl border border-ink-900/[0.07] bg-white p-7 shadow-soft">
-                <p className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-ink-400">SCALE</p>
+                <p className="font-mono text-caption uppercase tracking-[0.24em] text-ink-400">SCALE</p>
                 <StatBand items={advisorStats} cols="sm:grid-cols-2" className="mt-4 gap-y-6" />
               </div>
             </Reveal>
 
             <Reveal delay={0.1}>
-              <div className="h-full rounded-2xl border border-ink-900/[0.07] bg-[#04070d] p-7 text-white shadow-soft">
-                <p className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-brand-300">JOIN & PARTNER</p>
-                <h3 className="mt-2 text-[19px] font-semibold tracking-tight">合作与招聘</h3>
-                <p className="mt-3 text-[13.5px] leading-[1.8] text-white/60">
+              <div className="h-full rounded-2xl border border-ink-900/[0.07] bg-[#06080d] p-7 text-white shadow-soft">
+                <p className="font-mono text-caption uppercase tracking-[0.24em] text-brand-300">JOIN & PARTNER</p>
+                <h3 className="mt-2 text-title font-semibold tracking-tight">合作与招聘</h3>
+                <p className="mt-3 text-ui leading-[1.8] text-white/60">
                   我们长期欢迎三类合作：院校共建课程与实验室、区域教育集成商的项目协作、以及教研 / 算法 / 实施方向的候选人。
                   简历与意向请寄商务邮箱，注明方向即可。
                 </p>
@@ -428,7 +442,7 @@ export default function About() {
                     { k: '算法方向', v: '多智能体编排、代码生成、仿真' },
                     { k: '实施方向', v: '驻校部署、设备联调、教务对接' },
                   ].map((x) => (
-                    <li key={x.k} className="flex flex-wrap items-baseline gap-x-3 text-[13.5px]">
+                    <li key={x.k} className="flex flex-wrap items-baseline gap-x-3 text-ui">
                       <span className="font-semibold text-white">{x.k}</span>
                       <span className="text-white/45">{x.v}</span>
                     </li>
@@ -436,7 +450,7 @@ export default function About() {
                 </ul>
                 <Link
                   to="/#contact"
-                  className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-white px-5 py-2.5 text-[13.5px] font-medium text-ink-900 transition-all duration-300 hover:shadow-glow"
+                  className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-white px-5 py-2.5 text-ui font-medium text-ink-900 transition-all duration-300 hover:shadow-glow"
                 >
                   发一封邮件
                   <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
@@ -450,7 +464,7 @@ export default function About() {
       <PageCTA
         title="需要正式材料，直接说用途"
         sub="投标、申报、共建协议 —— 不同用途要的东西不一样。写清场景，我们按主体出材料，不在官网上放通用模板。"
-        back={{ label: '看交付路径', to: '/#delivery' }}
+        back={{ label: '看交付路径', to: '/solutions#delivery' }}
       />
     </>
   )

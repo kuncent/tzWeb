@@ -292,7 +292,7 @@ export default function ClassroomPrep({ active, online, model, onSendToClass }) 
             type="button"
             onClick={onBuild}
             disabled={busy || !content.trim()}
-            className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-brand-500 disabled:opacity-60"
+            className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-action px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-brand-press disabled:opacity-60"
           >
             <Sparkles className={`h-3.5 w-3.5 ${busy ? 'animate-spin' : ''}`} />
             {busy ? '正在备课' : '生成讲课 PPT'}

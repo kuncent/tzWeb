@@ -9,7 +9,6 @@
 - [首页](https://www.sztzjy.com/): 产品总览与核心价值主张，AI 多智能体课堂 / 数字孪生实验室 / 自然语言实验平台的一站式介绍。
 - [解决方案](https://www.sztzjy.com/solutions): 面向不同院校与学科场景的落地方案，含专业建设、实训体系与私有化部署路径。
 - [技术能力](https://www.sztzjy.com/technology): 多智能体编排、自然语言生成实验代码、云端沙箱评测与数字孪生仿真的技术架构。
-- [实验室产品](https://www.sztzjy.com/laboratories): 具身智能、区块链、数字金融、工程实训等数字孪生实验室清单与能力说明。
 - [客户案例](https://www.sztzjy.com/cases): 高校与职业院校的合作案例、建设成效与应用场景。
 - [关于我们](https://www.sztzjy.com/about): 公司定位、团队与联系方式（contact@sztzjy.com）。
 

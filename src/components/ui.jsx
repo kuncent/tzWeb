@@ -198,8 +198,8 @@ export function Tilt({ children, max = 5, className = '', style }) {
 export function GhostAction({ to, href, onClick, children, tone = 'light' }) {
   const cls =
     tone === 'dark'
-      ? 'group inline-flex shrink-0 items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-[13px] font-medium text-white/80 transition-all duration-300 hover:border-white/50 hover:bg-white/10 hover:text-white'
-      : 'group inline-flex shrink-0 items-center gap-2 rounded-full border border-ink-900/12 px-4 py-2 text-[13px] font-medium text-ink-700 transition-all duration-300 hover:border-brand/50 hover:bg-brand-50 hover:text-brand'
+      ? 'group inline-flex shrink-0 items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-ui-sm font-medium text-white/80 transition-all duration-300 hover:border-white/50 hover:bg-white/10 hover:text-white'
+      : 'group inline-flex shrink-0 items-center gap-2 rounded-full border border-ink-900/12 px-4 py-2 text-ui-sm font-medium text-ink-700 transition-all duration-300 hover:border-brand/50 hover:bg-brand-50 hover:text-brand'
   const inner = (
     <>
       {children}
@@ -222,22 +222,24 @@ export function SectionHead({ id, n, en, zh, sub, action, tone = 'light', classN
   return (
     <Reveal className={`flex flex-wrap items-start gap-x-6 gap-y-4 ${className}`}>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-3">
-          {n && (
-            <span
-              className={`font-mono text-[11px] tabular-nums tracking-[0.18em] ${dark ? 'text-brand-400' : 'text-brand'}`}
-            >
-              {n}
-            </span>
-          )}
-          <span className={`h-px w-6 ${dark ? 'bg-white/25' : 'bg-ink-900/15'}`} />
-          {en && (
-            <span className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${dark ? 'text-white/45' : 'text-ink-400'}`}>
-              {en}
-            </span>
-          )}
-        </div>
-        <LineMask className="mt-4">
+        {(n || en) && (
+          <div className="flex items-center gap-3">
+            {n && (
+              <span
+                className={`font-mono text-caption tabular-nums tracking-label ${dark ? 'text-brand-400' : 'text-brand'}`}
+              >
+                {n}
+              </span>
+            )}
+            <span className={`h-px w-6 ${dark ? 'bg-white/25' : 'bg-ink-900/15'}`} />
+            {en && (
+              <span className={`text-caption font-semibold uppercase tracking-eyebrow ${dark ? 'text-white/45' : 'text-ink-400'}`}>
+                {en}
+              </span>
+            )}
+          </div>
+        )}
+        <LineMask className={(n || en) ? 'mt-4' : ''}>
           <h2 className={`text-h2 font-bold ${dark ? 'text-white' : 'text-ink-900'}`}>{title}</h2>
         </LineMask>
         {desc && (
@@ -262,7 +264,7 @@ export function SectionEdge({ label, tone = 'light', className = '' }) {
       <div className="flex items-center gap-4">
         <span className={`h-px w-16 rounded-full bg-gradient-to-r ${line}`} />
         {label && (
-          <span className={`font-mono text-[10px] uppercase tracking-[0.28em] ${tone === 'dark' ? 'text-white/30' : 'text-ink-400'}`}>
+          <span className={`font-mono text-micro uppercase tracking-widest2 ${tone === 'dark' ? 'text-white/30' : 'text-ink-400'}`}>
             {label}
           </span>
         )}
@@ -278,10 +280,10 @@ export function FigureCaption({ n, title, desc, tone = 'light', className = '' }
   const dark = tone === 'dark'
   return (
     <figcaption className={`mt-4 flex items-baseline gap-3 ${className}`}>
-      <span className={`shrink-0 font-mono text-[10.5px] uppercase tracking-[0.2em] ${dark ? 'text-brand-400' : 'text-brand'}`}>
+      <span className={`shrink-0 font-mono text-caption uppercase tracking-label ${dark ? 'text-brand-400' : 'text-brand'}`}>
         图 {n}
       </span>
-      <span className={`text-[12.5px] leading-relaxed ${dark ? 'text-white/70' : 'text-ink-700'}`}>
+      <span className={`text-ui-sm leading-relaxed ${dark ? 'text-white/70' : 'text-ink-700'}`}>
         <span className="font-semibold">{title}</span>
         {desc && <span className={dark ? ' text-white/45' : ' text-ink-400'}> · {desc}</span>}
       </span>
@@ -346,7 +348,7 @@ function StatValue({ stat, dark, size = 'lg' }) {
   if (cmp) {
     return (
       <p className="mt-1.5">
-        <span className="block text-[12px] font-medium leading-none text-ink-400 line-through decoration-ink-400/50">{cmp[1].trim()}</span>
+        <span className="block text-ui-sm font-medium leading-none text-ink-400 line-through decoration-ink-400/50">{cmp[1].trim()}</span>
         <span className={`mt-1 block font-bold tabular-nums leading-[1.12] ${head} ${color}`}>{cmp[2].trim()}</span>
       </p>
     )
@@ -368,7 +370,7 @@ export function StatBand({ items, tone = 'light', cols = 'sm:grid-cols-4', size 
         return (
           <div key={it.k || i} className="relative pl-5">
             <span className={`absolute left-0 top-1 h-[calc(100%-8px)] w-px ${dark ? 'bg-white/12' : 'bg-ink-900/10'}`} />
-            <p className={`text-[12.5px] ${dark ? 'text-ink-400' : 'text-ink-500'}`}>{s.k}</p>
+            <p className={`text-ui-sm ${dark ? 'text-ink-400' : 'text-ink-500'}`}>{s.k}</p>
             <StatValue stat={s} dark={dark} size={size} />
           </div>
         )
@@ -399,17 +401,17 @@ export function CoverCard({ img, imgAlt = '', index, title, tag, desc, bullets =
         <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_20%_0%,rgba(22,119,255,0.16),transparent_60%)]" />
       )}
       {/* 未 hover：底部一层渐变托住标题，保证白字在任何底图上都读得清 */}
-      <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[#04070d]/92 via-[#04070d]/55 to-transparent px-5 pb-5 pt-14 transition-opacity duration-300 group-hover:opacity-0">
-        {tag && <p className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-brand-300">{tag}</p>}
-        <h3 className="mt-1 text-[17px] font-semibold leading-snug text-white">{title}</h3>
+      <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[#06080d]/92 via-[#06080d]/55 to-transparent px-5 pb-5 pt-14 transition-opacity duration-300 group-hover:opacity-0">
+        {tag && <p className="font-mono text-caption uppercase tracking-label text-brand-300">{tag}</p>}
+        <h3 className="mt-1 text-title font-semibold leading-snug text-white">{title}</h3>
       </div>
       {/* hover：整面品牌蓝刷上来，正文在这一层里 */}
       <div className="absolute inset-0 z-20 translate-y-full bg-brand-600 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-focus-visible:translate-y-0">
         <div className="flex h-full flex-col p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              {index && <p className="font-mono text-[10.5px] tabular-nums tracking-[0.2em] text-white/55">{index}</p>}
-              <h3 className="mt-1 text-[17px] font-semibold leading-snug text-white">{title}</h3>
+              {index && <p className="font-mono text-caption tabular-nums tracking-label text-white/55">{index}</p>}
+              <h3 className="mt-1 text-title font-semibold leading-snug text-white">{title}</h3>
             </div>
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/35 text-white transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
               <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden>
@@ -417,11 +419,11 @@ export function CoverCard({ img, imgAlt = '', index, title, tag, desc, bullets =
               </svg>
             </span>
           </div>
-          {desc && <p className="mt-2 text-[12.5px] leading-[1.65] text-white/85">{desc}</p>}
+          {desc && <p className="mt-2 text-ui-sm leading-[1.65] text-white/85">{desc}</p>}
           {bullets.length > 0 && (
             <ul className="mt-auto flex flex-wrap gap-1.5 pt-3">
               {bullets.map((b) => (
-                <li key={b} className="rounded-full border border-white/25 px-2.5 py-1 text-[11.5px] text-white/85">
+                <li key={b} className="rounded-full border border-white/25 px-2.5 py-1 text-caption text-white/85">
                   {b}
                 </li>
               ))}

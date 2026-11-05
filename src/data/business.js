@@ -35,7 +35,7 @@ export const archLayers = [
     icon: Award,
     desc: '六步交付路径，最后落到可被产业与主管部门认可的成果：学科竞赛、1+X 证书、学生工程作品集。',
     items: ['诊断→设计→建设→师资→运营→认证', '私有化与云端交付', '师资认证与驻校培训', '竞赛与证书出口'],
-    anchor: { label: '看交付路径', to: '/#delivery' },
+    anchor: { label: '看交付路径', to: '/solutions#delivery' },
   },
   {
     id: 'scenario',
@@ -55,7 +55,7 @@ export const archLayers = [
     icon: Blocks,
     desc: '五大可单独使用、也可整体交付的产品体系，合计 37 套从旧平台迁移并在跑的实训系统。',
     items: ['具身智能 · 机器人实验室', '区块链 · 可信账本与量化', 'AI 多智能体课堂', '数字金融 · 19 套', '数字经济 · 18 套'],
-    anchor: { label: '看产品矩阵', to: '/#matrix' },
+    anchor: { label: '看产品矩阵', to: '/products' },
   },
   {
     id: 'base',
@@ -65,17 +65,17 @@ export const archLayers = [
     icon: Cpu,
     desc: '全栈自研：多智能体编排、代码沙箱、数字孪生引擎、链内核，以及支撑它们的算力与数据底座。',
     items: ['多智能体课堂引擎', '自然语言→可执行实验', '设备级数字孪生', 'NEX-C1 边缘算力 · 云端沙箱'],
-    anchor: { label: '看技术方向', to: '/technology' },
+    anchor: { label: '看产品体系', to: '/products' },
   },
 ]
 
 /* 五大产品体系在架构图里的坐标：id 必须与 productMatrix 对齐 */
 export const archProducts = [
-  { id: 'embodied', n: '01', name: '具身智能 · 机器人实验室', short: '具身智能', icon: Bot, to: '/laboratories' },
-  { id: 'blockchain', n: '02', name: '区块链 · 可信账本与量化实训', short: '区块链', icon: Blocks, to: '/#matrix' },
-  { id: 'class', n: '03', name: 'AI 多智能体课堂', short: 'AI 课堂', icon: GraduationCap, to: '/#matrix' },
-  { id: 'digital-finance', n: '04', name: '数字金融 · 虚拟仿真实训体系', short: '数字金融', icon: Landmark, to: '/#matrix' },
-  { id: 'digital-economy', n: '05', name: '数字经济 · 大数据与 AI 实训体系', short: '数字经济', icon: DatabaseZap, to: '/#matrix' },
+  { id: 'embodied', n: '01', name: '具身智能 · 机器人实验室', short: '具身智能', icon: Bot, to: '/products' },
+  { id: 'blockchain', n: '02', name: '区块链 · 可信账本与量化实训', short: '区块链', icon: Blocks, to: '/products' },
+  { id: 'class', n: '03', name: 'AI 多智能体课堂', short: 'AI 课堂', icon: GraduationCap, to: '/products' },
+  { id: 'digital-finance', n: '04', name: '数字金融 · 虚拟仿真实训体系', short: '数字金融', icon: Landmark, to: '/products' },
+  { id: 'digital-economy', n: '05', name: '数字经济 · 大数据与 AI 实训体系', short: '数字经济', icon: DatabaseZap, to: '/products' },
 ]
 
 /* ---------------- 按对象进入：四类决策人 ----------------
@@ -126,7 +126,7 @@ export const audiences = [
       { k: '单馆面积', v: '5,000㎡' },
       { k: '机械臂精度', v: '±0.05mm' },
     ],
-    cta: { label: '索取实验室规划', to: '/laboratories' },
+    cta: { label: '索取实验室规划', to: '/#contact' },
   },
   {
     id: 'it',
@@ -214,7 +214,7 @@ export const techBases = [
     en: 'MULTI-AGENT CLASSROOM',
     line: '开放的多智能体课堂协议，AI 教师 / 同学 / 助教 / 导演四角色由状态机编排',
     points: ['导演智能体编排发言顺序与节奏', '四类课堂组件按堂排布', '模型可换、数据不出校', '支持基于协议的二次开发'],
-    to: '/technology',
+    to: '/products',
   },
   {
     id: 'nl2exp',
@@ -223,7 +223,7 @@ export const techBases = [
     en: 'NATURAL LANGUAGE TO LAB',
     line: '一句话描述生成可执行实验：策略、控制、合约代码附带解释与回测曲线',
     points: ['Python / C++ / Solidity 三语言', '代码沙箱隔离执行', '闭环研究引擎：数据→分析→参数网格→迭代', '结果可复查可校准'],
-    to: '/technology',
+    to: '/products',
   },
   {
     id: 'twin',
@@ -232,7 +232,7 @@ export const techBases = [
     en: 'DIGITAL TWIN & SIM2REAL',
     line: '机械臂、机器人、产线设备 1:1 孪生，先在虚拟环境试错再到真机执行',
     points: ['设备级虚拟仿真', '操作风险预警与一键回滚', '实训过程可回放', '仿真数据采集与策略迁移'],
-    to: '/laboratories',
+    to: '/products',
   },
   {
     id: 'ledger',
@@ -241,6 +241,6 @@ export const techBases = [
     en: 'LEDGER & DATA INFRA',
     line: '联盟链 + 公链双环境，链上与课堂行为数据同源入仓，支撑学情与态势分析',
     points: ['合约 IDE 与区块浏览器', '多链数据聚合与态势大屏', '云端实验沙箱弹性算力', 'NEX-C1 边缘算力 120 TOPS'],
-    to: '/technology',
+    to: '/products',
   },
 ]

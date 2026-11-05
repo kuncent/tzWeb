@@ -1,4 +1,4 @@
-import { PageHero, InnerNav, PageSection, PageCTA } from '../components/PageShell'
+import { PageHero, InnerNav, PageSection, PageCTA, HeroFrame } from '../components/PageShell'
 import { Reveal } from '../components/ui'
 import { deviceTypes, devices } from '../data/devices'
 import CircularCarousel from '../components/reactbits/CircularCarousel'
@@ -90,7 +90,7 @@ function FeatureCard({ d }) {
 
 /* 首屏产品环：直接采用 React Bits 的 CircularCarousel（3D 圆环 +
    惯性拖拽 + 吸附 + 点击聚焦）。这里只做「选中式样」的色阶调校：
-   · fadeColor 取暗底同款 #04070d，离正面越远越融进背景，边界不留白块；
+   · fadeColor 取暗底同款 #06080d，离正面越远越融进背景，边界不留白块；
    · depthFade 拉开层次，正面选中项满不透明、邻位按角度分级衰减；
    · 品牌蓝底辉 + 前位聚焦光环，让被选中的设备在冷色舞台里「亮起来」。
    精选跨 7 类的代表机型，图各不相同，绕成一台会转的产品陈列。 */
@@ -111,44 +111,45 @@ function HeroCarousel() {
     }))
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#04070d]">
-      {/* 品牌蓝底辉（压得很低）+ 极淡网格 HUD：与 PageHero 同一套氛围，但不给白卡染色 */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-[42%] h-[320px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(22,119,255,0.12),transparent)] blur-[6px]" />
-        <div className="absolute inset-0 opacity-[0.1] [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(80%_76%_at_50%_42%,#000,transparent)]" />
-      </div>
+    /* 六页里唯一自带 3D 环的首页：外框仍走 HeroFrame，tag 与提示统一交给
+       外壳，环体只负责转 —— 否则这一页在六页里会像另一个站。 */
+    <HeroFrame index="03 / 06" label="精选装备 · PRODUCT RING" hint="拖拽 · 滚轮 · 点击设备环绕浏览" bodyClass="bg-[#06080d]">
+      <div className="relative overflow-hidden pb-7 pt-9">
+        {/* 品牌蓝底辉（压得很低）+ 极淡网格 HUD，给环一点纵深 */}
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-[46%] h-[320px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(22,119,255,0.12),transparent)] blur-[6px]" />
+          <div className="absolute inset-0 opacity-[0.1] [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(80%_76%_at_50%_46%,#000,transparent)]" />
+        </div>
 
-      <div className="relative h-[300px] w-full sm:h-[340px] lg:h-[376px]">
-        <CircularCarousel
-          items={items}
-          preset="cylinder"
-          intro="rise"
-          cardWidth={220}
-          perspective={3400}
-          aspectRatio={1}
-          gap={26}
-          autoplay="drift"
-          speed={10}
-          direction="left"
-          pauseOnHover
-          focusOnClick
-          snap
-          momentum={0.6}
-          parallax={0.28}
-          depthFade={0.5}
-          fadeColor="#04070d"
-          innerShade={0.55}
-          cornerRadius={16}
-          captions
-        />
-      </div>
+        <div className="relative h-[300px] w-full sm:h-[320px]">
+          <CircularCarousel
+            items={items}
+            preset="cylinder"
+            intro="rise"
+            cardWidth={220}
+            perspective={3400}
+            aspectRatio={1}
+            gap={26}
+            autoplay="drift"
+            speed={10}
+            direction="left"
+            pauseOnHover
+            focusOnClick
+            snap
+            momentum={0.6}
+            parallax={0.28}
+            depthFade={0.5}
+            fadeColor="#06080d"
+            innerShade={0.55}
+            cornerRadius={16}
+            captions
+          />
+        </div>
 
-      {/* 底部交互提示 + 前位聚焦辉，收口一行说明 */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-[#04070d]" />
-      <p className="relative border-t border-white/[0.06] py-2.5 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-white/45">
-        拖拽 · 滚轮 · 点击设备 —— 环绕浏览精选装备
-      </p>
-    </div>
+        {/* 环底收口：让远处的卡渐暗进背景，不留硬边 */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-[#06080d]" />
+      </div>
+    </HeroFrame>
   )
 }
 
@@ -168,7 +169,6 @@ export default function Devices() {
         ]}
         cta={[
           { label: '索取设备清单', to: '/#contact', primary: true },
-          { label: '看实训实验室', to: '/laboratories' },
         ]}
       >
         <HeroCarousel />

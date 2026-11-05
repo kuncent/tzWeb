@@ -244,7 +244,7 @@ export default function AIAdvisor() {
               transition={{ delay: 0.4, duration: 0.6 }}
               className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-ink-400"
             >
-              <a href="/technology" className="flex items-center gap-1.5 font-medium transition-colors hover:text-brand">
+              <a href="/products" className="flex items-center gap-1.5 font-medium transition-colors hover:text-brand">
                 <BookOpen className="h-4 w-4" /> {advisorCtas[2].label}
               </a>
               <a href="/resources" className="flex items-center gap-1.5 font-medium transition-colors hover:text-brand">

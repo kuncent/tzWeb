@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>官网配色系统 · 视觉对照</title>
+<style>
+  :root{
+    --paper:#F7F8FA; --card:#FFFFFF; --ink:#0B0F17; --ink2:#161B24; --ink3:#232A35;
+    --muted:#4E5866; --meta:#67707C; --line:#E4E7EC; --line2:#C6CCD5; --strong:#8E97A3;
+    --night:#06080D; --night2:#0A0D14; --night3:#10151E;
+    --brand:#1677FF; --action:#0E5FD8; --brandText:#0B5BD3; --soft:#EEF4FF;
+    --data:#0E7490; --dataSoft:#E6F4F7; --ok:#0F7A5A; --warn:#A15C07; --bad:#B42318;
+    --sans: Inter, "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+    --r:12px; --r-sm:8px;
+    --sh:0 1px 2px rgba(8,11,18,.04), 0 6px 16px -8px rgba(8,11,18,.08);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink3);
+    font-family:var(--sans); font-size:15px; line-height:1.75;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  h1,h2,h3,h4,p{margin:0}
+  h1,h2,h3,h4{color:var(--ink); font-weight:600; letter-spacing:-.025em; line-height:1.2}
+  h2{font-size:28px}
+  h3{font-size:20px}
+  h4{font-size:17px}
+  .micro{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--meta); font-weight:600}
+  .m{font-family:var(--mono); font-size:.92em; letter-spacing:.01em}
+  code{font-family:var(--mono)}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 32px}
+  .rule{height:1px; background:var(--line); border:0; margin:0}
+  section{padding:72px 0}
+  section + section{border-top:1px solid var(--line)}
+
+  /* header */
+  .masthead{background:var(--night); color:#fff; padding:56px 0 64px}
+  .masthead .micro{color:rgba(255,255,255,.52)}
+  .masthead h1{color:#fff; font-size:clamp(30px,4vw,44px); margin:18px 0 14px; letter-spacing:-.035em}
+  .masthead p{color:rgba(255,255,255,.66); max-width:640px}
+  .masthead .meta{display:flex; gap:10px; flex-wrap:wrap; margin-top:28px}
+  .masthead .meta span{
+    font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:rgba(255,255,255,.66);
+    border:1px solid rgba(255,255,255,.12); border-radius:4px; padding:5px 9px;
+  }
+
+  /* verdict */
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; margin-top:36px}
+  .verdict > div{background:var(--card); padding:24px}
+  .verdict b{display:block; font-size:34px; font-weight:600; letter-spacing:-.03em; color:var(--ink); line-height:1.1; margin-bottom:6px}
+  .verdict span{font-size:13.5px; color:var(--meta)}
+
+  /* section head */
+  .head{display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:32px}
+  .head p{max-width:620px; color:var(--muted); font-size:14.5px}
+  .num{font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--meta)}
+
+  /* swatches */
+  .ramp{display:grid; grid-template-columns:repeat(5,1fr); gap:12px}
+  .ramp.four{grid-template-columns:repeat(4,1fr)}
+  .sw{border-radius:10px; overflow:hidden; background:var(--card); border:1px solid var(--line)}
+  .sw .chip{height:96px; display:flex; align-items:flex-end; padding:10px}
+  .sw .chip em{font-family:var(--mono); font-size:11px; font-style:normal; letter-spacing:.02em}
+  .sw .body{padding:12px 14px 14px}
+  .sw .body b{display:block; font-size:13.5px; color:var(--ink); font-weight:600; letter-spacing:-.01em}
+  .sw .body span{display:block; font-size:12px; color:var(--meta); margin-top:2px; line-height:1.5}
+  .sw .ratio{display:inline-block; margin-top:8px; font-family:var(--mono); font-size:10.5px; letter-spacing:.02em;
+    border:1px solid var(--line); border-radius:999px; padding:2px 7px; color:var(--muted)}
+  .ramp.dark .sw{background:#0d1119; border-color:rgba(255,255,255,.08)}
+  .ramp.dark .sw .body b{color:#fff}
+  .ramp.dark .sw .body span{color:rgba(255,255,255,.52)}
+  .ramp.dark .sw .ratio{color:rgba(255,255,255,.66); border-color:rgba(255,255,255,.12)}
+
+  .textramp{margin-top:12px; border:1px solid var(--line); border-radius:var(--r); overflow:hidden; background:var(--card)}
+  .trow{display:grid; grid-template-columns:150px 1fr 96px; gap:16px; align-items:center; padding:14px 20px; border-top:1px solid var(--line)}
+  .trow:first-child{border-top:0}
+  .trow .who{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--meta)}
+  .trow .say{color:var(--ink); letter-spacing:-.01em; line-height:1.35}
+  .trow .cr{font-family:var(--mono); font-size:11px; text-align:right; color:var(--muted)}
+  .trow .cr.ok{color:var(--ok)} .trow .cr.warn{color:var(--warn)}
+
+  /* accent cards */
+  .accent-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  .acc{border:1px solid var(--line); border-radius:var(--r); overflow:hidden; background:var(--card)}
+  .acc .acc-bar{height:88px; display:flex; align-items:center; justify-content:space-between; padding:0 18px}
+  .acc .acc-bar .hex{font-family:var(--mono); font-size:12px; letter-spacing:.02em}
+  .acc .body{padding:18px}
+  .acc .body b{display:block; font-size:14px; color:var(--ink); font-weight:600}
+  .acc .body p{font-size:12.5px; color:var(--meta); margin-top:4px; line-height:1.6}
+  .ok-list,.no-list{font-size:12px; line-height:1.7; margin-top:10px}
+  .ok-list{color:var(--ink3)} .no-list{color:#8a5a5a}
+  .ok-list b,.no-list b{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.12em; color:var(--meta); margin-bottom:2px}
+
+  .tints{display:flex; gap:8px; margin-top:16px}
+  .tint{flex:1; height:52px; border-radius:8px; border:1px solid var(--line); position:relative}
+  .tint span{position:absolute; left:8px; bottom:6px; font-family:var(--mono); font-size:9.5px; color:var(--muted); mix-blend-mode:multiply}
+
+  .data-card{display:grid; grid-template-columns:1.1fr 1fr; gap:24px; margin-top:16px; border:1px solid var(--line); border-radius:var(--r); background:var(--card); overflow:hidden}
+  .data-card .left{padding:24px; background:var(--dataSoft)}
+  .data-card .right{padding:24px}
+  .tag{display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:4px 9px; border-radius:4px; background:var(--dataSoft); color:var(--data)}
+  .dot{width:6px; height:6px; border-radius:50%; background:var(--data)}
+
+  /* contrast table */
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th,td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line)}
+  th{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--meta); font-weight:600; background:var(--paper)}
+  td.num-cell{font-family:var(--mono); text-align:right; white-space:nowrap}
+  .m{font-family:var(--mono); font-size:11px}
+  .pill{display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.04em; border-radius:999px; padding:2px 8px; white-space:nowrap}
+  .pass{background:#E8F3EE; color:var(--ok)}
+  .fail{background:#FBEAE7; color:var(--bad)}
+  .near{background:#FBF0E4; color:var(--warn)}
+  .sample{display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px}
+
+  /* ratio */
+  .ratio-bar{display:flex; height:44px; border-radius:8px; overflow:hidden; margin-top:18px; border:1px solid var(--line)}
+  .ratio-bar > i{display:block; height:100%}
+  .ratio-legend{display:flex; gap:24px; flex-wrap:wrap; margin-top:12px; font-size:12px; color:var(--muted)}
+  .ratio-legend b{font-family:var(--mono); color:var(--ink); font-weight:600}
+  .sw-key{width:9px; height:9px; border-radius:2px; display:inline-block; margin-right:6px; vertical-align:1px}
+
+  /* comparison mocks */
+  .compare{display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start}
+  .col > .label{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px}
+  .col > .label b{font-size:14px}
+  .col > .label span{font-family:var(--mono); font-size:10.5px; color:var(--meta)}
+  .mock{--mockr:12px; border-radius:16px; overflow:hidden; border:1px solid var(--line); background:#fff; box-shadow:var(--sh); font-size:13px}
+  .mk-nav{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 16px; background:var(--m-nav,#fff); border-bottom:1px solid var(--m-line,#E4E7EC)}
+  .mk-logo{display:flex; align-items:center; gap:7px; color:var(--m-logo,#0B0F17); font-weight:600; font-size:12.5px; letter-spacing:-.01em}
+  .mk-mark{width:14px; height:14px; border-radius:4px; background:linear-gradient(135deg,#65BFFF,#1677FF)}
+  .mk-links{display:flex; gap:11px; font-size:10.5px; color:var(--m-navt,#4E5866)}
+  .mk-links .on{color:var(--m-accent-text,#0B5BD3)}
+  .mk-cta{font-size:10px; padding:4px 10px; border-radius:var(--m-btnr,8px); background:var(--m-action,#0E5FD8); color:#fff; box-shadow:var(--m-btnsh,none)}
+
+  .mk-hero{position:relative; display:grid; grid-template-columns:1.15fr .85fr; gap:18px; padding:22px 16px 26px; background:var(--m-hero,#06080D); overflow:hidden}
+  .mk-eyebrow{font-family:var(--mono); font-size:8.5px; letter-spacing:.22em; color:var(--m-on3,rgba(255,255,255,.52))}
+  .mk-hero h3{color:var(--m-on,#fff); font-size:var(--m-h1,23px); line-height:1.16; margin:7px 0 9px; letter-spacing:-.03em; font-weight:600}
+  .mk-hero h3 em{font-style:normal; color:var(--m-hl,#8FD0FF)}
+  .mk-hero p{font-size:var(--m-body,10.5px); line-height:1.7; color:var(--m-on2,rgba(255,255,255,.66)); max-width:27em}
+  .mk-btns{display:flex; gap:7px; margin-top:13px}
+  .mk-btn{font-size:10px; padding:6px 11px; border-radius:var(--m-btnr,8px); background:var(--m-action,#0E5FD8); color:#fff; box-shadow:var(--m-btnsh,none); font-weight:500}
+  .mk-btn.ghost{background:transparent; color:var(--m-on2,rgba(255,255,255,.66)); border:1px solid var(--m-dark-line,rgba(255,255,255,.12)); box-shadow:none}
+  .mk-chips{display:flex; gap:6px; margin-top:12px; flex-wrap:wrap}
+  .mk-chips span{font-family:var(--mono); font-size:8px; letter-spacing:.06em; padding:3px 7px; border-radius:var(--m-chipr,4px); border:1px solid var(--m-dark-line,rgba(255,255,255,.12)); color:var(--m-on3,rgba(255,255,255,.52))}
+
+  .mk-panel{background:var(--m-panel,#10151E); border:1px solid var(--m-dark-line,rgba(255,255,255,.08)); border-radius:var(--m-cardr,12px); padding:11px; box-shadow:var(--m-panelsh,none); align-self:start}
+  .mk-panel-top{display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:8px; letter-spacing:.12em; color:var(--m-on3,rgba(255,255,255,.52)); margin-bottom:9px}
+  .mk-panel-top .dot{background:var(--m-live,#2DD4BF)}
+  .mk-live{margin-left:auto; font-size:7px; padding:2px 5px; border-radius:3px; background:rgba(45,212,191,.12); color:var(--m-live,#2DD4BF)}
+  .mk-row{display:flex; justify-content:space-between; font-size:8.5px; color:var(--m-on2,rgba(255,255,255,.66)); margin:7px 0 4px}
+  .mk-row b{color:var(--m-on,#fff); font-family:var(--mono); font-weight:500}
+  .mk-bar{height:3px; border-radius:2px; background:rgba(255,255,255,.08); overflow:hidden}
+  .mk-bar i{display:block; height:100%; background:var(--m-accent,#1677FF)}
+  .mk-mini{margin-top:10px; padding-top:8px; border-top:1px solid var(--m-dark-line,rgba(255,255,255,.08)); font-family:var(--mono); font-size:7px; letter-spacing:.08em; color:var(--m-on4,var(--m-on3))}
+
+  .mk-section{padding:22px 16px 24px; background:var(--m-sec,#F7F8FA)}
+  .mk-kicker{font-family:var(--mono); font-size:8px; letter-spacing:.16em; color:var(--m-meta,#67707C)}
+  .mk-section h4{font-size:13px; margin:6px 0 12px; color:var(--m-tx,#0B0F17); letter-spacing:-.02em}
+  .mk-cards{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+  .mk-card{background:var(--m-cardbg,#fff); border:1px solid var(--m-line,#E4E7EC); border-radius:var(--m-cardr,12px); padding:10px; box-shadow:var(--m-cardsh,none)}
+  .mk-card .mk-num{font-family:var(--mono); font-size:8px; color:var(--m-meta,#67707C); letter-spacing:.1em}
+  .mk-card b{display:block; font-size:10.5px; color:var(--m-tx,#0B0F17); margin:3px 0 4px; letter-spacing:-.01em}
+  .mk-card p{font-size:8.5px; line-height:1.6; color:var(--m-tx3,#67707C); min-height:34px}
+  .mk-card .mk-flag{display:inline-block; margin-top:7px; font-family:var(--mono); font-size:7px; letter-spacing:.06em; padding:2px 5px; border-radius:3px; background:var(--m-flagbg,#E6F4F7); color:var(--m-flag,#0E7490)}
+
+  .mk-cta-band{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:20px 16px; background:var(--m-cta,#0A0D14); border-top:1px solid var(--m-dark-line,rgba(255,255,255,.08))}
+  .mk-cta-band h4{color:var(--m-on,#fff); font-size:13px; margin-top:5px}
+  .mk-cta-band .mk-kicker{color:var(--m-on3,rgba(255,255,255,.52))}
+
+  .mk-footer{background:var(--m-footer,#06080D); padding:18px 16px 12px; border-top:1px solid var(--m-dark-line,rgba(255,255,255,.08))}
+  .mk-fcols{display:grid; grid-template-columns:.9fr 1fr 1fr; gap:14px}
+  .mk-fbrand b{color:var(--m-on,#fff); font-size:11px}
+  .mk-fbrand p{font-size:8px; line-height:1.6; color:var(--m-on3,rgba(255,255,255,.52)); margin-top:4px; max-width:15em}
+  .mk-fcol span{display:block; font-size:8px; color:var(--m-on3,rgba(255,255,255,.52)); margin-bottom:5px}
+  .mk-fcol em{display:block; font-style:normal; font-size:8.5px; color:var(--m-on2,rgba(255,255,255,.66)); margin-bottom:3px; line-height:1.5}
+  .mk-fbottom{margin-top:12px; padding-top:8px; border-top:1px solid var(--m-dark-line,rgba(255,255,255,.08)); font-size:7.5px; color:var(--m-on4,rgba(255,255,255,.45))}
+
+  /* old theme */
+  .m-old{
+    --m-nav:#ffffff; --m-line:#e3eaf3; --m-logo:#0b1220; --m-navt:#5d6b7e;
+    --m-hero:#04070d; --m-panel:#0a0f1a; --m-sec:#f5f8fc; --m-cardbg:#ffffff;
+    --m-cta:#0a0f1a; --m-footer:#0A0E16;
+    --m-tx:#0b1220; --m-tx3:#8b98a9; --m-meta:#8b98a9;
+    --m-on:#ffffff; --m-on2:rgba(255,255,255,.55); --m-on3:rgba(255,255,255,.35); --m-on4:rgba(255,255,255,.35);
+    --m-accent:#1677ff; --m-action:#1677ff; --m-accent-text:#1677ff; --m-hl:#65bfff; --m-live:#2dd4bf;
+    --m-btnr:999px; --m-chipr:999px; --m-cardr:22px;
+    --m-btnsh:0 0 24px rgba(22,119,255,.45);
+    --m-cardsh:0 12px 30px rgba(22,119,255,.10);
+    --m-panelsh:0 0 32px rgba(22,119,255,.28);
+    --m-flagbg:#eaf4ff; --m-flag:#1677ff;
+    --m-h1:23px; --m-body:10.5px; --m-dark-line:rgba(255,255,255,.14);
+  }
+  .m-old .mk-hero::before{content:""; position:absolute; inset:-40% -10% auto -10%; height:150%;
+    background:radial-gradient(40% 60% at 18% 20%, rgba(22,119,255,.22), transparent 70%),
+               radial-gradient(35% 55% at 82% 8%, rgba(45,212,191,.16), transparent 70%),
+               radial-gradient(30% 40% at 55% 90%, rgba(139,92,246,.14), transparent 70%);
+    pointer-events:none}
+  .m-old .mk-card{box-shadow:0 10px 28px rgba(22,119,255,.10)}
+  .m-old .mk-btn.primary{box-shadow:0 0 24px rgba(22,119,255,.45)}
+  .m-old .mk-eyebrow{color:rgba(255,255,255,.35)}
+  .m-old .mk-footer em, .m-old .mk-fbottom{color:rgba(255,255,255,.35)}
+  .m-old .mk-section .mk-kicker, .m-old .mk-card p{color:#8b98a9}
+
+  /* new theme */
+  .m-new{
+    --m-nav:#ffffff; --m-line:#E4E7EC; --m-logo:#0B0F17; --m-navt:#4E5866;
+    --m-hero:#06080D; --m-panel:#10151E; --m-sec:#F7F8FA; --m-cardbg:#FFFFFF;
+    --m-cta:#0A0D14; --m-footer:#06080D;
+    --m-tx:#0B0F17; --m-tx3:#67707C; --m-meta:#67707C;
+    --m-on:#FFFFFF; --m-on2:rgba(255,255,255,.66); --m-on3:rgba(255,255,255,.52); --m-on4:rgba(255,255,255,.52);
+    --m-accent:#1677FF; --m-action:#0E5FD8; --m-accent-text:#0B5BD3; --m-hl:#8FD0FF; --m-live:#2DD4BF;
+    --m-btnr:8px; --m-chipr:4px; --m-cardr:12px;
+    --m-btnsh:none; --m-cardsh:none; --m-panelsh:none;
+    --m-flagbg:#E6F4F7; --m-flag:#0E7490;
+    --m-h1:24px; --m-body:11px;
+    --m-dark-line:rgba(255,255,255,.08);
+  }
+  .m-new .mk-card{border-color:#E4E7EC}
+  .m-new .mk-nav{border-bottom-color:#E4E7EC}
+  .m-new .mk-section{border-top:0}
+  .m-old .mk-nav{border-bottom-color:#e3eaf3}
+  .m-new .mk-hero{padding-bottom:30px}
+  .m-new .mk-cards{gap:10px}
+  .m-new .mk-card{padding:11px}
+  .m-new .mk-footer{padding-bottom:14px}
+  .m-new .mk-fcol em{color:rgba(255,255,255,.66); font-size:9px}
+  .m-new .mk-fbottom{color:rgba(255,255,255,.52); font-size:8px}
+  .m-new .mk-fcol span{color:rgba(255,255,255,.52)}
+  .m-new .mk-hero p{color:rgba(255,255,255,.66)}
+
+  .diffnote{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+  .diffnote span{font-family:var(--mono); font-size:10px; letter-spacing:.03em; color:var(--muted); border:1px solid var(--line); background:#fff; border-radius:4px; padding:3px 7px}
+
+  /* bridge */
+  .bridges{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  .bridge{border:1px solid var(--line); border-radius:var(--r); overflow:hidden; background:#fff}
+  .bridge .demo{height:190px; position:relative; overflow:hidden}
+  .bridge .cap{padding:14px 16px; border-top:1px solid var(--line)}
+  .bridge .cap b{display:block; font-size:13px; color:var(--ink)}
+  .bridge .cap span{font-size:12px; color:var(--meta)}
+  .hard{background:linear-gradient(#06080D 0 58%, #06080D 58% 58.6%, #F7F8FA 58.6% 100%)}
+  .hard::after{content:""; position:absolute; left:0; right:0; top:58%; height:1px; background:rgba(255,255,255,.18)}
+  .bridge-card .demo{background:linear-gradient(#06080D 0 64%, #F7F8FA 64% 100%)}
+  .bridge-card .floating{position:absolute; left:14px; right:14px; top:56px; height:96px; background:#fff; border-radius:12px; box-shadow:0 2px 4px rgba(8,11,18,.05),0 18px 40px -20px rgba(8,11,18,.18); border:1px solid #E4E7EC}
+  .bridge-card .floating i{position:absolute; left:12px; top:12px; right:12px; height:5px; border-radius:2px; background:#E4E7EC}
+  .bridge-card .floating i:nth-child(2){top:26px; width:60%; background:#EFF1F4}
+  .bridge-card .floating i:nth-child(3){top:38px; width:42%; background:#EFF1F4}
+  .bad .demo{background:linear-gradient(180deg,#06080D, #2b2f39 46%, #9aa0a8 72%, #F7F8FA)}
+  .bad .cap b{color:var(--bad)}
+  .badmark{position:absolute; right:10px; top:9px; font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:#fff; background:rgba(180,35,24,.9); padding:3px 6px; border-radius:3px}
+
+  /* mapping */
+  .map{display:grid; grid-template-columns:1fr 1fr; gap:10px 24px; font-size:13px}
+  .map .row{display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line)}
+  .map .oldv{font-family:var(--mono); font-size:11.5px; color:var(--bad)}
+  .map .newv{font-family:var(--mono); font-size:11.5px; color:var(--ok)}
+  .map .arrow{color:var(--meta); font-size:11px}
+  .note{background:#fff; border:1px solid var(--line); border-left:2px solid var(--data); border-radius:8px; padding:14px 16px; font-size:12.5px; color:var(--muted); margin-top:20px}
+
+  /* footer */
+  .foot{background:var(--night); color:rgba(255,255,255,.52); padding:40px 0 48px; font-size:12.5px}
+  .foot b{color:#fff; font-size:13px}
+
+  @media (max-width:980px){
+    .wrap{padding:0 20px}
+    section{padding:56px 0}
+    .verdict,.accent-grid,.bridges,.compare{grid-template-columns:1fr}
+    .ramp,.ramp.four{grid-template-columns:repeat(2,1fr)}
+    .data-card{grid-template-columns:1fr}
+    .map{grid-template-columns:1fr}
+    .trow{grid-template-columns:1fr 70px; gap:6px}
+    .trow .who{grid-column:1/-1}
+    .mk-hero{grid-template-columns:1fr}
+    .mk-panel{display:none}
+    .mk-links{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="micro">COLOR SYSTEM · V1 · 只读方案</div>
+    <h1>把「蓝灰 + 发光」换成<br>「冷中性 + 单点蓝」</h1>
+    <p>同一套页面内容，只替换颜色与三层 token，就能从「模板科技站」变成「精密、安静、可交付」。下面所有色值均可直接写入 <span class="m">@theme</span>。</p>
+    <div class="meta">
+      <span>92% 中性</span><span>≤5% 品牌蓝</span><span>≤0.5% 数据青</span><span>≤2.5% 功能色</span><span>AA 全通过</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <div class="num">00 — 结论</div>
+        <h2 style="margin-top:10px">三个改动，观感差异最大</h2>
+      </div>
+      <p>数值均为 WCAG 2.1 实测，不是估算。改前色值取自 <span class="m">src/index.css</span> 与页脚硬编码。</p>
+    </div>
+    <div class="verdict">
+      <div><b>2.93 → 5.02</b><span>辅助文字对比度：<span class="m">ink-400</span> 从「浅灰不可读」到 AA</span></div>
+      <div><b>4.10 → 5.76</b><span>主按钮白字对比度：按钮底改 <span class="m">#0E5FD8</span></span></div>
+      <div><b>4 → 1</b><span>近黑底色数量：首屏 / CTA / 页脚 / 渐变统一为 <span class="m">#06080D</span></span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <div class="num">01 — 中性色阶</div>
+        <h2 style="margin-top:10px">暗面：四级抬升，不用纯黑</h2>
+      </div>
+      <p>纯黑会让阴影、描边、卡片面全部消失。<span class="m">#06080D</span> 留出 0.24%–1.21% 的亮度空间，暗部才有层次。</p>
+    </div>
+    <div class="ramp dark">
+      <div class="sw"><div class="chip" style="background:#06080D"><em style="color:rgba(255,255,255,.5)">L 0.24%</em></div>
+        <div class="body"><b>night-950</b><span>#06080D</span><span>首屏 / 页脚 / 收口 CTA 唯一暗底</span></div></div>
+      <div class="sw"><div class="chip" style="background:#0A0D14"><em style="color:rgba(255,255,255,.5)">1.09:1</em></div>
+        <div class="body"><b>night-900</b><span>#0A0D14</span><span>深色 CTA 带，比首屏低一档</span></div></div>
+      <div class="sw"><div class="chip" style="background:#10151E"><em style="color:rgba(255,255,255,.5)">1.10:1</em></div>
+        <div class="body"><b>night-800</b><span>#10151E</span><span>暗色卡片 / 看板面</span></div></div>
+      <div class="sw"><div class="chip" style="background:#171D28"><em style="color:rgba(255,255,255,.5)">1.19:1</em></div>
+        <div class="body"><b>night-700</b><span>#171D28</span><span>暗色 hover / chip</span></div></div>
+      <div class="sw"><div class="chip" style="background:linear-gradient(135deg,#06080D,#1A1C22)"><em style="color:rgba(255,255,255,.5)">装饰</em></div>
+        <div class="body"><b>night-line</b><span>rgba(255,255,255,.08)</span><span>1px 描边，暗区唯一的“分割”</span></div></div>
+    </div>
+
+    <div class="head" style="margin-top:56px">
+      <div><h3>亮面：画布不纯白，卡片才纯白</h3></div>
+      <p><span class="m">#F7F8FA</span> 与 <span class="m">#FFFFFF</span> 的 1.06:1 差，足以让卡片“浮”起来，又不刺眼。</p>
+    </div>
+    <div class="ramp">
+      <div class="sw"><div class="chip" style="background:#F7F8FA"><em style="color:#6B7480">1.06:1 vs 白</em></div>
+        <div class="body"><b>mist-100</b><span>#F7F8FA</span><span>页面画布（默认背景）</span></div></div>
+      <div class="sw"><div class="chip" style="background:#EFF1F4"><em style="color:#6B7480">1.12:1</em></div>
+        <div class="body"><b>mist-200</b><span>#EFF1F4</span><span>二级区块 / 表头</span></div></div>
+      <div class="sw"><div class="chip" style="background:#E4E7EC"><em style="color:#5E6672">1.24:1</em></div>
+        <div class="body"><b>mist-300</b><span>#E4E7EC</span><span>装饰性分隔线 / 卡片描边</span></div></div>
+      <div class="sw"><div class="chip" style="background:#C6CCD5"><em style="color:#3F4650">1.54:1</em></div>
+        <div class="body"><b>mist-400</b><span>#C6CCD5</span><span>输入框默认描边</span></div></div>
+      <div class="sw"><div class="chip" style="background:#8E97A3"><em style="color:#fff">2.96:1</em></div>
+        <div class="body"><b>line-strong</b><span>#8E97A3</span><span>功能性边界：checkbox / radio</span></div></div>
+    </div>
+
+    <div class="head" style="margin-top:56px">
+      <div><h3>文字：按 4.5 / 7 / 14 阈值分档</h3></div>
+      <p>不是按 40% / 50% / 60% 的白来分——那种做法在暗底会糊成一片。</p>
+    </div>
+    <div class="textramp">
+      <div class="trow"><span class="who">ink-900</span><span class="say" style="font-size:24px;letter-spacing:-.03em;font-weight:600;color:#0B0F17">把实验室做成可交付的基础设施</span><span class="cr ok">19.18:1</span></div>
+      <div class="trow"><span class="who">ink-800</span><span class="say" style="font-size:19px;color:#161B24">一套系统，覆盖教学全链路</span><span class="cr ok">17.26:1</span></div>
+      <div class="trow"><span class="who">ink-700</span><span class="say" style="font-size:15px;color:#232A35">面向高校的具身智能实验室基础设施，一个学期内开出可持续的课程。</span><span class="cr ok">14.44:1</span></div>
+      <div class="trow"><span class="who">ink-500</span><span class="say" style="font-size:15px;color:#4E5866">从空间、设备到课程与数据，交付一套可运行的体系。</span><span class="cr ok">7.21:1</span></div>
+      <div class="trow"><span class="who">ink-400</span><span class="say" style="font-size:13px;color:#67707C">CAPABILITY · 2026 · 交付周期 12 个月</span><span class="cr ok">5.02:1</span></div>
+      <div class="trow"><span class="who">ink-300</span><span class="say" style="font-size:13px;color:#9AA1AC">仅图标与装饰，禁止正文</span><span class="cr warn">2.60:1</span></div>
+    </div>
+    <div class="note">在 <span class="m">mist-200 #EFF1F4</span> 上，<span class="m">ink-400</span> 只有 4.43:1，差 0.07。规则：<b>ink-400 只用于白底与 mist-100；更深的底改用 ink-500</b>。</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div><div class="num">02 — 强调色</div><h2 style="margin-top:10px">品牌蓝拆成四档，各司其职</h2></div>
+      <p>现状是同一个 <span class="m">#1677FF</span> 同时做按钮底、10px 标签色、发光、边框，导致层级失效。</p>
+    </div>
+    <div class="accent-grid">
+      <div class="acc">
+        <div class="acc-bar" style="background:#1677FF"><span style="color:#fff;font-size:12px;font-weight:600">brand</span><span class="hex" style="color:#fff">#1677FF</span></div>
+        <div class="body"><b>品牌标识 / 大色块 / 暗底文字</b><p>白底 4.10，暗底 4.88。<b style="color:#B42318">不做白底小字，不做白字按钮底</b>。</p></div>
+      </div>
+      <div class="acc">
+        <div class="acc-bar" style="background:#0E5FD8"><span style="color:#fff;font-size:12px;font-weight:600">brand-action</span><span class="hex" style="color:#fff">#0E5FD8</span></div>
+        <div class="body"><b>主按钮填充</b><p>白字 <b style="color:#0F7A5A">5.76:1</b>。同色相压深一档，更稳，也不影响 logo。</p></div>
+      </div>
+      <div class="acc">
+        <div class="acc-bar" style="background:#EEF4FF"><span style="color:#0B5BD3;font-size:12px;font-weight:600">brand-text</span><span class="hex" style="color:#0B5BD3">#0B5BD3</span></div>
+        <div class="body"><b>链接 / 编号 / 小标签</b><p>白底 <b style="color:#0F7A5A">6.08:1</b>，mist-100 5.73，mist-200 5.38。</p></div>
+      </div>
+    </div>
+    <div class="tints">
+      <div class="tint" style="background:#0B4AB0"><span style="color:#fff">#0B4AB0 press</span></div>
+      <div class="tint" style="background:#8FD0FF"><span>#8FD0FF dark-text</span></div>
+      <div class="tint" style="background:#BFE3FF"><span>#BFE3FF</span></div>
+      <div class="tint" style="background:#D6E9FF"><span>#D6E9FF</span></div>
+      <div class="tint" style="background:#EEF4FF"><span>#EEF4FF soft</span></div>
+      <div class="tint" style="background:rgba(22,119,255,.22)"><span>brand-line</span></div>
+    </div>
+
+    <div class="head" style="margin-top:56px">
+      <div><h3>第二强调：精密青，只做“状态”</h3></div>
+      <p>每个视口最多 2 处：一个状态点 + 一个数据标签。不做 CTA、不做填充、不与 warning 同屏。</p>
+    </div>
+    <div class="data-card">
+      <div class="left">
+        <div class="tag"><span class="dot"></span>运行中 · 36 / 40</div>
+        <div class="micro" style="margin-top:16px;color:#0B6478">DATA</div>
+        <div style="font-family:var(--mono);font-size:26px;color:#0E7490;margin-top:4px">98.4%</div>
+        <div style="font-size:12px;color:#4E5866">实时采集 · 仅用于指标与状态</div>
+      </div>
+      <div class="right">
+        <div class="micro">禁用场景</div>
+        <p style="font-size:12.5px;color:#4E5866;margin-top:8px;line-height:1.8">CTA 与按钮 · 大面积填充 · 渐变与发光 · 正文与标题 · logo 主视觉 · 与 warning 同屏</p>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+          <span class="tag" style="background:#E6F4F7">data #0E7490 · 5.36:1</span>
+          <span class="tag" style="background:rgba(45,212,191,.12);color:#0F7A5A">data-on-dark #2DD4BF · 10.76:1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tints" style="gap:10px;margin-top:16px">
+      <div class="tint" style="background:#0F7A5A"><span style="color:#fff">success #0F7A5A</span></div>
+      <div class="tint" style="background:#A15C07"><span style="color:#fff">warning #A15C07</span></div>
+      <div class="tint" style="background:#B42318"><span style="color:#fff">danger #B42318</span></div>
+      <div class="tint" style="background:#E6F4F7"><span>data-soft</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div><div class="num">03 — 比例</div><h2 style="margin-top:10px">92 / 5 / 0.5 / 2.5</h2></div>
+      <p>把页面转成灰度后，仍应能读懂 90% 的信息层级。读不懂，说明层级靠颜色而不是字阶。</p>
+    </div>
+    <div class="ratio-bar">
+      <i style="width:92%;background:#E4E7EC"></i>
+      <i style="width:5%;background:#0E5FD8"></i>
+      <i style="width:.6%;background:#0E7490"></i>
+      <i style="width:2.4%;background:#B42318"></i>
+    </div>
+    <div class="ratio-legend">
+      <span><i class="sw-key" style="background:#E4E7EC"></i>中性 92%</span>
+      <span><i class="sw-key" style="background:#0E5FD8"></i>品牌蓝 ≤5%</span>
+      <span><i class="sw-key" style="background:#0E7490"></i>数据青 ≤0.5%</span>
+      <span><i class="sw-key" style="background:#B42318"></i>功能色 ≤2.5%</span>
+    </div>
+
+    <table style="margin-top:28px">
+      <thead><tr><th>区块</th><th>底层</th><th>卡面 / 抬升</th><th>蓝的使用</th></tr></thead>
+      <tbody>
+        <tr><td>暗色首屏</td><td><span class="m">#06080D</span></td><td><span class="m">#10151E</span> + 白 8% 描边</td><td>1 个主按钮 + 1 处光（≤2%）</td></tr>
+        <tr><td>白底正文</td><td><span class="m">#F7F8FA</span></td><td><span class="m">#FFFFFF</span> + 1px 描边</td><td>仅链接/编号，≤2%</td></tr>
+        <tr><td>产品暗卡</td><td><span class="m">#06080D</span></td><td><span class="m">#10151E</span></td><td>选中项填充，≤2%</td></tr>
+        <tr><td>深色 CTA</td><td><span class="m">#0A0D14</span></td><td>—</td><td>主按钮占该区 ≤8%</td></tr>
+        <tr><td>页脚</td><td><span class="m">#06080D</span></td><td>—</td><td>仅 hover 链接</td></tr>
+        <tr><td>数据 / 表格</td><td><span class="m">#FFFFFF</span></td><td>表头 <span class="m">#EFF1F4</span></td><td>数字用 ink-900，<b>不用蓝</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div><div class="num">04 — 改前 / 改后</div><h2 style="margin-top:10px">同一段内容，只换 token</h2></div>
+      <p>左右 DOM 完全一致，仅变量不同：底色、描边、圆角、按钮色、文字对比度、发光数量。</p>
+    </div>
+    <div class="compare">
+      <div class="col">
+        <div class="label"><b>改前 · 现状</b><span>4 种近黑 / 3 种强调色 / 251 个胶囊</span></div>
+        <div class="mock m-old" id="oldMount"></div>
+        <div class="diffnote">
+          <span>#04070d 首屏</span><span>#0A0E16 页脚</span><span>3 色光晕</span><span>胶囊按钮</span><span>ink-400 2.93:1</span><span>white/35 3.17:1</span><span>24px 卡片圆角</span>
+        </div>
+      </div>
+      <div class="col">
+        <div class="label"><b>改后 · 建议</b><span>1 个近黑 / 1 个强调色 / 发丝线</span></div>
+        <div class="mock m-new" id="newMount"></div>
+        <div class="diffnote">
+          <span>#06080D 全站</span><span>#10151E 卡片</span><span>单点蓝</span><span>8px 按钮</span><span>ink-400 5.02:1</span><span>white/66 8.72:1</span><span>12px 卡片圆角</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<template id="mockTpl">
+  <div class="mk-nav">
+    <div class="mk-logo"><span class="mk-mark"></span><span>天泽智教</span></div>
+    <div class="mk-links"><span class="on">首页</span><span>产品与方案</span><span>技术</span><span>案例</span><span>关于</span></div>
+    <div class="mk-cta">预约演示</div>
+  </div>
+  <div class="mk-hero">
+    <div>
+      <div class="mk-eyebrow">LAB INFRASTRUCTURE</div>
+      <h3>把实验室，做成<br><em>可交付</em>的基础设施</h3>
+      <p>一套系统覆盖空间、设备、课程与数据，让高校在一个学期内开出可持续的具身智能课程。</p>
+      <div class="mk-btns"><span class="mk-btn primary">预约演示</span><span class="mk-btn ghost">查看方案</span></div>
+      <div class="mk-chips"><span>3 类实验室</span><span>105 套系统</span><span>12 个月交付</span></div>
+    </div>
+    <div class="mk-panel">
+      <div class="mk-panel-top"><span class="dot"></span><span>TELEMETRY</span><span class="mk-live">LIVE</span></div>
+      <div class="mk-row"><span>机械臂</span><b>98.4%</b></div>
+      <div class="mk-bar"><i style="width:78%"></i></div>
+      <div class="mk-row"><span>任务队列</span><b>24</b></div>
+      <div class="mk-bar"><i style="width:52%"></i></div>
+      <div class="mk-row"><span>在线设备</span><b>36/40</b></div>
+      <div class="mk-bar"><i style="width:90%"></i></div>
+      <div class="mk-mini">LAB-01 · 26.4°C · UPTIME 04:12:09</div>
+    </div>
+  </div>
+  <div class="mk-section">
+    <div class="mk-kicker">CAPABILITY</div>
+    <h4>一套系统，覆盖教学全链路</h4>
+    <div class="mk-cards">
+      <div class="mk-card"><span class="mk-num">01</span><b>课程生成</b><p>从知识图谱到实验任务，生成可执行的课堂脚本。</p><span class="mk-flag">AI 助教 · 实时</span></div>
+      <div class="mk-card"><span class="mk-num">02</span><b>实验沙箱</b><p>设备、仿真与评测同源，课堂与实验室数据打通。</p><span class="mk-flag">运行中</span></div>
+      <div class="mk-card"><span class="mk-num">03</span><b>学情闭环</b><p>过程数据回写课程，形成可复用的教学资产。</p><span class="mk-flag">数据回流</span></div>
+    </div>
+  </div>
+  <div class="mk-cta-band">
+    <div><div class="mk-kicker">NEXT STEP</div><h4>从一个学期，到一套体系</h4></div>
+    <span class="mk-btn primary">预约演示</span>
+  </div>
+  <div class="mk-footer">
+    <div class="mk-fcols">
+      <div class="mk-fbrand"><b>天泽智教</b><p>面向高校的具身智能实验室基础设施。</p></div>
+      <div class="mk-fcol"><span>产品</span><em>实训实验室</em><em>产品设备</em><em>技术方向</em></div>
+      <div class="mk-fcol"><span>公司</span><em>关于我们</em><em>高校案例</em><em>联系方式</em></div>
+    </div>
+    <div class="mk-fbottom">© 2026 天泽智教 · 京ICP备00000000号</div>
+  </div>
+</template>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div><div class="num">05 — 衔接</div><h2 style="margin-top:10px">暗底到白底，怎么过渡不脏</h2></div>
+      <p>默认用“硬边 + 发丝线 + 呼吸间距”；需要更贵时用“白卡跨接”。不要用灰度线性渐变。</p>
+    </div>
+    <div class="bridges">
+      <div class="bridge">
+        <div class="demo hard"></div>
+        <div class="cap"><b>① 硬边 + 发丝线</b><span>1px 白 8% + 上下 64–96px 留白</span></div>
+      </div>
+      <div class="bridge bridge-card">
+        <div class="demo">
+          <div class="floating"><i></i><i></i><i></i></div>
+        </div>
+        <div class="cap"><b>② 白卡跨接</b><span>12px 圆角白卡上叠 32–48px，用结构过渡</span></div>
+      </div>
+      <div class="bridge bad">
+        <div class="demo"><span class="badmark">✕ 禁用</span></div>
+        <div class="cap"><b>③ 灰度渐变</b><span>中间必然经过脏灰，4K 屏可见色带</span></div>
+      </div>
+    </div>
+    <div class="note">暗区内部不要用 <span class="m">box-shadow</span> 做抬升（不可见，只会糊边），用 <span class="m">night-800</span> + <span class="m">night-line</span>。亮区之间不要用蓝色发光分隔。</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div><div class="num">06 — 对比度</div><h2 style="margin-top:10px">校验表（实测）</h2></div>
+      <p>AA 正文 ≥4.5，AA 大字 ≥3.0，非文本边界 ≥3.0。判定标红的是现状问题。</p>
+    </div>
+    <table>
+      <thead><tr><th>前景 / 背景</th><th style="text-align:right">对比度</th><th>判定</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sample" style="background:#fff;color:#0B0F17">ink-900</span> on <span class="m">#FFFFFF</span></td><td class="num-cell">19.18</td><td><span class="pill pass">AAA</span></td></tr>
+        <tr><td><span class="sample" style="background:#fff;color:#161B24">ink-800</span> on <span class="m">#FFFFFF</span></td><td class="num-cell">17.26</td><td><span class="pill pass">AAA</span></td></tr>
+        <tr><td><span class="sample" style="background:#fff;color:#232A35">ink-700</span> on <span class="m">#FFFFFF</span></td><td class="num-cell">14.44</td><td><span class="pill pass">AAA</span></td></tr>
+        <tr><td><span class="sample" style="background:#fff;color:#4E5866">ink-500</span> on <span class="m">#FFFFFF</span></td><td class="num-cell">7.21</td><td><span class="pill pass">AA</span></td></tr>
+        <tr><td><span class="sample" style="background:#fff;color:#67707C">ink-400</span> on <span class="m">#FFFFFF</span></td><td class="num-cell">5.02</td><td><span class="pill pass">AA</span></td></tr>
+        <tr><td><span class="sample" style="background:#F7F8FA;color:#67707C">ink-400</span> on <span class="m">#F7F8FA</span></td><td class="num-cell">4.72</td><td><span class="pill pass">AA</span></td></tr>
+        <tr><td><span class="sample" style="background:#EFF1F4;color:#67707C">ink-400</span> on <span class="m">#EFF1F4</span></td><td class="num-cell">4.43</td><td><span class="pill near">差 0.07</span></td></tr>
+        <tr><td><span class="sample" style="background:#fff;color:#0B5BD3">brand-text</span> on <span class="m">#FFFFFF</span></td><td class="num-cell">6.08</td><td><span class="pill pass">AA</span></td></tr>
+        <tr><td><span class="sample" style="background:#fff;color:#fff;border:1px solid #E4E7EC">白字</span> on <span class="m">#0E5FD8</span></td><td class="num-cell">5.76</td><td><span class="pill pass">AA</span></td></tr>
+        <tr><td><span class="sample" style="background:#1677FF;color:#fff">白字</span> on <span class="m">#1677FF</span></td><td class="num-cell">4.10</td><td><span class="pill fail">❌ 小字</span></td></tr>
+        <tr><td><span class="sample" style="background:#06080D;color:#fff">白字 100%</span> on <span class="m">#06080D</span></td><td class="num-cell">20.03</td><td><span class="pill pass">AAA</span></td></tr>
+        <tr><td><span class="sample" style="background:#06080D;color:rgba(255,255,255,.66)">white 66%</span> on <span class="m">#06080D</span></td><td class="num-cell">8.72</td><td><span class="pill pass">AA</span></td></tr>
+        <tr><td><span class="sample" style="background:#06080D;color:rgba(255,255,255,.52)">white 52%</span> on <span class="m">#06080D</span></td><td class="num-cell">5.65</td><td><span class="pill pass">AA</span></td></tr>
+        <tr><td><span class="sample" style="background:#06080D;color:rgba(255,255,255,.45)">white 45%</span> on <span class="m">#06080D</span></td><td class="num-cell">4.47</td><td><span class="pill near">临界</span></td></tr>
+        <tr><td><span class="sample" style="background:#0A0E16;color:rgba(255,255,255,.35)">white 35%</span> on <span class="m">#0A0E16</span></td><td class="num-cell">3.17</td><td><span class="pill fail">❌ 现状</span></td></tr>
+        <tr><td><span class="sample" style="background:#fff;color:#8B98A9">旧 ink-400</span> on <span class="m">#FFFFFF</span></td><td class="num-cell">2.93</td><td><span class="pill fail">❌ 现状</span></td></tr>
+        <tr><td><span class="sample" style="background:#fff;color:#0E7490">data</span> on <span class="m">#FFFFFF</span></td><td class="num-cell">5.36</td><td><span class="pill pass">AA</span></td></tr>
+        <tr><td><span class="sample" style="background:#06080D;color:#2DD4BF">data-on-dark</span> on <span class="m">#06080D</span></td><td class="num-cell">10.76</td><td><span class="pill pass">AA</span></td></tr>
+        <tr><td><span class="sample" style="background:#fff;color:#0F7A5A">success</span> / <span class="sample" style="background:#fff;color:#A15C07">warning</span> / <span class="sample" style="background:#fff;color:#B42318">danger</span></td><td class="num-cell">5.31 / 5.19 / 6.57</td><td><span class="pill pass">AA</span></td></tr>
+        <tr><td><span class="m">line-strong #8E97A3</span> vs <span class="m">#FFFFFF</span></td><td class="num-cell">2.96</td><td><span class="pill pass">≈3:1</span></td></tr>
+        <tr><td><span class="m">mist-300 #E4E7EC</span> vs <span class="m">#FFFFFF</span></td><td class="num-cell">1.24</td><td><span class="pill near">仅装饰</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div><div class="num">07 — 映射</div><h2 style="margin-top:10px">旧 token → 新 token</h2></div>
+      <p>只改值、不改名，后台 <span class="m">/admin</span> 不会掉色。红=旧值，绿=新值。</p>
+    </div>
+    <div class="map">
+      <div>
+        <div class="row"><span class="oldv">mist-100 #f5f8fc</span><span class="arrow">→</span><span class="newv">#F7F8FA</span></div>
+        <div class="row"><span class="oldv">mist-200 #eef3f9</span><span class="arrow">→</span><span class="newv">#EFF1F4</span></div>
+        <div class="row"><span class="oldv">mist-300 #e3eaf3</span><span class="arrow">→</span><span class="newv">#E4E7EC</span></div>
+        <div class="row"><span class="oldv">ink-900 #0b1220</span><span class="arrow">→</span><span class="newv">#0B0F17</span></div>
+        <div class="row"><span class="oldv">ink-800 #16202e</span><span class="arrow">→</span><span class="newv">#161B24</span></div>
+        <div class="row"><span class="oldv">ink-700 #2a3648</span><span class="arrow">→</span><span class="newv">#232A35</span></div>
+        <div class="row"><span class="oldv">ink-500 #5d6b7e</span><span class="arrow">→</span><span class="newv">#4E5866</span></div>
+        <div class="row"><span class="oldv">ink-400 #8b98a9</span><span class="arrow">→</span><span class="newv">#67707C</span></div>
+      </div>
+      <div>
+        <div class="row"><span class="oldv">brand #1677ff</span><span class="arrow">→</span><span class="newv">仅标识/大色块/暗底</span></div>
+        <div class="row"><span class="oldv">brand-600 #0e5fd8</span><span class="arrow">→</span><span class="newv">brand-action</span></div>
+        <div class="row"><span class="oldv">night #0a0f1a</span><span class="arrow">→</span><span class="newv">#06080D</span></div>
+        <div class="row"><span class="oldv">night-800 #0e1522</span><span class="arrow">→</span><span class="newv">#10151E</span></div>
+        <div class="row"><span class="oldv">night-700 #141d2e</span><span class="arrow">→</span><span class="newv">#171D28</span></div>
+        <div class="row"><span class="oldv">#04070d（34 处）</span><span class="arrow">→</span><span class="newv">night</span></div>
+        <div class="row"><span class="oldv">#0A0E16（页脚）</span><span class="arrow">→</span><span class="newv">night</span></div>
+        <div class="row"><span class="oldv">emerald / amber / rose</span><span class="arrow">→</span><span class="newv">success / warning / danger</span></div>
+      </div>
+    </div>
+    <div class="note">三套数字：<span class="m">#04070d</span> 出现在 20 个文件；<span class="m">emerald</span> 22 处、<span class="m">amber</span> 6 处、<span class="m">rose</span> 2 处；<span class="m">shadow-glow</span> 32 处。3D 材质与图表里的 150+ hex 属于“渲染色板”，建议单独一轮，不与 CSS token 混改。</div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap">
+    <b>官网配色系统 v1</b> · 只读方案 · 所有色值可直接落地
+    <div style="margin-top:6px">配套文档：docs/color-system-spec.md · 上游方案：docs/ui-ux-upgrade-plan.md</div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var tpl = document.getElementById('mockTpl');
+    var oldMount = document.getElementById('oldMount');
+    var newMount = document.getElementById('newMount');
+    if (!tpl || !oldMount || !newMount) return;
+    oldMount.appendChild(tpl.content.cloneNode(true));
+    newMount.appendChild(tpl.content.cloneNode(true));
+  })();
+</script>
+</body>
+</html>

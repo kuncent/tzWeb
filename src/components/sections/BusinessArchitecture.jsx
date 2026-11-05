@@ -110,10 +110,10 @@ function LayerCard({ layer, i, hot, onHot }) {
 /* 右侧图例：把四层和本页接下来各节对上号，让这块读作「目录」而非孤图 */
 function StackLegend() {
   const rows = [
-    { n: 'L4', t: '交付与认证层', hint: '对应下面「交付与部署」', to: '/#delivery' },
+    { n: 'L4', t: '交付与认证层', hint: '对应解决方案页的交付路径', to: '/solutions' },
     { n: 'L3', t: '场景与对象层', hint: '对应下面「按场景 / 按学科 / 按对象」', scroll: 'scenes' },
-    { n: 'L2', t: '产品体系层', hint: '五大产品体系见首页产品矩阵', to: '/#matrix' },
-    { n: 'L1', t: '技术与算力底座', hint: '全栈自研细节见技术方向', to: '/technology' },
+    { n: 'L2', t: '产品体系层', hint: '五大产品体系见产品体系页', to: '/products' },
+    { n: 'L1', t: '技术与算力底座', hint: '全栈自研细节见产品体系', to: '/products' },
   ]
   return (
     <Reveal>

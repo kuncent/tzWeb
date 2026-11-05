@@ -118,7 +118,7 @@ export default function LabShowcase() {
             <span className="h-px w-8 bg-gradient-to-r from-brand/60 to-transparent" />
             <h3 className="text-[13.5px] font-semibold uppercase tracking-[0.16em] text-ink-700">部分标杆院校 · 建设方案与成果实景</h3>
           </div>
-          <Link to="/cases#labcases" className="group inline-flex items-center gap-1.5 self-start text-[13px] font-medium text-brand transition-colors hover:text-ink-900 sm:self-auto">
+          <Link to="/#contact" className="group inline-flex items-center gap-1.5 self-start text-[13px] font-medium text-brand transition-colors hover:text-ink-900 sm:self-auto">
             看完整案例集
             <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
           </Link>
@@ -161,7 +161,7 @@ export default function LabShowcase() {
               </AnimatePresence>
 
               {/* 压图渐变 + 内阴影，保证文字可读、照片更立体 */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#04070d]/88 via-[#04070d]/12 to-transparent" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#06080d]/88 via-[#06080d]/12 to-transparent" />
               <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_120px_rgba(4,7,13,0.55)]" />
 
               {/* 左上：自动播放状态徽标 */}
@@ -273,7 +273,7 @@ export default function LabShowcase() {
 
                   <div className="mt-auto pt-5">
                     <Link
-                      to="/cases#labcases"
+                      to="/#contact"
                       className="group inline-flex items-center gap-2 self-start rounded-full bg-ink-900 px-5 py-2.5 text-[13px] font-semibold text-white transition-all duration-300 hover:bg-brand"
                     >
                       获取「{cur.school}」完整方案
@@ -303,7 +303,7 @@ export default function LabShowcase() {
                 }`}
               >
                 <img src={c.imgs[0]} alt="" loading="lazy" decoding="async" className={`h-full w-full object-cover transition duration-500 ${on ? '' : 'grayscale-[0.4] group-hover:grayscale-0'}`} />
-                <span className="absolute inset-0 bg-gradient-to-t from-[#04070d]/85 to-transparent" />
+                <span className="absolute inset-0 bg-gradient-to-t from-[#06080d]/85 to-transparent" />
                 <span className="absolute left-1.5 top-1.5 font-mono text-[9.5px] tabular-nums tracking-wide text-white/60">{String(i + 1).padStart(2, '0')}</span>
                 <span className={`absolute inset-x-1.5 bottom-1.5 truncate text-left text-[11px] font-semibold ${on ? 'text-white' : 'text-white/80'}`}>{c.school}</span>
                 {on && <span className="absolute left-0 top-0 h-full w-[3px] bg-brand" />}

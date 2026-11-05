@@ -21,13 +21,12 @@ function buildIndex() {
   const out = []
   nav.forEach((n) => out.push({ label: n.label, kind: '页面', to: n.to }))
   anchorSections.forEach((s) => out.push({ label: s.label, kind: '首页板块', to: `/#${s.id}` }))
-  productMatrix.forEach((p) => out.push({ label: p.title, kind: '产品体系', to: '/#matrix', sub: p.tagline }))
-  solutionPlans.forEach((p) => out.push({ label: p.name, kind: '解决方案', to: '/solutions#plans', sub: p.tagline }))
-  disciplineGroups.forEach((g) => out.push({ label: g.name, kind: '学科', to: '/solutions#disciplines', sub: g.majors.join('、') }))
-  techDetail.forEach((t) => out.push({ label: t.name, kind: '技术底座', to: '/technology#bases', sub: t.thesis }))
+  productMatrix.forEach((p) => out.push({ label: p.title, kind: '产品体系', to: '/products', sub: p.tagline }))
+  solutionPlans.forEach((p) => out.push({ label: p.name, kind: '解决方案', to: `/solutions#plan-${p.id}`, sub: p.tagline }))
+  disciplineGroups.forEach((g) => out.push({ label: g.name, kind: '学科', to: '/solutions', sub: g.majors.join('、') }))
+  techDetail.forEach((t) => out.push({ label: t.name, kind: '技术底座', to: '/#architecture', sub: t.thesis }))
   const typeName = (id) => deviceTypes.find((t) => t.id === id)?.zh || '设备'
   devices.forEach((d) => out.push({ label: d.name, kind: '产品设备', to: `/devices#${d.type}`, sub: `${typeName(d.type)} · ${d.tag}` }))
-  out.push({ label: '交付路径', kind: '首页板块', to: '/#delivery' })
   out.push({ label: '联系我们 / 预约演示', kind: '页面', to: '/#contact' })
   return out
 }
@@ -108,7 +107,7 @@ export default function SiteSearch({ open, onClose }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[70] flex items-start justify-center bg-[#04070d]/70 px-4 pt-[14vh]"
+          className="fixed inset-0 z-[70] flex items-start justify-center bg-[#06080d]/70 px-4 pt-[14vh]"
           onClick={onClose}
           onKeyDown={onKey}
           role="dialog"

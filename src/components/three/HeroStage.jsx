@@ -9,8 +9,6 @@ import { useCanvasVisibility } from '../../hooks/useCanvasVisibility'
 import { Floor, FloorBrand, damp } from './hero/kit'
 import { buildClock, getDevice, markHeroReady, selectDevice, subDevice } from './hero/buildBus'
 import LabEnvironment from './hero/LabEnvironment'
-import EmbodiedRig from './hero/EmbodiedRig'
-import ChainRig from './hero/ChainRig'
 import NeuralRig from './hero/NeuralRig'
 
 /* ============================================================
@@ -49,9 +47,9 @@ import NeuralRig from './hero/NeuralRig'
 /* particles 这一档随 AI 屏的粒子云一起拆掉了：那 700~2000 个 additive 点在屏幕上
    是一团白噪（四种拓扑一个也读不出来），画质档再去为它分预算已经没有意义 */
 const TIERS = [
-  { dpr: 0.8, cap: 24, dof: false, smaa: false, bloom: 0.2, bloomRadius: 0.2, bloomLevels: 5, sparkles: false },
-  { dpr: 1.0, cap: 30, dof: false, smaa: true, bloom: 0.28, bloomRadius: 0.24, bloomLevels: 6, sparkles: false },
-  { dpr: 1.35, cap: 60, dof: true, smaa: true, bloom: 0.32, bloomRadius: 0.26, bloomLevels: 7, sparkles: false },
+  { dpr: 0.9, cap: 24, dof: false, smaa: false, bloom: 0.2, bloomRadius: 0.2, bloomLevels: 5, sparkles: false },
+  { dpr: 1.1, cap: 30, dof: false, smaa: true, bloom: 0.28, bloomRadius: 0.24, bloomLevels: 6, sparkles: false },
+  { dpr: 1.5, cap: 60, dof: true, smaa: true, bloom: 0.32, bloomRadius: 0.26, bloomLevels: 7, sparkles: false },
 ]
 /* cap 会被 FrameDriver 往下取整到 vsync 步数（step = floor(1000/cap/16.67)），
    所以 60Hz 屏上只有 20 / 30 / 60 三档可达：cap=24 与 cap=30 完全等价（都是 step 2）。
@@ -336,11 +334,11 @@ function CameraRig({ idx, cmd }) {
     let fovT = s.cam.fov || 42
 
     /* ―― 装配分镜：bt < BUILD_END 时相机走曲线轨道，不走业务机位 ―― */
-    const bt = buildClock.active && idx === 0 ? buildClock.t : Infinity
+    const bt = buildClock.active && heroScenes[idx]?.id === 'embodied' ? buildClock.t : Infinity
     const cine = bt < BUILD_END
     /* 聚焦态：只有具身屏的设备走特写机位（链屏的看板选中不动相机，
        见上面那段注释），装配分镜走完之后才接管机位 */
-    const dev = idx === 0 && !cine ? devRef.current : 'wide'
+    const dev = heroScenes[idx]?.id === 'embodied' && !cine ? devRef.current : 'wide'
     const focus = dev !== 'wide'
     /* 切换聚焦对象的那一瞬借一次推近脉冲：飞行落点有一口“呼吸”，
        纯阻尼到位读作“平移”，脉冲才读作“锁定” */
@@ -388,7 +386,7 @@ function CameraRig({ idx, cmd }) {
 
     /* ―― 运行态拖拽 orbit：绕 look 点球坐标偏转。三屏都开：
        “能 3D 变换视角”不是具身屏的特产，链与 AI 的房间同样可以绕着看 ―― */
-    orbitOn.current = idx === 0 ? buildClock.active && bt >= BUILD_END : true
+    orbitOn.current = heroScenes[idx]?.id === 'embodied' ? buildClock.active && bt >= BUILD_END : true
     const el = gl.domElement.parentElement || gl.domElement
     if (!drag.current && el.style.cursor !== (orbitOn.current ? 'grab' : '')) el.style.cursor = orbitOn.current ? 'grab' : ''
     yaw.current = damp(yaw.current, yawT.current, 5, dt)
@@ -455,7 +453,7 @@ function StageReady({ onPainted }) {
     上下文丢失不是 JS 异常 —— 走不到 StoryHero 的 StageGuard 错误边界，
     浏览器默认行为是把画布刷成全黑且不会自动恢复；而此刻那层 CSS 动底
     （Scrim）已在挂载 1.7s 后被卸载（见 StoryHero 的 scrimGone），于是用户
-    看到一片纯黑的 #04070d 且永远回不来 —— 这正是「首屏黑屏」的成因。
+    看到一片纯黑的 #06080d 且永远回不来 —— 这正是「首屏黑屏」的成因。
     preventDefault 是「请求浏览器重建上下文」的开关（不调它就不会触发 restored），
     丢失期间把 CSS 动底换回来盖住黑屏（onLost），重建成功后主动推一帧重绘（onRestored，
     帧循环是 demand，不 invalidate 就停在那儿不画）。 */
@@ -502,36 +500,31 @@ function Scene({ idx, cmd, tier }) {
   const q = TIERS[tier]
   return (
     <>
-      <color attach="background" args={['#04070d']} />
+      <color attach="background" args={['#080d16']} />
       {/* fog 近界从 9 收到 8：实验室那一层比主体远 3~6 米，让它真退到后面去。
           上一版三屏都“平”：主体与环境一样清楚，没有空气，也就没有纵深 */}
-      <fog attach="fog" args={['#04070d', 8, 21]} />
+      <fog attach="fog" args={['#080d16', 8, 21]} />
 
       {/* 环境光与天光各降一档、主光升一档：质感是对比度，不是亮度。
-          上一版 ambient 0.34 + hemi 0.42 把暗部抬到一个中等值，
-          再叠上 bloom 就是“整幅蒙了一层雾”，金属与白壳都读不出面 */}
-      <ambientLight intensity={0.22} color="#a8c4e6" />
-      <hemisphereLight intensity={0.28} color="#4a6480" groundColor="#03050a" />
-      <directionalLight position={[3.5, 6, 4]} intensity={1.65} color="#eaf2ff" />
-      <directionalLight position={[-4.5, 2.6, -2]} intensity={0.42} color="#5FA8FF" />
+          这一轮整体再抬一档（用户要「明亮但不刺眼」）：ambient 0.22→0.30、
+          hemi 0.28→0.36、主光 1.65→1.85、补光 0.42→0.52 —— 抬的是中间调，
+          暗部仍压在 0.3 以下，金属与白壳的面不会被糊平 */}
+      <ambientLight intensity={0.3} color="#a8c4e6" />
+      <hemisphereLight intensity={0.36} color="#4a6480" groundColor="#03050a" />
+      <directionalLight position={[3.5, 6, 4]} intensity={1.85} color="#eaf2ff" />
+      <directionalLight position={[-4.5, 2.6, -2]} intensity={0.52} color="#5FA8FF" />
       <KeyLight accent={accent} />
 
       {(AB ? AB.floor : true) && (
         <>
           <Floor accent={accent} />
-          <FloorBrand variant={['embodied', 'chain', 'ai'][idx]} />
+          <FloorBrand variant={heroScenes[idx].id} />
         </>
       )}
-      {(AB ? AB.lab : true) && <LabEnvironment variant={['embodied', 'chain', 'ai'][idx]} lite={tier === 0} />}
+      {(AB ? AB.lab : true) && <LabEnvironment variant={heroScenes[idx].id} lite={tier === 0} />}
 
-      {showRig('embodied') && (
-        <EmbodiedRig mounted active={idx === 0} cmd={idx === 0 ? cmd : { id: '', n: cmd.n }} accent={heroScenes[0].accent} sparkles={q.sparkles} />
-      )}
-      {showRig('chain') && (
-        <ChainRig active={idx === 1} cmd={idx === 1 ? cmd : { id: '', n: cmd.n }} accent={heroScenes[1].accent} hi={tier >= 1} sparkles={q.sparkles} />
-      )}
       {showRig('neural') && (
-        <NeuralRig active={idx === 2} cmd={idx === 2 ? cmd : { id: '', n: cmd.n }} accent={heroScenes[2].accent} />
+        <NeuralRig active cmd={cmd} accent={heroScenes[idx].accent} />
       )}
 
       {/* 环境贴图：机械臂与人形的白壳/金属靠它，没这张图 PBR 就是死灰 */}
@@ -591,7 +584,7 @@ export default function HeroStage({ idx, cmd, onContextLost, onContextRestored, 
       if (lock.current > 1) return
       const budget = budgetOf(TIERS[Math.max(0, tier - 1)]?.cap ?? 60)
       bad.current = ms > budget ? bad.current + 1 : 0
-      const cine = idx === 0 && buildClock.t < BUILD_END && performance.now() - bootAt.current < 15000
+      const cine = heroScenes[idx]?.id === 'embodied' && buildClock.t < BUILD_END && performance.now() - bootAt.current < 15000
       if (bad.current >= (cine ? 4 : 2)) {
         bad.current = 0
         lock.current += 1
@@ -615,7 +608,7 @@ export default function HeroStage({ idx, cmd, onContextLost, onContextRestored, 
       frameloop={visible ? 'demand' : 'never'}
       dpr={Q_DPR && Q_DPR > 0 ? Q_DPR : TIERS[tier].dpr}
       camera={{ position: heroScenes[0].cam.pos, fov: heroScenes[0].cam.fov || 40 }}
-      gl={{ antialias: false, powerPreference: 'high-performance', toneMappingExposure: 1.02 }}
+      gl={{ antialias: false, powerPreference: 'high-performance', toneMappingExposure: 1.12 }}
       /* 点空白（射线没打中任何拾取靶）= 解锁回全景：聚焦态需要一个不藏菜单的退出口。
          R3F 自带 delta 门控，拖拽 orbit 不会误触发；非具身屏本来就在 wide。
          但这里得自己再挡一道：链屏那六块牌是 DOM（drei <Html>），R3F 的射线打不到 DOM，

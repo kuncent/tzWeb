@@ -104,43 +104,43 @@ function Expanded({ s, group, roomy }) {
     >
       <div className={`flex flex-col border-t border-white/[0.06] pb-3.5 pt-2.5 pl-[34px] ${roomy ? 'min-h-0 grow' : ''}`}>
         <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-          <span className="font-mono text-[11px] tracking-[0.14em] text-brand-300">{s.code}</span>
-          {s.tag && <span className="text-[12.5px] text-ink-400">‹ {s.tag} ›</span>}
+          <span className="font-mono text-caption tracking-[0.14em] text-brand-300">{s.code}</span>
+          {s.tag && <span className="text-ui-sm text-ink-400">‹ {s.tag} ›</span>}
           <span className="ml-auto flex items-center gap-2">
-            {s.hours && <span className="font-mono text-[11.5px] tabular-nums text-brand-200">{s.hours} 学时</span>}
-            <span className="font-mono text-[11.5px] tabular-nums text-ink-400">{s.projectCount} 条实验</span>
+            {s.hours && <span className="font-mono text-caption tabular-nums text-brand-200">{s.hours} 学时</span>}
+            <span className="font-mono text-caption tabular-nums text-ink-400">{s.projectCount} 条实验</span>
           </span>
         </div>
-        <p className="mt-1.5 text-[13px] leading-[1.7] text-ink-400">{s.intro}</p>
+        <p className="mt-1.5 text-ui-sm leading-[1.7] text-ink-400">{s.intro}</p>
 
         <div className={`mt-2.5 grid gap-4 md:grid-cols-2 ${roomy ? 'min-h-0 grow' : ''}`}>
           <div className="min-w-0 space-y-2.5">
             <div>
-              <p className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-400">
+              <p className="flex items-center gap-1.5 text-ui-sm font-semibold uppercase tracking-[0.16em] text-brand-400">
                 <GraduationCap className="h-3 w-3" /> 适用专业
                 {s.majorTotal > s.majors.length && <span className="font-mono tracking-normal text-ink-500">共 {s.majorTotal} 个</span>}
               </p>
               <ul className="mt-1.5 flex flex-wrap gap-1">
                 {s.majors.map((m) => (
-                  <li key={m} className="rounded-md border border-white/[0.08] bg-white/[0.035] px-1.5 py-0.5 text-[12.5px] text-white/70">
+                  <li key={m} className="rounded-md border border-white/[0.08] bg-white/[0.035] px-1.5 py-0.5 text-ui-sm text-white/70">
                     {m}
                   </li>
                 ))}
                 {s.majorTotal > s.majors.length && (
-                  <li className="rounded-md border border-dashed border-white/[0.12] px-1.5 py-0.5 text-[12.5px] text-ink-400">
+                  <li className="rounded-md border border-dashed border-white/[0.12] px-1.5 py-0.5 text-ui-sm text-ink-400">
                     +{s.majorTotal - s.majors.length}
                   </li>
                 )}
               </ul>
             </div>
             <div>
-              <p className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-400">
+              <p className="flex items-center gap-1.5 text-ui-sm font-semibold uppercase tracking-[0.16em] text-brand-400">
                 <BookOpenCheck className="h-3 w-3" /> 适用课程
                 {s.courseTotal > s.courses.length && <span className="font-mono tracking-normal text-ink-500">共 {s.courseTotal} 门</span>}
               </p>
               <ul className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1">
                 {s.courses.map((c) => (
-                  <li key={c} className="flex items-start gap-1 text-[12.5px] leading-snug text-white/70">
+                  <li key={c} className="flex items-start gap-1 text-ui-sm leading-snug text-white/70">
                     <span className="mt-[6px] h-[3px] w-[3px] shrink-0 rounded-full bg-brand/60" />
                     {c}
                   </li>
@@ -150,18 +150,18 @@ function Expanded({ s, group, roomy }) {
           </div>
 
           <div className="flex min-w-0 flex-col">
-            <p className="shrink-0 text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-400">
+            <p className="shrink-0 text-ui-sm font-semibold uppercase tracking-[0.16em] text-brand-400">
               实验项目大纲 <span className="font-mono tracking-normal text-ink-500">· 平台原文</span>
             </p>
             {s.chapters.length ? (
               <div className={`mt-1.5 space-y-2 overflow-y-auto pr-1 ${roomy ? 'min-h-0 max-h-[420px] grow' : 'max-h-[152px] shrink-0'}`} data-lenis-prevent>
                 {s.chapters.map((ch) => (
                   <div key={ch.t}>
-                    <p className="text-[12.5px] font-semibold text-white/85">{ch.t}</p>
+                    <p className="text-ui-sm font-semibold text-white/85">{ch.t}</p>
                     <ul className="mt-0.5 flex flex-wrap gap-x-2.5 gap-y-0.5">
                       {ch.items.map((it, k) => (
-                        <li key={it} className="flex items-baseline gap-1 text-[12.5px] text-ink-400">
-                          <span className="font-mono text-[11px] text-ink-500">{pad(k)}</span>
+                        <li key={it} className="flex items-baseline gap-1 text-ui-sm text-ink-400">
+                          <span className="font-mono text-caption text-ink-500">{pad(k)}</span>
                           {it}
                         </li>
                       ))}
@@ -170,11 +170,11 @@ function Expanded({ s, group, roomy }) {
                 ))}
               </div>
             ) : (
-              <p className="mt-1.5 text-[12.5px] text-ink-500">该平台未在此系统下标注实验项目清单，只保留了分类与适用课程口径。</p>
+              <p className="mt-1.5 text-ui-sm text-ink-500">该平台未在此系统下标注实验项目清单，只保留了分类与适用课程口径。</p>
             )}
           </div>
         </div>
-        <p className="mt-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-500">{group.l1} · 平台一级分类原文</p>
+        <p className="mt-2.5 font-mono text-caption uppercase tracking-[0.14em] text-ink-500">{group.l1} · 平台一级分类原文</p>
       </div>
     </motion.div>
   )
@@ -200,9 +200,9 @@ function Row({ s, g, open, onPick, roomy }) {
         >
           <Icon className="h-[17px] w-[17px]" strokeWidth={1.6} />
         </span>
-        <span className={`min-w-0 flex-1 truncate text-[13.5px] ${open ? 'text-white' : 'text-white/80'}`}>{s.name}</span>
-        <span className="hidden shrink-0 truncate text-[12.5px] text-ink-500 sm:block sm:w-[86px]">{s.tag}</span>
-        <span className={`w-[34px] shrink-0 text-right font-mono text-[12px] tabular-nums ${open ? 'text-brand-200' : 'text-ink-400'}`}>
+        <span className={`min-w-0 flex-1 truncate text-ui ${open ? 'text-white' : 'text-white/80'}`}>{s.name}</span>
+        <span className="hidden shrink-0 truncate text-ui-sm text-ink-500 sm:block sm:w-[86px]">{s.tag}</span>
+        <span className={`w-[34px] shrink-0 text-right font-mono text-ui-sm tabular-nums ${open ? 'text-brand-200' : 'text-ink-400'}`}>
           {s.projectCount || '—'}
         </span>
         <ChevronRight
@@ -246,17 +246,17 @@ export default function SystemsScreen({ p, i, withIndex }) {
               <Icon className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-[12.5px] font-semibold uppercase tracking-[0.22em] text-brand-400">{p.en}</p>
+              <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{p.en}</p>
               {withIndex && (
-                <p className="text-[12.5px] tabular-nums text-ink-400">
+                <p className="text-ui-sm tabular-nums text-ink-400">
                   {pad(i)} / {pad(LAST)}
                 </p>
               )}
             </div>
           </div>
           <h3 className="mt-3 text-[23px] font-bold tracking-tight text-white md:text-[28px] xl:text-[34px]">{p.title}</h3>
-          <p className="mt-1.5 text-[14px] font-medium text-brand-300 xl:text-[15px]">{p.tagline}</p>
-          <p className="mt-1.5 max-w-3xl text-[13px] leading-[1.75] text-ink-400">{p.desc}</p>
+          <p className="mt-1.5 text-ui font-medium text-brand-300 xl:text-ui-lg">{p.tagline}</p>
+          <p className="mt-1.5 max-w-3xl text-ui-sm leading-[1.75] text-ink-400">{p.desc}</p>
         </div>
 
         {/* 导轨 + 清单
@@ -288,11 +288,11 @@ export default function SystemsScreen({ p, i, withIndex }) {
                     }`}
                   />
                   <span className="ml-5 min-w-0 flex-1 lg:ml-6">
-                    <span className={`block truncate text-[13.5px] font-medium ${on ? 'text-white' : 'text-white/70'}`}>{g.name}</span>
+                    <span className={`block truncate text-ui font-medium ${on ? 'text-white' : 'text-white/70'}`}>{g.name}</span>
                     {/* 说明只在选中那一条露出：五条都写两行，导轨就把清单挤没了 */}
-                    {on && <span className="mt-0.5 hidden text-[12.5px] leading-snug text-ink-500 lg:block">{g.note}</span>}
+                    {on && <span className="mt-0.5 hidden text-ui-sm leading-snug text-ink-500 lg:block">{g.note}</span>}
                   </span>
-                  <span className={`shrink-0 font-mono text-[11.5px] tabular-nums ${on ? 'text-brand-200' : 'text-ink-500'}`}>
+                  <span className={`shrink-0 font-mono text-caption tabular-nums ${on ? 'text-brand-200' : 'text-ink-500'}`}>
                     {g.systems.length}
                   </span>
                 </button>
@@ -306,18 +306,18 @@ export default function SystemsScreen({ p, i, withIndex }) {
                 allOn ? 'border-brand/40 bg-brand/[0.12] text-white' : 'border-dashed border-white/[0.1] text-ink-400 hover:border-white/25 hover:text-white/75'
               }`}
             >
-              <span className="min-w-0 flex-1 whitespace-nowrap text-[13px]">全部系统</span>
-              <span className="shrink-0 font-mono text-[11.5px] tabular-nums">{pack.total}</span>
+              <span className="min-w-0 flex-1 whitespace-nowrap text-ui-sm">全部系统</span>
+              <span className="shrink-0 font-mono text-caption tabular-nums">{pack.total}</span>
             </button>
           </div>
 
           {/* 右：系统清单 */}
           <div className="flex min-h-0 min-w-0 flex-col">
             <div className="flex items-center justify-between border-b border-white/[0.07] pb-1.5">
-              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-500">
+              <span className="font-mono text-caption uppercase tracking-[0.16em] text-ink-500">
                 {allOn ? `全部体系 · ${pack.total} 套` : `${group.name} · ${group.systems.length} 套`}
               </span>
-              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-500">实验条数</span>
+              <span className="font-mono text-caption uppercase tracking-[0.16em] text-ink-500">实验条数</span>
             </div>
             <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto pt-1.5" data-lenis-prevent>
               {rows.map((s) => (
@@ -336,8 +336,8 @@ export default function SystemsScreen({ p, i, withIndex }) {
             ['覆盖专业', `${pack.majorTotal} 个`],
           ].map(([k, v]) => (
             <div key={k} className="min-w-[104px] flex-1 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-1.5 lg:flex-none">
-              <p className="text-[12.5px] text-ink-400">{k}</p>
-              <p className="mt-0.5 text-[17px] font-bold tabular-nums tracking-tight text-white">{v}</p>
+              <p className="text-ui-sm text-ink-400">{k}</p>
+              <p className="mt-0.5 text-title font-bold tabular-nums tracking-tight text-white">{v}</p>
             </div>
           ))}
           <a
@@ -346,7 +346,7 @@ export default function SystemsScreen({ p, i, withIndex }) {
               e.preventDefault()
               requestProductContact({ name: p.title, intent: p.intent, source: `systems-${p.id}`, cta: '咨询产品体系' })
             }}
-            className="group inline-flex items-center gap-2 self-center rounded-xl border border-brand/40 bg-brand/10 px-4 py-2.5 text-[13.5px] font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
+            className="group inline-flex items-center gap-2 self-center rounded-xl border border-brand/40 bg-brand/10 px-4 py-2.5 text-ui font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
           >
             咨询该产品体系
             <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

@@ -191,7 +191,7 @@ export default function LabCases() {
                         />
                       </AnimatePresence>
                       {/* 底部渐变，保证压图文字可读 */}
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#04070d] via-[#04070d]/25 to-transparent" />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#06080d] via-[#06080d]/25 to-transparent" />
                       {/* 左上角类型标签 */}
                       <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-2.5 py-1 text-[10.5px] font-medium tracking-wide text-white/80 backdrop-blur-sm">
                         <span className="h-1.5 w-1.5 rounded-full bg-brand motion-safe:animate-pulse" />建成效果图 · EFFECT PHOTO

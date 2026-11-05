@@ -87,12 +87,14 @@ function buildOption(reduced) {
       silent: true,
       label: { show: false },
       itemStyle: {
-        areaColor: '#0e1a2e',
+        /* 陆地填充半透明：面板降低不透明度后，地图本身也要跟着「透」，
+           否则这层不透明色块仍会把身后的 3D 舞台挡成一整块深色 */
+        areaColor: 'rgba(14,26,46,0.55)',
         borderColor: 'rgba(125,169,255,0.22)',
         borderWidth: 1,
-        shadowColor: 'rgba(0,0,0,0.45)',
-        shadowBlur: 18,
-        shadowOffsetY: 10,
+        shadowColor: 'rgba(0,0,0,0.35)',
+        shadowBlur: 14,
+        shadowOffsetY: 8,
       },
       emphasis: { disabled: true },
       select: { disabled: true },

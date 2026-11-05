@@ -215,7 +215,7 @@ function Methodology() {
       </div>
       <p className="mt-4 text-[12px] text-white/40">
         以上口径均可在演示现场复现；需完整取数与统计口径，可
-        <Link to="/technology" className="mx-1 text-brand-300 underline decoration-brand/40 underline-offset-2 hover:text-brand-200">在技术页</Link>
+        <Link to="/products" className="mx-1 text-brand-300 underline decoration-brand/40 underline-offset-2 hover:text-brand-200">在产品体系页</Link>
         或联系我们时索取。
       </p>
     </Reveal>

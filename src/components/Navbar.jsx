@@ -34,16 +34,16 @@ const FLYOUTS = {
     items: solutionPlans.map((p) => ({ label: p.short, icon: p.icon, to: `/solutions#plan-${p.id}`, desc: p.tagline })),
   },
   '/products': {
-    head: '五大产品体系',
+    head: '六大产品体系',
     en: 'PRODUCT MATRIX',
-    all: { label: '进入产品矩阵', desc: '按实验室类型浏览五套产品体系', to: '/products' },
+    all: { label: '进入产品矩阵', desc: '按实验室类型浏览六套产品体系', to: '/products' },
     items: productMatrix.map((p, i) => ({ label: p.title, icon: p.icon, index: i, desc: p.tagline })),
   },
-  /* 产品设备：把设备页页内的子导航（智能装备 + 7 类设备）提取到顶栏悬停下拉。
+  /* 教学设备：把设备页页内的子导航（智能装备 + 7 类设备）提取到顶栏悬停下拉。
      每项走锁点 /devices#<id>（与解决方案同一套：App 的 ScrollToTop 会 scrollToId 滚过去）。 */
   '/devices': {
-    head: '产品设备分类',
-    en: 'PRODUCT HARDWARE',
+    head: '教学设备分类',
+    en: 'TEACHING EQUIPMENT',
     all: { label: '浏览全部设备', desc: '按设备类型查看可交付教学装备与参数', to: '/devices' },
     items: [
       { label: '智能装备', icon: Sparkles, to: '/devices#smart', desc: '具身机器人六类成套实机' },

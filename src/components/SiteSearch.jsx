@@ -25,7 +25,7 @@ function buildIndex() {
   disciplineGroups.forEach((g) => out.push({ label: g.name, kind: '学科', to: '/solutions', sub: g.majors.join('、') }))
   techDetail.forEach((t) => out.push({ label: t.name, kind: '技术底座', to: '/products', sub: t.thesis }))
   const typeName = (id) => deviceTypes.find((t) => t.id === id)?.zh || '设备'
-  devices.forEach((d) => out.push({ label: d.name, kind: '产品设备', to: `/devices#${d.type}`, sub: `${typeName(d.type)} · ${d.tag}` }))
+  devices.forEach((d) => out.push({ label: d.name, kind: '教学设备', to: `/devices#${d.type}`, sub: `${typeName(d.type)} · ${d.tag}` }))
   out.push({ label: '联系我们 / 预约演示', kind: '页面', to: '/about#contact' })
   return out
 }

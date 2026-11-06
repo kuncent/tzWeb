@@ -5,7 +5,7 @@
  * 导航 / 页脚 / 表单 / 搜索 / 预填都从这里引用，不再手写中文名。
  * 改名字时只改这一处，避免再出现「四套命名」并存的漂移。
  *
- * 顺序即展示顺序：5 大方案与 5 大产品体系一一对应当前在跑的交付。
+ * 顺序即展示顺序：5 大方案与 6 大产品体系一一对应当前在跑的交付。
  * ============================================================ */
 
 /* ---------------- 5 大解决方案（学科方案）---------------- */
@@ -22,13 +22,14 @@ export const SOLUTION_NAMES = Object.fromEntries(SOLUTIONS.map((s) => [s.id, s.n
 /* 方案全称（页脚/搜索里需要完整指代时用） */
 export const solutionFullName = (id) => `${SOLUTION_NAMES[id]}实验教学方案`
 
-/* ---------------- 5 大产品体系 ---------------- */
+/* ---------------- 6 大产品体系 ---------------- */
 export const PRODUCTS = [
   { id: 'embodied', name: '具身智能 · 机器人实验室', short: '具身智能' },
   { id: 'blockchain', name: '区块链 · 可信账本与量化实训', short: '区块链' },
   { id: 'class', name: 'AI 多智能体课堂', short: 'AI 多智能体课堂' },
   { id: 'digital-finance', name: '数字金融 · 虚拟仿真实训体系', short: '数字金融' },
   { id: 'digital-economy', name: '数字经济 · 大数据与 AI 实训体系', short: '数字经济' },
+  { id: 'smart-products', name: '智能产品 ·软硬件结合', short: '智能产品' },
 ]
 
 export const PRODUCT_NAMES = Object.fromEntries(PRODUCTS.map((p) => [p.id, p.name]))

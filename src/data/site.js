@@ -39,7 +39,7 @@ export const nav = [
   { label: '首页', to: '/' },
   { label: '解决方案', to: '/solutions' },
   { label: '产品体系', to: '/products' },
-  { label: '产品设备', to: '/devices' },
+  { label: '教学设备', to: '/devices' },
   { label: '高校案例', to: '/cases' },
   { label: '校企合作', to: '/partnership' },
   { label: '关于我们', to: '/about' },
@@ -50,7 +50,7 @@ export const navCta = { label: '预约演示', to: '/about#contact' }
 export const advisorKicker = '构建下一代人才培养基础设施'
 export const advisorTitle = ['用科技重塑教育', '让培养的人才', '站在时代前沿']
 export const advisorDesc =
-  '我们为高校提供具身智能、区块链、AI 多智能体课堂、数字金融与数字经济五大产品体系，以及数字经济、金融科技、应用统计、商务数据分析、工商科一体化五套实验教学方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
+  '我们为高校提供具身智能、区块链、AI 多智能体课堂、数字金融、数字经济与智能产品六大产品体系，以及数字经济、金融科技、应用统计、商务数据分析、工商科一体化五套实验教学方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
 export const advisorCtas = [
   { label: '免费开通试用', primary: true },
   { label: '方案咨询', primary: false },
@@ -86,7 +86,7 @@ export const problems = [
   { icon: Briefcase, title: '学生毕业难以就业', desc: '三年所学拿不出一份可展示的工程简历：只有课程作业，没有可交付的项目与成果背书，面试时说不清“我能干什么”，毕业求职处处被动。' },
 ]
 
-/* ---------------- 产品矩阵（5 大产品体系 · 整屏轮播） ----------------
+/* ---------------- 产品矩阵（6 大产品体系 · 整屏轮播） ----------------
    学情分析不再单列为一个产品体系：它还没有自己的交付屏，摆在矩阵里就是一屏空白；
    能力本身仍在「核心功能」区（features 里的 analytics 条目）里讲。
    04 / 05 两条是从旧平台（平台自己的名字：智云经济金融虚拟仿真平台）迁过来的：
@@ -94,8 +94,8 @@ export const problems = [
    不是我们自己归纳的——旧平台自己给 44 个系统标了一二级分类，这里只是把它的分类摆进矩阵。 */
 export const matrixHead = {
   en: 'PRODUCT MATRIX',
-  zh: '5 大产品体系',
-  desc: '从一个机器人实验室、一堂 AI 多智能体课，到一整套金融与数字经济的实训系统 —— 五个可单独使用、也可整体交付的产品体系。',
+  zh: '6 大产品体系',
+  desc: '从一个机器人实验室、一堂 AI 多智能体课，到一整套金融与数字经济的实训系统 —— 六个可单独使用、也可整体交付的产品体系。',
 }
 export const productMatrix = [
   {
@@ -162,6 +162,46 @@ export const productMatrix = [
     intent: PRODUCT_NAMES['digital-economy'],
     rich: 'systems',
     systems: 'economy',
+  },
+  {
+    id: 'smart-products',
+    en: 'INTELLIGENT PRODUCTS',
+    icon: Cpu,
+    title: PRODUCT_NAMES['smart-products'],
+    tagline: 'AI + 机器人 + 数字人，把前沿产业技术压缩成可直接开课的教学装备',
+    desc: '软硬件结合的教学装备系列：从 AI 智能投顾机器人、综合实验终端、智能陪练智能体到视觉分拣实训设备，四套装备覆盖感知—决策—执行全链路，将大语言模型、多模态传感器、协作机械臂与数字人等前沿技术带入课堂，培养复合型数字化人才。',
+    bullets: ['AI 智能投顾机器人', '综合实验终端（人手一套）', '智能陪练智能体（AI Agent）', '视觉分拣与协作机械臂'],
+    stats: [{ k: '教学装备', v: '4 套' }, { k: '覆盖专业', v: '10+' }],
+    intent: PRODUCT_NAMES['smart-products'],
+    rich: 'smart',
+  },
+]
+
+/* 智能产品体系（软硬件结合 · 数字经济与人工智能应用实验系列） */
+export const smartProducts = [
+  {
+    name: 'AI智能投顾机器人',
+    img: '/images/smart-products/ai-advisor-robot.png',
+    desc: '集AI、大数据与金融工程技术于一体，模拟用户画像、组合配置、收益模拟到智能调仓的完整财富管理流程。',
+    majors: '经济学、金融学专业教学、投资模拟实践',
+  },
+  {
+    name: '数字经济与人工智能应用综合实验终端',
+    img: '/images/smart-products/comprehensive-terminal.png',
+    desc: '在智慧硬件设备、AI视觉识别、物品分拣与智能码垛等实训内容基础上，以实验箱为载体建设轻量化实验室，规避高成本、难批量配备的痛点，支持人手一套或分组教学，形成从“看得见”到“动得了、想得通”的进阶实训链条。',
+    majors: '经济学、金融学、金融科技、数字经济、投资学、经济与管理、大数据管理与应用、工商管理、电子商务、管理信息系统等经济、金融、管理大类相关专业',
+  },
+  {
+    name: 'AI智能陪练智能体',
+    img: '/images/smart-products/training-agent.png',
+    desc: '系统创新性地融合语音合成与识别、大语言模型、智能体（AI Agent）、数字人及数据分析等前沿AI技术，为销售、客服、接待、导览等一线服务岗位，构建高度仿真、可量化评估的沉浸式训练环境。',
+    majors: '金融学、经济与金融、数字经济、投资学、工商管理、电子商务',
+  },
+  {
+    name: '智能视觉分拣教学实训设备',
+    img: '/images/smart-products/vision-sorting.png',
+    desc: '设备立足具身智能“感知—决策—执行”核心闭环，集成协作机械臂、灵巧手/夹爪、主动跟踪视觉系统、语音交互单元与多模态传感器模组，以智能视觉分拣、物体识别分类与整理为核心实训场景，将人工智能、机器人控制等前沿技术带入课堂，培养复合型数字化人才。',
+    majors: '经济学、金融学、金融科技、数字经济、投资学、经济与管理、大数据管理与应用、工商管理、电子商务、管理信息系统等经济、金融、管理大类相关专业',
   },
 ]
 
@@ -468,7 +508,7 @@ export const resources = [
 
 /* ---------------- 联系我们 ---------------- */
 export const contactHead = { en: 'CONTACT', zh: '联系我们', desc: '留下您的联系方式，我们的方案专家与教育顾问将在 1 个工作日内与您联系。' }
-/* 意向方向统一走词表：前 5 项 = 产品体系全名，后 3 项 = 合作方向 */
+/* 意向方向统一走词表：前 6 项 = 产品体系全名，后 3 项 = 合作方向 */
 export { CONTACT_INTENTS as contactProducts } from './vocabulary'
 export const contact = {
   phone: '400-000-0000',
@@ -478,7 +518,7 @@ export const contact = {
 export const offices = ['深圳总部', '北京', '重庆', '郑州', '西安', '长沙']
 
 /* ---------------- 页脚 ----------------
-   产品与方案两列都从词表生成：产品 = 5 大产品体系，方案 = 5 套学科方案，
+   产品与方案两列都从词表生成：产品 = 6 大产品体系，方案 = 5 套学科方案，
    链接落到各自的真实锚点，不再挂旧场景名与死链。 */
 export const footerNav = [
   {

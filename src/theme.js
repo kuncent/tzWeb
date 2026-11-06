@@ -19,7 +19,7 @@ export const THEME = {
 
 /* 五块 3D 展板的通道色：冰蓝主导，青蓝次之，accent 蓝作辅助；
    明度/冷暖只在这一族里拉，不引入杂色 */
-export const PANEL_HUES = [THEME.ice, THEME.cyan, THEME.sky, THEME.primary, '#5c7cff']
+export const PANEL_HUES = [THEME.ice, THEME.cyan, THEME.sky, THEME.primary, '#5c7cff', '#3dddc4']
 
-/* 首屏五大产品入口色块：与展板同源，冰蓝/青在前，蓝作辅助 */
-export const PRODUCT_HUES = [THEME.ice, THEME.cyan, THEME.sky, '#9cc0ff', THEME.primary]
+/* 首屏六大产品入口色块：与展板同源，冰蓝/青在前，蓝作辅助 */
+export const PRODUCT_HUES = [THEME.ice, THEME.cyan, THEME.sky, '#9cc0ff', THEME.primary, '#1de8b7']

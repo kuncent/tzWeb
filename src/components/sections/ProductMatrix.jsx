@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'motion/react'
 import { ArrowUpRight, ChevronDown } from 'lucide-react'
-import { matrixHead, productMatrix, embodiedProducts, labModules } from '../../data/site'
+import { matrixHead, productMatrix, embodiedProducts, labModules, smartProducts } from '../../data/site'
 import { requestProductContact } from '../../lib/aiEngine'
 import { useContent, useContentData } from '../../lib/contentStore'
 import ChainScreen from './ChainScreen'
@@ -30,6 +30,7 @@ function RichScreen({ rich, p, i, withIndex }) {
   if (rich === 'chain') return <ChainScreen p={p} i={i} withIndex={withIndex} />
   if (rich === 'class') return <ClassroomScreen p={p} i={i} withIndex={withIndex} />
   if (rich === 'systems') return <SystemsScreen p={p} i={i} withIndex={withIndex} />
+  if (rich === 'smart') return <SmartScreen p={p} i={i} withIndex={withIndex} />
   return <EmbodiedScreen p={p} i={i} withIndex={withIndex} />
 }
 
@@ -87,6 +88,74 @@ function MatrixScreen({ p, i, withIndex }) {
           >
             咨询该产品体系
             <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* 智能产品体系：4 张产品卡带配图 + 简介 + 适用专业，悬浮扩展 */
+function SmartScreen({ p, i, withIndex }) {
+  const Icon = p.icon
+  const [hov, setHov] = useState(null)
+  return (
+    <div className="relative flex h-full flex-col">
+      <span className="pointer-events-none absolute -top-4 right-0 select-none text-[110px] font-bold leading-none text-white/[0.045] xl:text-[150px]">
+        {pad(i)}
+      </span>
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        {/* 标题区 */}
+        <div className="shrink-0">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-accent text-white shadow-glow">
+              <Icon className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-accent-sky">{p.en}</p>
+              {withIndex && (
+                <p className="text-ui-sm tabular-nums text-ink-400">{pad(i)} / {pad(LAST)}</p>
+              )}
+            </div>
+          </div>
+          <h3 className="mt-3 text-[22px] font-bold tracking-tight text-white md:text-[28px] xl:text-[32px]">{p.title}</h3>
+          <p className="mt-1.5 text-ui-sm font-medium text-accent-ice">{p.tagline}</p>
+        </div>
+
+        {/* 4 张产品卡片：flex + hover 扩展 */}
+        <div className="mt-4 flex min-h-0 flex-1 gap-2.5">
+          {smartProducts.map((sp, k) => {
+            const active = hov === k
+            const shrunk = hov !== null && !active
+            return (
+              <div
+                key={sp.name}
+                className="flex flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] transition-all duration-300 ease-out"
+                style={{ flex: active ? 2.4 : shrunk ? 0.7 : 1 }}
+                onMouseEnter={() => setHov(k)}
+                onMouseLeave={() => setHov(null)}
+              >
+                <div className="relative min-h-0 flex-1 overflow-hidden">
+                  <img src={sp.img} alt={sp.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                </div>
+                <div className="shrink-0 p-3">
+                  <h4 className="text-[13px] font-semibold leading-tight text-white">{sp.name}</h4>
+                  {active && <p className="mt-1 line-clamp-2 text-[11.5px] leading-[1.5] text-ink-400">{sp.desc}</p>}
+                  <p className={`mt-1.5 text-[10.5px] leading-snug text-accent-ice/80 ${active ? '' : 'truncate'}`}>适用：{sp.majors}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* CTA */}
+        <div className="mt-3 flex shrink-0 items-center gap-3">
+          <a
+            href="#contact"
+            onClick={(e) => { e.preventDefault(); requestProductContact(p.intent) }}
+            className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-ui-sm font-medium text-white shadow-glow transition hover:brightness-110"
+          >
+            咨询智能产品 <ArrowUpRight className="h-3.5 w-3.5" />
           </a>
         </div>
       </div>

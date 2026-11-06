@@ -89,7 +89,7 @@ function SiteShell() {
               <Route path="/technology" element={<Navigate to="/products" replace />} />
               <Route path="/products" element={<Products />} />
               <Route path="/devices" element={<Devices />} />
-              {/* 智能产品页已合并进产品设备页（内嵌具身机器人 3D 实机屏）：
+              {/* 智能产品页已合并进教学设备页（内嵌具身机器人 3D 实机屏）：
                   旧 /smart-products 深链重定向到 /devices，不断链 */}
               <Route path="/smart-products" element={<Navigate to="/devices" replace />} />
               <Route path="/cases" element={<Cases />} />

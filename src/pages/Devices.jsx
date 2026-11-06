@@ -10,7 +10,7 @@ import ProductViewer from '../components/three/ProductViewer'
 import CircularCarousel from '../components/reactbits/CircularCarousel'
 
 /* ============================================================
- * 产品设备页
+ * 教学设备页
  * ------------------------------------------------------------
  * 复用内页同一套骨架（暗底 PageHero → 吸顶 InnerNav → 若干 PageSection
  * → 暗色收口 CTA），保证从首页点进来「不掉进另一个网站」。
@@ -19,7 +19,7 @@ import CircularCarousel from '../components/reactbits/CircularCarousel'
  * 下面是我方口径的名称 / 简介 / 参数。命名一律类目通用名，不带外部品牌。
  * ============================================================ */
 
-/* 页内子导航已提取到顶栏「产品设备」悬停下拉（见 components/Navbar.jsx 的
+/* 页内子导航已提取到顶栏「教学设备」悬停下拉（见 components/Navbar.jsx 的
    FLYOUTS['/devices']）：下拉项走锁点 /devices#<id>，直接滚到对应分区。*/
 
 /* 产品舞台：浅色「图纸」底 + 品牌蓝微辉光 + 极淡网格 + 角标。
@@ -294,8 +294,8 @@ export default function Devices() {
   return (
     <>
       <PageHero
-        eyebrow="PRODUCT HARDWARE"
-        crumbs="产品设备"
+        eyebrow="TEACHING EQUIPMENT"
+        crumbs="教学设备"
         title="把产业现场，搬进每一间实训室"
         sub="从超融合算力工作站、XR 虚实融合交互、智能机器人，到工业物联网实训台与智能制造产线 —— 按设备类型整理的可交付教学装备。参数摆在明面上，型号可按场地、专业与人数在方案阶段成套配置。"
         stats={[

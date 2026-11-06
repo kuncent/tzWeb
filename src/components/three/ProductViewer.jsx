@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, Lightformer, PerformanceMonitor } from '@react-three/drei'
 import * as THREE from 'three'
 import { useCanvasVisibility } from '../../hooks/useCanvasVisibility'
+import { THEME } from '../../theme'
 import {
   PRODUCTS,
   measureLocalBox,
@@ -141,13 +142,13 @@ function Floor({ light }) {
 function Scene({ productIndex, ctrl, still, hi, light }) {
   return (
     <>
-      <color attach="background" args={[light ? '#eef2f7' : '#060a11']} />
-      <fog attach="fog" args={[light ? '#eef2f7' : '#060a11', 8, 20]} />
+      <color attach="background" args={[light ? '#eef2f7' : THEME.night]} />
+      <fog attach="fog" args={[light ? '#eef2f7' : THEME.night, 8, 20]} />
 
       <ambientLight intensity={light ? 0.5 : 0.22} color="#bcd2ff" />
       <hemisphereLight intensity={0.36} color={light ? '#aebfd6' : '#54687f'} groundColor={light ? '#cdd8e6' : '#04060a'} />
       <directionalLight position={[4.5, 7.5, 5]} intensity={light ? 1.5 : 1.85} color="#f2f7ff" />
-      <directionalLight position={[-5.5, 3.2, -1.5]} intensity={1.1} color="#5FA8FF" />
+      <directionalLight position={[-5.5, 3.2, -1.5]} intensity={1.1} color={THEME.sky} />
       <directionalLight position={[0, 2.4, -6.5]} intensity={1.35} color="#cfe4ff" />
 
       <Floor light={light} />
@@ -159,7 +160,7 @@ function Scene({ productIndex, ctrl, still, hi, light }) {
       <Environment resolution={hi ? 120 : 80} frames={1}>
         <Lightformer form="rect" intensity={1.6} color="#e8f0fa" position={[0, 3.4, 0]} rotation-x={Math.PI / 2} scale={[7, 7, 1]} />
         <Lightformer form="rect" intensity={1.05} color="#dce9f8" position={[-1.6, 2.6, 2.4]} rotation-x={Math.PI / 2.6} scale={[5, 0.9, 1]} />
-        <Lightformer form="rect" intensity={0.95} color="#5FA8FF" position={[-4.6, 1.6, -1]} rotation-y={Math.PI / 2} scale={[4.5, 2.2, 1]} />
+        <Lightformer form="rect" intensity={0.95} color={THEME.sky} position={[-4.6, 1.6, -1]} rotation-y={Math.PI / 2} scale={[4.5, 2.2, 1]} />
         <Lightformer form="rect" intensity={0.8} color="#cfe0f5" position={[4.6, 1.8, 0]} rotation-y={-Math.PI / 2} scale={[5, 2.6, 1]} />
         <Lightformer form="rect" intensity={1.1} color="#dcefff" position={[0, 2.2, -5.5]} scale={[9, 3, 1]} />
       </Environment>

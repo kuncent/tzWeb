@@ -42,11 +42,11 @@ function MatrixScreen({ p, i, withIndex }) {
       </span>
       <div className="relative">
         <div className="flex items-center gap-3">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand text-white shadow-glow">
+          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent text-white shadow-glow">
             <Icon className="h-6 w-6" />
           </span>
           <div>
-            <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{p.en}</p>
+            <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-accent-sky">{p.en}</p>
             {withIndex && (
               <p className="text-ui-sm tabular-nums text-ink-400">
                 {pad(i)} / {pad(LAST)}
@@ -56,7 +56,7 @@ function MatrixScreen({ p, i, withIndex }) {
         </div>
 
         <h3 className="mt-6 text-[26px] font-bold tracking-tight text-white md:text-[34px] xl:text-[42px]">{p.title}</h3>
-        <p className="mt-3 text-ui-lg font-medium text-brand-300 xl:text-ui-lg">{p.tagline}</p>
+        <p className="mt-3 text-ui-lg font-medium text-accent-ice xl:text-ui-lg">{p.tagline}</p>
         <p className="mt-4 max-w-2xl text-ui leading-[1.9] text-ink-400 xl:text-ui-lg">{p.desc}</p>
 
         <ul className="mt-7 flex flex-wrap gap-2.5">
@@ -78,12 +78,12 @@ function MatrixScreen({ p, i, withIndex }) {
             </div>
           ))}
           <a
-            href="/#contact"
+            href="/about#contact"
             onClick={(e) => {
               e.preventDefault()
               requestProductContact({ name: p.title, intent: p.intent, source: `matrix-${p.id}`, cta: '咨询产品体系' })
             }}
-            className="group inline-flex items-center gap-2 self-center rounded-2xl border border-brand/40 bg-brand/10 px-5 py-4 text-ui font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
+            className="group inline-flex items-center gap-2 self-center rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-ui font-medium text-accent-sky transition-colors hover:bg-accent hover:text-white"
           >
             咨询该产品体系
             <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -116,11 +116,11 @@ function EmbodiedScreen({ p, i, withIndex }) {
         {/* 标题区 */}
         <div className="shrink-0">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-brand text-white shadow-glow">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-accent text-white shadow-glow">
               <Icon className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{p.en}</p>
+              <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-accent-sky">{p.en}</p>
               {withIndex && (
                 <p className="text-ui-sm tabular-nums text-ink-400">
                   {pad(i)} / {pad(LAST)}
@@ -129,7 +129,7 @@ function EmbodiedScreen({ p, i, withIndex }) {
             </div>
           </div>
           <h3 className="mt-3 text-[23px] font-bold tracking-tight text-white md:text-[28px] xl:text-[34px] [@media(max-height:820px)]:xl:text-[28px]">{p.title}</h3>
-          <p className="mt-1.5 text-ui font-medium text-brand-300 xl:text-ui-lg">{p.tagline}</p>
+          <p className="mt-1.5 text-ui font-medium text-accent-ice xl:text-ui-lg">{p.tagline}</p>
           <p className="mt-1.5 max-w-3xl text-ui-sm leading-[1.75] text-ink-400 [@media(max-height:820px)]:line-clamp-2">{p.desc}</p>
         </div>
 
@@ -142,12 +142,12 @@ function EmbodiedScreen({ p, i, withIndex }) {
                 key={pr.code}
                 onClick={() => setActive(k)}
                 className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 transition-colors duration-300 [@media(max-height:820px)]:py-1 ${
-                  on ? 'border-brand/50 bg-brand/15 text-white' : 'border-white/[0.08] text-ink-400 hover:border-white/20 hover:text-white/80'
+                  on ? 'border-accent/50 bg-accent/15 text-white' : 'border-white/[0.08] text-ink-400 hover:border-white/20 hover:text-white/80'
                 }`}
               >
-                <span className={`font-mono text-caption tabular-nums ${on ? 'text-brand-300' : 'text-ink-500'}`}>{pad(k)}</span>
+                <span className={`font-mono text-caption tabular-nums ${on ? 'text-accent-ice' : 'text-ink-500'}`}>{pad(k)}</span>
                 <span className="text-ui font-medium">{pr.name}</span>
-                <span className={`hidden font-mono text-caption tracking-[0.1em] sm:inline ${on ? 'text-brand-200' : 'text-ink-500'}`}>
+                <span className={`hidden font-mono text-caption tracking-[0.1em] sm:inline ${on ? 'text-accent-sky' : 'text-ink-500'}`}>
                   {pr.code}
                 </span>
               </button>
@@ -161,7 +161,7 @@ function EmbodiedScreen({ p, i, withIndex }) {
         <div className="mt-3.5 grid min-h-0 flex-1 gap-4 lg:grid-cols-[1.15fr_1fr] lg:grid-rows-[minmax(0,1fr)]">
           <div
             ref={stageRef}
-            className="relative min-h-[260px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#060a11] lg:min-h-0"
+            className="relative min-h-[260px] overflow-hidden rounded-2xl border border-white/[0.08] bg-night lg:min-h-0"
           >
             {live ? (
               <Suspense fallback={null}>
@@ -178,13 +178,13 @@ function EmbodiedScreen({ p, i, withIndex }) {
             {/* HUD 角标 */}
             {['left-3 top-3 border-l border-t', 'right-3 top-3 border-r border-t', 'left-3 bottom-3 border-b border-l', 'right-3 bottom-3 border-b border-r'].map(
               (pos) => (
-                <span key={pos} className={`pointer-events-none absolute h-4 w-4 border-brand/40 ${pos}`} />
+                <span key={pos} className={`pointer-events-none absolute h-4 w-4 border-accent/40 ${pos}`} />
               ),
             )}
             <div className="pointer-events-none absolute left-4 top-4 flex items-center gap-2">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-pingslow rounded-full bg-brand-400" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-400" />
+                <span className="absolute inline-flex h-full w-full animate-pingslow rounded-full bg-accent-ice" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent-ice" />
               </span>
               <span className="font-mono text-caption uppercase tracking-[0.16em] text-white/70">PRODUCT RING · {cur.code}</span>
             </div>
@@ -209,11 +209,11 @@ function EmbodiedScreen({ p, i, withIndex }) {
               className="my-auto flex flex-col"
             >
               <div className="flex items-baseline justify-between gap-3">
-                <p className="text-ui-sm font-semibold uppercase tracking-label text-brand-400">{cur.en}</p>
+                <p className="text-ui-sm font-semibold uppercase tracking-label text-accent-sky">{cur.en}</p>
                 <span className="font-mono text-caption text-ink-400">{cur.code}</span>
               </div>
               <h4 className="mt-1.5 text-title font-bold tracking-tight text-white">{cur.name}</h4>
-              <p className="mt-0.5 text-ui-sm text-brand-300">{cur.tag}</p>
+              <p className="mt-0.5 text-ui-sm text-accent-ice">{cur.tag}</p>
               <p className="mt-2 text-ui-sm leading-[1.75] text-ink-400">{cur.desc}</p>
               <dl className="mt-4 grid grid-cols-2 gap-x-5 gap-y-1">
                 {cur.specs.map(([k, v]) => (
@@ -224,18 +224,18 @@ function EmbodiedScreen({ p, i, withIndex }) {
                 ))}
               </dl>
               <a
-                href="/#contact"
+                href="/about#contact"
                 onClick={(e) => {
                   e.preventDefault()
                   requestProductContact({ name: cur.name, code: cur.code, intent: p.intent, source: `embodied-${cur.code}`, cta: `索取 ${cur.name} 参数手册` })
                 }}
-                className="group mt-4 inline-flex items-center gap-1.5 text-ui-sm text-brand-200 transition-colors hover:text-white"
+                className="group mt-4 inline-flex items-center gap-1.5 text-ui-sm text-accent-sky transition-colors hover:text-white"
               >
                 索取 {cur.code} 完整参数手册
                 <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
               </a>
               <p className="mt-5 flex items-center gap-2 border-t border-white/[0.06] pt-3 text-ui-sm text-ink-500">
-                <span className="inline-block h-1 w-1 shrink-0 rounded-full bg-brand-400" />
+                <span className="inline-block h-1 w-1 shrink-0 rounded-full bg-accent-ice" />
                 按住画面拖动可 360° 自由旋转机型 · 点击上方型号切换机型
               </p>
             </motion.div>
@@ -244,7 +244,7 @@ function EmbodiedScreen({ p, i, withIndex }) {
 
         {/* 实验室交付：一间实验室的完整交付 */}
         <div className="mt-3.5 shrink-0">
-          <p className="text-ui-sm font-semibold uppercase tracking-label text-brand-400">实验室交付 · 一间实验室的完整交付</p>
+          <p className="text-ui-sm font-semibold uppercase tracking-label text-accent-sky">实验室交付 · 一间实验室的完整交付</p>
           <ul className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {labModules.map((m, mi) => (
               <li key={m.code} className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2">
@@ -252,7 +252,7 @@ function EmbodiedScreen({ p, i, withIndex }) {
                   <span className="mr-1.5 font-mono text-caption tabular-nums text-ink-500">{pad(mi)}</span>
                   {m.name}
                 </p>
-                <p className="mt-0.5 text-ui-sm uppercase tracking-[0.14em] text-brand-300 [@media(max-height:820px)]:hidden">{m.code}</p>
+                <p className="mt-0.5 text-ui-sm uppercase tracking-[0.14em] text-accent-ice [@media(max-height:820px)]:hidden">{m.code}</p>
                 <p className="mt-1 text-ui-sm leading-4 text-ink-400 line-clamp-4 [@media(max-height:820px)]:line-clamp-2">{m.desc}</p>
               </li>
             ))}
@@ -276,12 +276,12 @@ function EmbodiedScreen({ p, i, withIndex }) {
               </div>
             ))}
             <a
-              href="/#contact"
+              href="/about#contact"
               onClick={(e) => {
                 e.preventDefault()
                 requestProductContact({ name: p.title, intent: p.intent, source: 'embodied-lab', cta: '咨询实验室方案' })
               }}
-              className="group inline-flex items-center gap-2 rounded-xl border border-brand/40 bg-brand/10 px-4 py-2.5 text-ui font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
+              className="group inline-flex items-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-ui font-medium text-accent-sky transition-colors hover:bg-accent hover:text-white"
             >
               咨询实验室方案
               <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -384,8 +384,14 @@ export default function ProductMatrix() {
       return
     }
     const y = window.scrollY + rect.top + span * ((i + 0.5) / N)
-    if (window.__lenis) window.__lenis.scrollTo(y)
-    else window.scrollTo({ top: y, behavior: 'smooth' })
+    if (window.__lenis) {
+      /* 懒加载刚挂载时 lenis 缓存的最大滚动值还是旧页的短尺寸，
+         不先 resize 就会被夹到接近顶部（看着像点了没反）——与 useLenis.fly 同理 */
+      window.__lenis.resize()
+      window.__lenis.scrollTo(y)
+    } else {
+      window.scrollTo({ top: y, behavior: 'smooth' })
+    }
   }
 
   /* 顶栏「产品体系」下拉跳过来：进矩阵并切到指定产品。
@@ -401,15 +407,15 @@ export default function ProductMatrix() {
   }, [])
 
   return (
-    <section id="matrix" className="relative bg-night">
+    <section id="matrix" className="relative" style={{ background: '#06080d' }}>
       {/* ―― 桌面端：sticky 钉屏 + 竖立导航 + 整屏轮播 ―― */}
       <div ref={outerRef} className="hidden lg:block" style={{ height: `calc(100vh + ${LAST * STEP_VH}vh)` }}>
         <div className="sticky top-[64px] h-[calc(100vh-64px)] overflow-hidden">
           {/* 背景：网格 + 品牌光晕 */}
           <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:64px_64px]" />
           {/* 品牌光晕：用多段渐变直接画软，不再叠 blur（钉屏期间这层一直在屏内，blur 会每帧重光栅化） */}
-          <div className="pointer-events-none absolute -right-40 top-[-10%] h-[520px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(22,119,255,0.03),rgba(22,119,255,0.26)_42%,transparent_82%)]" />
-          <div className="pointer-events-none absolute -left-40 bottom-[-15%] h-[460px] w-[460px] rounded-full bg-[radial-gradient(closest-side,rgba(101,191,255,0.02),rgba(101,191,255,0.15)_44%,transparent_82%)]" />
+          <div className="pointer-events-none absolute -right-40 top-[-10%] h-[520px] w-[520px] rounded-full bg-[radial-gradient(closest-side,transparent,var(--theme-halo)_42%,transparent_82%)]" />
+          <div className="pointer-events-none absolute -left-40 bottom-[-15%] h-[460px] w-[460px] rounded-full bg-[radial-gradient(closest-side,transparent,var(--theme-halo-cyan)_44%,transparent_82%)]" />
 
           {/* 右列必须是 minmax(0,1fr)：1fr 的自动最小值是内容的 min-content，
               区块链屏那排动画缩略图一旦产品变多（8 套就是 1240px 固有宽），
@@ -418,9 +424,9 @@ export default function ProductMatrix() {
             {/* 竖立导航 */}
             <div className="flex h-full min-h-0 flex-col justify-center py-6 xl:py-8">
               <div className="flex items-center gap-3">
-                <span className="font-mono text-caption tabular-nums tracking-label text-brand-400">03</span>
+                <span className="font-mono text-caption tabular-nums tracking-label text-accent-sky">03</span>
                 <span className="h-px w-6 bg-white/25" />
-                <span className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{matrixHead.en}</span>
+                <span className="text-ui-sm font-semibold uppercase tracking-eyebrow text-accent-sky">{matrixHead.en}</span>
               </div>
               <h2 className="text-h2 mt-3 font-bold text-white">{mHeadZh}</h2>
               <p className="mt-3 text-ui leading-relaxed text-ink-400">{mHeadDesc}</p>
@@ -441,13 +447,13 @@ export default function ProductMatrix() {
                         <motion.span
                           layoutId="matrix-active"
                           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-                          className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-brand"
+                          className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-accent"
                         />
                       )}
-                      <span className={`w-5 text-ui-sm font-semibold tabular-nums ${active ? 'text-brand-300' : 'text-ink-400'}`}>
+                      <span className={`w-5 text-ui-sm font-semibold tabular-nums ${active ? 'text-accent-ice' : 'text-ink-400'}`}>
                         {pad(i)}
                       </span>
-                      <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-brand' : 'text-ink-400 group-hover:text-white/70'}`} />
+                      <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-accent-ice' : 'text-ink-400 group-hover:text-white/70'}`} />
                       <span className={`truncate text-ui ${active ? 'font-semibold text-white' : 'text-ink-400 group-hover:text-white/80'}`}>
                         {p.title}
                       </span>
@@ -459,7 +465,7 @@ export default function ProductMatrix() {
               <div className="mt-7 flex items-center gap-3">
                 <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/10">
                   <div
-                    className="h-full rounded-full bg-brand transition-[width] duration-500"
+                    className="h-full rounded-full bg-accent transition-[width] duration-500"
                     style={{ width: `${((idx + 1) / N) * 100}%` }}
                   />
                 </div>
@@ -496,9 +502,9 @@ export default function ProductMatrix() {
       {/* ―― 移动 / 平板：常规纵向堆叠，保证可读与可滚 ―― */}
       <div className="container-x py-20 lg:hidden">
         <div className="flex items-center gap-3">
-          <span className="font-mono text-caption tabular-nums tracking-label text-brand-400">03</span>
+          <span className="font-mono text-caption tabular-nums tracking-label text-accent-sky">03</span>
           <span className="h-px w-6 bg-white/25" />
-          <span className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{matrixHead.en}</span>
+          <span className="text-ui-sm font-semibold uppercase tracking-eyebrow text-accent-sky">{matrixHead.en}</span>
         </div>
         <h2 className="text-h2 mt-3 font-bold text-white">{mHeadZh}</h2>
         <p className="mt-3 text-ui leading-relaxed text-ink-400">{mHeadDesc}</p>

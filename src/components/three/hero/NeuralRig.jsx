@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
@@ -60,6 +60,45 @@ const SEATS = [
   { x: 0.835, y: 1.375, z: -0.894, yaw: -0.098 }, // 4 工商科一体化（右上，最远）
 ]
 
+/* ―― 1024–1439 的两档专用排布 ――
+   两档机位都不动，只把这五块牌重新布点，各自的构图按对应视口的屏幕目标反解
+   （tmp/tight-seats.cjs / tmp/wide-seats.cjs），不是调参调出来的。
+   1440 起仍然用上面那版原始席位，一个数值都没改。
+
+   narrow（1024–1279，地图是紧凑版，右上到地图上沿都是空的）：
+   文案列收窄到 560（600 时 9 字标题刚好放得下，再窄就把「人才培养」拆行），
+   右侧留出 600~1024 的竖条。主牌保持 1440 那版的尺寸（scale 1），四块副牌
+   0.8（147×86），两列两行摞在主牌下：主牌 676~947 / y 77~244，
+   副牌左列 638~786、右列 838~986，两行 y 249~335 / 346~432 ——
+   与文案（≤600）、地图（x≥704,y≥447）都留 ≥14px 的缝。
+
+   wide（1280–1439，地图换成完整版、上沿抬到 ~380）：竖排就塞不下了，
+   改成横排 —— 文案列放到 636（9 字标题 70.4px 需约 613px，600 会拆行），
+   主牌 0.85（243×142）落在文案右侧，四块副牌 0.70（135×88）两列两行
+   摞在它右边：主牌 706~941 / y 103~245，副牌 947~1088（左列）、
+   1102~1243（右列），两行 y 94~182 / 199~287 —— 全部落在地图上沿（~380）
+   之上，与文案留 ≥30px 缝，右缘 1243 也不出屏（1280 下还余 37px）。 */
+const SEATS_NARROW = [
+  { x: 1.723, y: 0.974, z: 0.294, yaw: -0.252 }, // 0 主牌 · 金融科技
+  { x: 1.149, y: 0.179, z: 0.134, yaw: -0.161 }, // 1 数字经济（左上）
+  { x: 1.151, y: -0.434, z: 0.18, yaw: -0.162 }, // 2 应用统计（左下）
+  { x: 2.43, y: -0.434, z: 0.135, yaw: -0.346 }, // 3 商务数据分析（右下）
+  { x: 2.428, y: 0.179, z: 0.089, yaw: -0.343 }, // 4 工商科一体化（右上）
+]
+/* 副牌 0.8：再大一档就压到地图上边，再小一档正文就真的读不清了 */
+const SCALE_NARROW = [1, 0.8, 0.8, 0.8, 0.8]
+
+const SEATS_WIDE = [
+  { x: 0.952, y: 0.962, z: 0.323, yaw: -0.135 }, // 0 主牌 · 金融科技
+  { x: 2.213, y: 1.209, z: 0.018, yaw: -0.311 }, // 1 数字经济（左上）
+  { x: 2.214, y: 0.566, z: 0.067, yaw: -0.313 }, // 2 应用统计（左下）
+  { x: 3.166, y: 0.566, z: 0.033, yaw: -0.437 }, // 3 商务数据分析（右下）
+  { x: 3.164, y: 1.209, z: -0.016, yaw: -0.434 }, // 4 工商科一体化（右上）
+]
+/* 副牌 0.70：横排要挤进「文案右侧、地图上方」那条带子；
+   主牌也收到 0.85 —— 与右列副牌之间才有 14px 的缝 */
+const SCALE_WIDE = [0.85, 0.70, 0.70, 0.70, 0.70]
+
 /* 每条指令把光打在谁身上：备课是主讲、学情是观察员、共建是主持人；
    课堂不加特写 —— 课堂的特写就是"此刻在发言的那一位"，它本来就在亮 */
 const HOT_BY_MODE = { prep: 0, class: -1, insight: 4, hub: 3 }
@@ -74,11 +113,59 @@ const HOT_BY_MODE = { prep: 0, class: -1, insight: 4, hub: 3 }
    “看得见一条棱、又不至于像挂了块板”那一档 */
 const CAM = SCENE.cam.pos
 const PITCH_GAIN = 0.5
-const PITCH = SEATS.map((s) => {
-  const y = CENTER + s.y
-  const sight = Math.hypot(CAM[0] - (RIG_X + s.x), CAM[2] - s.z)
-  return -Math.atan2(CAM[1] - y, sight) * PITCH_GAIN
-})
+
+/** 席位表 → 这一档要用的全部静态量：俯仰、链路端点、景深沉底。
+    两档共用同一套 EDGES，端点按各自的席位与缩放重算 —— 链路才不会连到空处；
+    副牌缩到 0.8 后，端点也要跟着缩，否则线会从牌外 20px 处飘过去 */
+function buildLayout(seats, scales) {
+  const pitch = seats.map((s) => {
+    const y = CENTER + s.y
+    const sight = Math.hypot(CAM[0] - (RIG_X + s.x), CAM[2] - s.z)
+    return -Math.atan2(CAM[1] - y, sight) * PITCH_GAIN
+  })
+  const heroMid = new THREE.Vector3(seats[0].x, seats[0].y, seats[0].z)
+  /* 界面某条边上的接点（rig 局部坐标）：牌半宽半高 + 沿边位置，
+     再绕 Y 转这块牌自己的 yaw，最后往外挪 2cm —— 线才不会埋在牌里 */
+  const anchor = (i, side, k = 0) => {
+    const s = seats[i]
+    const { w, h } = panelWorld(i)
+    const sw = w * scales[i]
+    const sh = h * scales[i]
+    let ax = 0
+    let ay = 0
+    if (side === 'l') [ax, ay] = [-sw / 2, k * sh]
+    if (side === 'r') [ax, ay] = [sw / 2, k * sh]
+    if (side === 't') [ax, ay] = [k * sw, sh / 2]
+    if (side === 'b') [ax, ay] = [k * sw, -sh / 2]
+    const c = Math.cos(s.yaw)
+    const n = Math.sin(s.yaw)
+    return new THREE.Vector3(s.x + ax * c + 0.02 * n, s.y + ay, s.z - ax * n + 0.02 * c)
+  }
+  /* 每条弧的静态几何：端点、弯向、颜色。
+     注：anchor() 只按 yaw 转，没跟着转 pitch —— 补上俯仰后接点会沿牌面法向
+     挪出 ~2.8cm 的深度差，换算到屏幕是 0.3px（牌面离机位 6~7m），看不出来，
+     所以不必把那条旋转链抄进端点计算里。
+     弯向的默认规则是「离主讲中心越远越外」：环上那几条要绕开中间那块大牌（0.2），
+     主讲进出的辐条只侧让一点（0.11）。不写这条规则，十条弧会一起往同一边鼓。
+     颜色吃收方的通道色：数据“进了哪一家的界面”就用哪一家的颜色 ——
+     于是这一屏的线与链屏那六块牌的图元色是同一套读法 */
+  const arcs = EDGES.map((e) => {
+    const a = anchor(e.a, e.ex, e.ak)
+    const b = anchor(e.b, e.en, e.bk)
+    let bend = e.bend
+    if (bend === undefined) {
+      const d = b.clone().sub(a)
+      const perp = new THREE.Vector3(-d.y, d.x, 0).normalize()
+      const away = a.clone().add(b).multiplyScalar(0.5).sub(heroMid)
+      bend = (perp.dot(away) >= 0 ? 1 : -1) * (e.a === 0 || e.b === 0 ? 0.11 : 0.2)
+    }
+    return { a, b, bend, lift: e.lift ?? 0.06, tc: e.tc ?? 0.14, key: `${e.a}>${e.b}`, on: e.on, hue: HUES[e.b] }
+  })
+  /* 每块牌按景深的那点沉底：近侧满亮，远侧压到 0.9。
+     纵深只该是一点点暗示，不该拿可读性去换 */
+  const deep = seats.map((s) => 0.9 + 0.1 * THREE.MathUtils.clamp((s.z + 0.95) / 1.5, 0, 1))
+  return { seats, scales, pitch, arcs, deep }
+}
 
 /* ―― 数据链路：a → b 是"数据从谁流向谁"，on 是这条链路归哪条指令管 ――
    ex/en 是这条线接在两块界面的哪条边上（l/r/t/b），ak/bk 是沿那条边的位置
@@ -101,48 +188,11 @@ const EDGES = [
 /* 四态各点亮几条：备课 3、课堂 5、学情 4、共建 4 —— 按一个按钮换一组线，
    这是看板那四个按钮在场景里唯一的可见回执，所以常态不留底光 */
 
-const seatCenter = (i) => new THREE.Vector3(SEATS[i].x, SEATS[i].y, SEATS[i].z)
+const BASE = buildLayout(SEATS, SEATS.map(() => 1))
+const NARROW = buildLayout(SEATS_NARROW, SCALE_NARROW)
+const WIDE = buildLayout(SEATS_WIDE, SCALE_WIDE)
 
-/** 界面某条边上的接点（rig 局部坐标）：牌半宽半高 + 沿边位置，
-    再绕 Y 转这块牌自己的 yaw，最后往外挪 2cm —— 线才不会埋在牌里 */
-function anchor(i, side, k = 0) {
-  const s = SEATS[i]
-  const { w, h } = panelWorld(i)
-  let ax = 0
-  let ay = 0
-  if (side === 'l') [ax, ay] = [-w / 2, k * h]
-  if (side === 'r') [ax, ay] = [w / 2, k * h]
-  if (side === 't') [ax, ay] = [k * w, h / 2]
-  if (side === 'b') [ax, ay] = [k * w, -h / 2]
-  const c = Math.cos(s.yaw)
-  const n = Math.sin(s.yaw)
-  return new THREE.Vector3(s.x + ax * c + 0.02 * n, s.y + ay, s.z - ax * n + 0.02 * c)
-}
-
-const HERO_MID = seatCenter(0)
-
-/** 每条弧的静态几何：端点、弯向、颜色。
-    注：anchor() 只按 yaw 转，没跟着转 pitch —— 补上俯仰后接点会沿牌面法向
-    挪出 ~2.8cm 的深度差，换算到屏幕是 0.3px（牌面离机位 6~7m），看不出来，
-    所以不必把那条旋转链抄进端点计算里。
-    弯向的默认规则是「离主讲中心越远越外」：环上那几条要绕开中间那块大牌（0.2），
-    主讲进出的辐条只侧让一点（0.11）。不写这条规则，十条弧会一起往同一边鼓。
-    颜色吃收方的通道色：数据“进了哪一家的界面”就用哪一家的颜色 ——
-    于是这一屏的线与链屏那六块牌的图元色是同一套读法 */
-const ARCS = EDGES.map((e) => {
-  const a = anchor(e.a, e.ex, e.ak)
-  const b = anchor(e.b, e.en, e.bk)
-  let bend = e.bend
-  if (bend === undefined) {
-    const d = b.clone().sub(a)
-    const perp = new THREE.Vector3(-d.y, d.x, 0).normalize()
-    const away = a.clone().add(b).multiplyScalar(0.5).sub(HERO_MID)
-    bend = (perp.dot(away) >= 0 ? 1 : -1) * (e.a === 0 || e.b === 0 ? 0.11 : 0.2)
-  }
-  return { a, b, bend, lift: e.lift ?? 0.06, tc: e.tc ?? 0.14, key: `${e.a}>${e.b}`, on: e.on, hue: HUES[e.b] }
-})
-
-export default function NeuralRig({ active, cmd, accent = SCENE.accent }) {
+export default function NeuralRig({ active, cmd, accent = SCENE.accent, panelLayout = false }) {
   /* 第三参是这套布景的离地高度：useAppear 每帧写 root.position.y，
      不传进来就会把下面 JSX 的 position={[0, CENTER, 0]} 抹成 0 */
   const [root, prog] = useAppear(active, 3.2, CENTER)
@@ -172,11 +222,9 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent }) {
     return () => clearTimeout(id)
   }, [active])
 
-  /* 每块牌按景深的那点沉底：近侧满亮，远侧压到 0.9。
-     这一档之前是 0.78 —— 叠上板面自身 0.82 的底，远侧两块实际只有 0.64 的
-     不透明度，在明亮的实验室背景下几乎读不出来，正是「展板像没显示」的另一半
-     原因。纵深只该是一点点暗示，不该拿可读性去换 */
-  const deep = useMemo(() => SEATS.map((s) => 0.9 + 0.1 * THREE.MathUtils.clamp((s.z + 0.95) / 1.5, 0, 1)), [])
+  /* 三档排布：≥1440 用 1440 那版原席位；1280–1439 横排；1024–1279 竖排。
+     整份静态量（席位/缩放/俯仰/链路/景深）随档位一起换 */
+  const L = panelLayout === 'narrow' ? NARROW : panelLayout === 'wide' ? WIDE : BASE
 
   /* ―― 面板显隐以「DOM 上此刻是什么」为准 ――
      同 ChainRig 那条血泪：group.visible 管不到 DOM，而 drei 把内层 div 放在
@@ -192,7 +240,7 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent }) {
     if (v > 0.02) el.style.opacity = v
   }
   const hideAll = () => {
-    for (let i = 0; i < SEATS.length; i++) {
+    for (let i = 0; i < L.seats.length; i++) {
       const el = panels.current[i]
       if (!el || el.style.display === 'none') continue
       opLast.current[i] = 0
@@ -216,9 +264,9 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent }) {
       flow.current[i] = damp(flow.current[i], EDGES[i].on.includes(modeId) ? live : 0, 3.2, dt)
     }
 
-    for (let i = 0; i < SEATS.length; i++) {
+    for (let i = 0; i < L.seats.length; i++) {
       const g = boards.current[i]
-      const s = SEATS[i]
+      const s = L.seats[i]
       flash.current[i] = damp(flash.current[i], 0, 3.4, dt)
       const fl = flash.current[i]
       const on = i === sp ? 1 : 0
@@ -229,7 +277,7 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent }) {
         g.position.set(s.x, s.y + Math.sin(t * 0.9 + i * 1.3) * 0.01 + on * 0.012, s.z)
         g.rotation.y = s.yaw + Math.sin(t * 0.5 + i * 2.1) * 0.012
       }
-      const v = appear * (deep[i] + on * 0.05 + hot * 0.06 + fl * 0.1)
+      const v = appear * (L.deep[i] + on * 0.05 + hot * 0.06 + fl * 0.1)
       setPanelOp(i, Math.round(Math.min(1, v) * 50) / 50)
     }
   })
@@ -246,7 +294,7 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent }) {
           现在一根管上有三件事：管身那串断开行走的短划（有一串数据正在过）、
           两枚错半拍的光点包（离散的一条条数据）、包绕回终点那一下点亮收方
           （数据真的被接住了）。颜色吃收方的通道色 */}
-      {ARCS.map((c, i) => (
+      {L.arcs.map((c, i) => (
         <FlowArc
           key={c.key}
           a={c.a}
@@ -272,22 +320,26 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent }) {
           zIndexRange 与链屏同一段：高于左右两块 scrim、低于 StoryHero 的
           排版层（z-[70]）—— 文案与右下角那台看板永远压得住牌，
           这也是构图必须避开那几块地方的原因 */}
-      {SEATS.map((s, i) => {
+      {L.seats.map((s, i) => {
         const css = isHero(i) ? HERO : SAT
         /* rotation-x 单独一条而不是 rotation={[..]}：下面 useFrame 每帧只写 .y，
-           传数组会让每 1.5s 一次的面板重挂把 .y 顶回 s.yaw（下一帧才落回来） */
+           传数组会让每 1.5s 一次的面板重挂把 .y 顶回 s.yaw（下一帧才落回来）。
+           内层 group 只放 scale：1024–1279 的副牌缩到 0.8，缩的是牌面本身，
+           席位中心不动 —— 屏幕中心与广度都按反解值落位 */
         return (
-          <group key={SCENE.agents[i]} ref={(el) => (boards.current[i] = el)} position={[s.x, s.y, s.z]} rotation-x={PITCH[i]} rotation-y={s.yaw} visible={false}>
-            <Html
-              ref={(el) => (panels.current[i] = el)}
-              transform
-              distanceFactor={ADF}
-              zIndexRange={[60, 20]}
-              pointerEvents="none"
-              style={{ width: css.w, height: css.h, pointerEvents: 'none' }}
-            >
-              <AgentPanel index={i} mode={modeId} beat={beat} live={i === speaker} hot={HOT_BY_MODE[modeId] === i} yaw={s.yaw} pitch={PITCH[i]} />
-            </Html>
+          <group key={SCENE.agents[i]} ref={(el) => (boards.current[i] = el)} position={[s.x, s.y, s.z]} rotation-x={L.pitch[i]} rotation-y={s.yaw} visible={false}>
+            <group scale={L.scales[i]}>
+              <Html
+                ref={(el) => (panels.current[i] = el)}
+                transform
+                distanceFactor={ADF}
+                zIndexRange={[60, 20]}
+                pointerEvents="none"
+                style={{ width: css.w, height: css.h, pointerEvents: 'none' }}
+              >
+                <AgentPanel index={i} mode={modeId} beat={beat} live={i === speaker} hot={HOT_BY_MODE[modeId] === i} yaw={s.yaw} pitch={L.pitch[i]} />
+              </Html>
+            </group>
           </group>
         )
       })}

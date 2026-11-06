@@ -75,6 +75,7 @@ import {
   Globe,
 } from 'lucide-react'
 import { productMatrix, embodiedProducts, labModules, advisorStats, strengths, customers, caseFeatured } from './site'
+import { PRODUCT_NAMES, SOLUTION_NAMES, solutionFullName } from './vocabulary'
 
 /* 从 productMatrix 抠现成的统计，避免内页手抄一份数字 */
 const pm = (id) => productMatrix.find((p) => p.id === id)
@@ -84,131 +85,12 @@ const stat = (id, k) => {
   return hit ? hit.v : ''
 }
 
-/* ---------------- 按场景进入：5 类实验室 / 中心 ----------------
-   这 5 个名字不是新造的：页脚「解决方案」那一列早就挂着这五条
-   （site.js footerNav），以前点进去是 COMING SOON。id 与文案对齐，
-   页脚的链接就从「装饰」变成了真入口。 */
-export const solutionScenes = [
-  {
-    id: 'ai-lab',
-    n: '01',
-    name: 'AI 人工智能实验室',
-    en: 'AI & LARGE MODEL LAB',
-    icon: BrainCircuit,
-    img: '/images/tech_orb.webp',
-    imgW: 531,
-    imgH: 318,
-    line: '从大模型到课堂：AI 通识课、专业核心课与实训项目在同一条链路上配齐，模型可换、数据不出校。',
-    fit: ['人工智能', '数据科学与大数据技术', '软件工程', '物联网工程', '全校 AI 通识'],
-    stack: [
-      { label: '03 AI 多智能体课堂', to: '/products' },
-      { label: '05 数字经济 · 大数据与 AI 实训体系', to: '/products' },
-      { label: '自然语言实验平台', to: '/#ai' },
-    ],
-    deliver: ['AI 教学资源与课件平台', '多智能体课堂环境（教师 / 同学 / 助教 / 导演）', '推理算力调度与模型接入', '18 套大数据与 AI 实训系统', '课程包、实验手册与评价标准'],
-    outcome: ['校本 AI 课程群与教材', '模型与数据的本地化部署', '学生 AI 项目作品集'],
-    metrics: [
-      { k: '可直接开课', v: stat('digital-economy', '实训系统') },
-      { k: '实验项目', v: stat('digital-economy', '实验项目') },
-      { k: '生成一堂课', v: stat('class', '生成一堂课') },
-    ],
-  },
-  {
-    id: 'embodied-lab',
-    n: '02',
-    name: '具身智能实验室',
-    en: 'EMBODIED INTELLIGENCE LAB',
-    icon: Bot,
-    img: '/images/iso_lab.webp',
-    imgW: 448,
-    imgH: 272,
-    line: '人形、四足、机械臂、移动底盘同馆协同：先在数字孪生里试错，再到真机上执行，操作风险与器材损耗一起降下来。',
-    fit: ['机器人工程', '自动化', '机械电子工程', '智能制造工程', '人工智能'],
-    stack: [
-      { label: '数字孪生与实训安全包', to: '/products' },
-    ],
-    deliver: ['空间规划与安全动线', '6 类机器人设备成套进场', '一体化实验管理平台', '四阶段进阶课程', '驻校师资培训与认证', '赛项选题与器材保障'],
-    outcome: ['可承接教学与科研双用的实验环境', '多机协同与数据采集课题', '学科竞赛与成果展项'],
-    metrics: [
-      { k: '落地实验室', v: stat('embodied', '落地实验室') },
-      { k: '配套课程', v: stat('embodied', '配套课程') },
-      { k: '端侧算力', v: '120 TOPS' },
-    ],
-  },
-  {
-    id: 'blockchain-lab',
-    n: '03',
-    name: '区块链实验室',
-    en: 'BLOCKCHAIN & LEDGER LAB',
-    icon: Blocks,
-    img: '/img/products/chain.webp',
-    imgW: 1280,
-    imgH: 720,
-    line: '一条真链进课堂：联盟链上写合约、部署、看浏览器，公链侧做数据聚合与态势感知，再往上一层跑量化回测。',
-    fit: ['区块链工程', '金融科技', '信息安全', '会计学', '数字经济'],
-    stack: [
-      { label: '02 区块链 · 可信账本与量化实训', to: '/products' },
-      { label: '旧一代 7 套区块链实训系统', to: '/products' },
-      { label: '量化挖掘终端', to: '/products' },
-    ],
-    deliver: ['联盟链集群（6 共识节点）', '合约 IDE 与区块浏览器', '链上态势感知大屏', '量化挖掘终端与回测中心', '教师端实验下发与自动评分'],
-    outcome: ['学生自签发的校园身份与钱包', '可复现的链上项目与合约作品', '链上数据分析课程成果'],
-    metrics: [
-      { k: '已部署合约', v: stat('blockchain', '已部署合约') },
-      { k: '覆盖公链', v: stat('blockchain', '覆盖公链') },
-      { k: '适用专业', v: '8 个' },
-    ],
-  },
-  {
-    id: 'engineering-center',
-    n: '04',
-    name: '工程实训中心',
-    en: 'ENGINEERING TRAINING CENTER',
-    icon: Factory,
-    img: '/images/d_labiso.webp',
-    imgW: 550,
-    imgH: 288,
-    line: '把工程训练从「金工实习」升级成「智能产线」：机械、电气、控制与数据在同一工位上闭环，一份作业能同时评四门课。',
-    fit: ['机械设计制造', '电气工程', '测控技术与仪器', '智能制造', '全校工程训练'],
-    stack: [
-      { label: '设备级数字孪生产线', to: '/products' },
-    ],
-    deliver: ['工位与产线布局', '协作机械臂与移动底盘', '数字孪生产线与虚拟调试', '工程训练项目库', '操作风险预警与过程回放'],
-    outcome: ['工程能力评价与证书出口', '跨专业联合课程设计', '可展示的学生工程作品'],
-    metrics: [
-      { k: '重复定位精度', v: '±0.05 mm' },
-      { k: '服务学生', v: '5,000+' },
-      { k: '单馆建设面积', v: '5,000㎡' },
-    ],
-  },
-  {
-    id: 'future-campus',
-    n: '05',
-    name: '未来校园 · 创新中心',
-    en: 'FUTURE CAMPUS INNOVATION HUB',
-    icon: Orbit,
-    img: '/images/campus_map.webp',
-    imgW: 520,
-    imgH: 200,
-    line: '一个院系之外的校级入口：把 AI 素养通识、跨学科项目工坊与学生创新成果放在同一栋楼里，对全校开放排课。',
-    fit: ['教务处', '创新创业学院', '研究生院', '图书馆 / 信息化处'],
-    stack: [
-      { label: '五大产品体系按需组合', to: '/products' },
-      { label: '校级学情驾驶舱', to: '/#ai' },
-      { label: '全栈私有化交付', to: '/#architecture' },
-    ],
-    deliver: ['公共讲授与研讨空间', '跨学科项目工坊', '校级学情与设备利用驾驶舱', '成果展陈与竞赛区', '私有化算力与数据底座'],
-    outcome: ['面向全校的 AI 素养课程群', '跨学院联合毕设与孵化项目', '可对外接待与申报的建设成果'],
-    metrics: [
-      { k: '覆盖学科', v: '30+' },
-      { k: '合作高校', v: '180+' },
-      { k: '部署方式', v: '私有化 / 云端' },
-    ],
-  },
-]
+/* 旧的「按场景进入 5 类实验室 / 中心」已随页脚改版下线：
+   导航、页脚与搜索统一使用下面的 5 套学科方案（solutionPlans），
+   这里不再保留第二套场景名。 */
 
-/* ---------------- 四大实验教学方案（源自公司《天择教育科技·实验教学解决方案》）----------------
-   与上面「按场景」不同：这一版按专业方向整页组织，是解决方案页的新主线。
+/* ---------------- 五大实验教学方案（源自公司《天择教育科技·实验教学解决方案》）----------------
+   按专业方向整页组织，是解决方案页的唯一主线；方案名与简称统一取自 vocabulary.js。
    每个方案五段式，全部照文档原样录入、不做数字加工：
      · tagline 方案总览口号 + goal 建设目标与定位 + mainline 四位一体主线
      · layers 课程体系建设（基础/核心/进阶/综合四层 × 课程模块↔实验项目↔支撑产品）
@@ -219,8 +101,8 @@ export const solutionPlans = [
     id: 'digital-economy',
     n: '01',
     icon: Network,
-    name: '数字经济实验教学方案',
-    short: '数字经济',
+    name: solutionFullName('digital-economy'),
+    short: SOLUTION_NAMES['digital-economy'],
     en: 'DIGITAL ECONOMY',
     tagline: '数实融合 · 场景驱动 · 面向数字经济人才培养',
     goal: '对接数字产业化与产业数字化发展需求，围绕“数据要素—数字产业—产业数字—数字治理”构建覆盖数字经济运行全链条的实验教学体系，培养懂技术、通业务、能决策的数字经济应用型人才。',
@@ -269,8 +151,8 @@ export const solutionPlans = [
     id: 'fintech',
     n: '02',
     icon: Landmark,
-    name: '金融科技实验教学方案',
-    short: '金融科技',
+    name: solutionFullName('fintech'),
+    short: SOLUTION_NAMES.fintech,
     en: 'FINTECH',
     tagline: '数智融合 · 产教协同 · 面向金融科技人才培养',
     goal: '面向金融数字化转型的人才需求，构建“金融基础—智能投顾—风险量化—金融科技”四位一体的金融科技实验教学体系，培养既懂金融业务又能驾驭数据与算法的复合型金融科技人才。',
@@ -319,8 +201,8 @@ export const solutionPlans = [
     id: 'applied-statistics',
     n: '03',
     icon: LineChart,
-    name: '应用统计实验教学方案',
-    short: '应用统计',
+    name: solutionFullName('applied-statistics'),
+    short: SOLUTION_NAMES['applied-statistics'],
     en: 'APPLIED STATISTICS',
     tagline: '数据洞察 · 智能分析 · 面向数据科学人才培养',
     goal: '面向大数据与人工智能时代的数据人才需求，以“统计方法—编程实现—业务建模—决策支持”为主线构建应用统计实验教学体系，培养能够独立完成数据采集、建模分析与商业决策的数据科学应用型人才。',
@@ -368,11 +250,11 @@ export const solutionPlans = [
     id: 'business-analytics',
     n: '04',
     icon: Briefcase,
-    name: '大数据分析实验教学方案',
-    short: '大数据分析',
+    name: solutionFullName('business-analytics'),
+    short: SOLUTION_NAMES['business-analytics'],
     en: 'BUSINESS ANALYTICS',
     tagline: '商数融合 · 决策驱动 · 面向商业分析人才培养',
-    goal: '面向企业数字化转型中的商科人才需求，以“业务提问—数据分析—可视化呈现—经营决策”为主线构建大数据分析实验教学体系，培养能用真实经营数据讲好商业故事的复合型商业分析人才。',
+    goal: '面向企业数字化转型中的商科人才需求，以“业务提问—数据分析—可视化呈现—经营决策”为主线构建商务数据分析实验教学体系，培养能用真实经营数据讲好商业故事的复合型商业分析人才。',
     mainline: ['业务提问', '数据分析', '可视化呈现', '经营决策'],
     positioning: '复合型商业分析人才',
     metrics: [
@@ -416,8 +298,8 @@ export const solutionPlans = [
     id: 'biz-tech-integration',
     n: '05',
     icon: Blocks,
-    name: '工商科一体化平台实验教学方案',
-    short: '工商科一体化',
+    name: solutionFullName('biz-tech-integration'),
+    short: SOLUTION_NAMES['biz-tech-integration'],
     en: 'BIZ-TECH INTEGRATION',
     tagline: '工商融合 · 软硬一体 · 面向复合应用人才培养',
     goal: '面向智能制造与数智经营交叉的人才需求，以“产线数据采集—数据治理—经营分析—优化决策”的闭环组织实验教学，让工科生懂经营、商科生懂技术，培养跨学科复合应用型人才。',
@@ -472,7 +354,7 @@ export const disciplineGroups = [
     en: 'AI & INFORMATION',
     icon: BrainCircuit,
     majors: ['人工智能', '软件工程', '数据科学与大数据技术', '物联网工程', '网络空间安全'],
-    use: ['03 AI 多智能体课堂', '05 数字经济 · 18 套', '02 区块链 · 联盟链实训'],
+    use: [PRODUCT_NAMES.class, PRODUCT_NAMES['digital-economy'], PRODUCT_NAMES.blockchain],
     courses: '机器学习、AIGC 与大模型、大数据 ETL、分布式账本',
   },
   {
@@ -481,7 +363,7 @@ export const disciplineGroups = [
     en: 'ECONOMICS & FINANCE',
     icon: Landmark,
     majors: ['金融科技', '金融学', '金融工程', '经济学', '数字经济', '投资学'],
-    use: ['02 金融科技 · 虚拟仿真', '01 数字经济 · 18 套', '05 智能风控与投顾'],
+    use: [solutionFullName('fintech'), solutionFullName('digital-economy'), PRODUCT_NAMES['digital-finance']],
     courses: '金融产品设计、证券投资、金融大数据分析、量化交易',
   },
   {
@@ -490,7 +372,7 @@ export const disciplineGroups = [
     en: 'ROBOTICS & MANUFACTURING',
     icon: Bot,
     majors: ['机器人工程', '自动化', '机械设计制造及其自动化', '智能制造工程'],
-    use: ['05 工商科一体化平台', '01 具身智能 · 6 机型', '多机协同实验'],
+    use: [solutionFullName('biz-tech-integration'), PRODUCT_NAMES.embodied, '多机协同实验'],
     courses: '机器人学、运动控制、SLAM 导航、产线虚拟调试',
   },
   {
@@ -499,7 +381,7 @@ export const disciplineGroups = [
     en: 'MATHEMATICS & STATISTICS',
     icon: Calculator,
     majors: ['应用数学', '统计学', '应用统计学', '数据计算及应用'],
-    use: ['03 应用统计 · 建模实训', '05 大数据 ETL 与分析挖掘', '量化挖掘终端'],
+    use: [solutionFullName('applied-statistics'), PRODUCT_NAMES['digital-economy'], '量化挖掘终端'],
     courses: '数值计算、统计建模、时间序列、最优化方法',
   },
   {
@@ -508,7 +390,7 @@ export const disciplineGroups = [
     en: 'MANAGEMENT & BUSINESS',
     icon: Briefcase,
     majors: ['工商管理', '市场营销', '电子商务', '供应链管理', '财务管理'],
-    use: ['04 大数据分析 · 全链路', '数字营销实战', '05 工商科一体化平台'],
+    use: [solutionFullName('business-analytics'), '数字营销实战', solutionFullName('biz-tech-integration')],
     courses: '商业智能、用户运营、供应链数据分析、经营决策模拟',
   },
   {
@@ -526,7 +408,7 @@ export const disciplineGroups = [
     en: 'MEDICINE & LIFE SCIENCE',
     icon: Stethoscope,
     majors: ['生物医学工程', '药学', '护理学', '临床医学'],
-    use: ['数字孪生与虚拟仿真', '03 AI 多智能体课堂', '医学大数据实训'],
+    use: [PRODUCT_NAMES['digital-economy'], PRODUCT_NAMES.class, '医学大数据实训'],
     courses: '医学影像处理、生理信号分析、虚拟解剖与操作',
   },
 ]

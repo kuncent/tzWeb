@@ -495,15 +495,16 @@ function KeyLight({ accent }) {
   return <pointLight ref={ref} position={[2.4, 3.2, 3.4]} intensity={16} distance={16} decay={1.8} color={accent} />
 }
 
-function Scene({ idx, cmd, tier }) {
+function Scene({ idx, cmd, tier, panelLayout }) {
   const accent = heroScenes[idx].accent
   const q = TIERS[tier]
   return (
     <>
-      <color attach="background" args={['#080d16']} />
+      {/* 底色压到页脚基座 night（#06080d）：与解决方案首屏主色调互换后，首页走深近黑 */}
+      <color attach="background" args={['#06080d']} />
       {/* fog 近界从 9 收到 8：实验室那一层比主体远 3~6 米，让它真退到后面去。
           上一版三屏都“平”：主体与环境一样清楚，没有空气，也就没有纵深 */}
-      <fog attach="fog" args={['#080d16', 8, 21]} />
+      <fog attach="fog" args={['#06080d', 8, 21]} />
 
       {/* 环境光与天光各降一档、主光升一档：质感是对比度，不是亮度。
           这一轮整体再抬一档（用户要「明亮但不刺眼」）：ambient 0.22→0.30、
@@ -524,7 +525,7 @@ function Scene({ idx, cmd, tier }) {
       {(AB ? AB.lab : true) && <LabEnvironment variant={heroScenes[idx].id} lite={tier === 0} />}
 
       {showRig('neural') && (
-        <NeuralRig active cmd={cmd} accent={heroScenes[idx].accent} />
+        <NeuralRig active cmd={cmd} accent={heroScenes[idx].accent} panelLayout={panelLayout} />
       )}
 
       {/* 环境贴图：机械臂与人形的白壳/金属靠它，没这张图 PBR 就是死灰 */}
@@ -558,7 +559,7 @@ function Scene({ idx, cmd, tier }) {
   )
 }
 
-export default function HeroStage({ idx, cmd, onContextLost, onContextRestored, onPainted }) {
+export default function HeroStage({ idx, cmd, panelLayout = false, onContextLost, onContextRestored, onPainted }) {
   /* 屏外停帧：首屏滚走以后不该再吃 GPU */
   const { ref, visible } = useCanvasVisibility('-140px')
   const [tier, setTier] = useState(Q_TIER !== null && Number.isFinite(Q_TIER) ? Q_TIER : guessStartTier)
@@ -622,7 +623,7 @@ export default function HeroStage({ idx, cmd, onContextLost, onContextRestored, 
       }}
     >
       <Suspense fallback={null}>
-        <Scene idx={idx} cmd={cmd} tier={tier} />
+        <Scene idx={idx} cmd={cmd} tier={tier} panelLayout={panelLayout} />
       </Suspense>
       {/* 故意放在 Suspense 外面：挡在里面会跟着 GLB 一起被挂起，那“第三帧”
          就变成“模型到位那一帧”，比用户选的那条界晚了一整跳网络 */}

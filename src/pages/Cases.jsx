@@ -1,4 +1,3 @@
-import { PageCTA } from '../components/PageShell'
 import Customers from '../components/sections/Customers'
 
 /* ============================================================
@@ -13,11 +12,6 @@ export default function Cases() {
   return (
     <>
       <Customers />
-      <PageCTA
-        title="想看和你学校同类的那一份案例"
-        sub="告诉我学校类型、专业方向与场地情况，我们按同类院校准备案例集与初版方案 —— 这一步不需要你先决定是否采购。"
-        back={{ label: '看关于我们', to: '/about' }}
-      />
     </>
   )
 }

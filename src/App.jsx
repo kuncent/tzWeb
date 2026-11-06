@@ -19,7 +19,6 @@ import useTracker from './hooks/useTracker'
 const Solutions = lazy(() => import('./pages/Solutions'))
 const Products = lazy(() => import('./pages/Products'))
 const Devices = lazy(() => import('./pages/Devices'))
-const SmartProducts = lazy(() => import('./pages/SmartProducts'))
 const Cases = lazy(() => import('./pages/Cases'))
 const SchoolEnterprise = lazy(() => import('./pages/SchoolEnterprise'))
 const About = lazy(() => import('./pages/About'))
@@ -56,12 +55,18 @@ function BootHandoff() {
   return null
 }
 
-/* 内页 chunk 尚未到位时的占位：与全站骨架同色、居中一枚呼吸点，
-   高度先撑住 min-h 以免页脚跳。减弱动效下降级为静点。 */
-function RouteFallback() {
+/* 内页 chunk 尚未到位时的占位：底色跟随各自外壳，避免切页时先闪一块反色。
+   营销内页首屏都是暗 hero → 暗底（bg-night）；后台是亮色壳 → 亮底（tone="mist"）。
+   高度先撑住 min-h 以免页脚跳；减弱动效下呼吸点降级为静点。 */
+function RouteFallback({ tone = 'night' }) {
+  const dark = tone !== 'mist'
   return (
-    <div className="flex min-h-[60vh] items-center justify-center bg-mist-100" role="status" aria-live="polite">
-      <span className="flex items-center gap-3 text-sm text-ink-400">
+    <div
+      className={`flex min-h-[60vh] items-center justify-center ${dark ? 'bg-night' : 'bg-mist-100'}`}
+      role="status"
+      aria-live="polite"
+    >
+      <span className={`flex items-center gap-3 text-sm ${dark ? 'text-white/45' : 'text-ink-400'}`}>
         <span className="h-2.5 w-2.5 animate-pingslow rounded-full bg-brand motion-reduce:animate-none" />
         页面加载中…
       </span>
@@ -84,7 +89,9 @@ function SiteShell() {
               <Route path="/technology" element={<Navigate to="/products" replace />} />
               <Route path="/products" element={<Products />} />
               <Route path="/devices" element={<Devices />} />
-              <Route path="/smart-products" element={<SmartProducts />} />
+              {/* 智能产品页已合并进产品设备页（内嵌具身机器人 3D 实机屏）：
+                  旧 /smart-products 深链重定向到 /devices，不断链 */}
+              <Route path="/smart-products" element={<Navigate to="/devices" replace />} />
               <Route path="/cases" element={<Cases />} />
               <Route path="/partnership" element={<SchoolEnterprise />} />
               <Route path="/about" element={<About />} />
@@ -106,7 +113,7 @@ function AppShell() {
   if (pathname.startsWith('/admin')) {
     return (
       <RoutedContent>
-        <Suspense fallback={<RouteFallback />}>
+        <Suspense fallback={<RouteFallback tone="mist" />}>
           <AdminRoot />
         </Suspense>
       </RoutedContent>

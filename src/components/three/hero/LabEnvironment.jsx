@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { buildClock } from './buildBus'
+import { THEME } from '../../../theme'
 
 /* ============================================================
  * 实验室环境层（三屏共用的"世界"）
@@ -34,7 +35,7 @@ const BENCH_ROWS = [-3.1, -4.2]
 const MULLION_X = [-7, -4.9, -2.8, 2.6, 5.6]
 const RACK_X = [-6.4, 6.9]
 /* 原先前两档颜色是 accent，现在钉死成机房冷白蓝 */
-const LAB_ACCENT = '#6fb2ff'
+const LAB_ACCENT = THEME.sky
 /* 演示岛：人形 + 机械臂站的那块抬高地台（_flush_ 只抬 3cm，不顶脚） */
 const ISLE = { c: [0.3, -0.25], w: 4.4, d: 2.4 }
 /* 机柜后墙：链屏/AI 屏的“房间尽头”是一排面朝相机的机柜 + 它头上的视频墙 ——
@@ -116,12 +117,12 @@ function glow(size, position, hex, { mul = 1, opacity = 1, rotation = [0, 0, 0] 
     代价为零：三张纹理本来就是按 variant 各自缓存的，draw call 一个不多 */
 const WALL_SEED = { embodied: 1, chain: 2, ai: 3 }
 const WALL_INK = {
-  embodied: { bg: '#04101f', grid: 'rgba(95,168,255,0.07)', line: 'rgba(95,168,255,0.4)', wash: 'rgba(8,22,40,0.72)', soft: 'rgba(95,168,255,0.16)', a: '#5FA8FF', b: '#3EE0A4' },
+  embodied: { bg: '#04101f', grid: 'rgba(95,168,255,0.07)', line: 'rgba(95,168,255,0.4)', wash: 'rgba(8,22,40,0.72)', soft: 'rgba(95,168,255,0.16)', a: THEME.sky, b: '#2DD4BF' },
   /* 链屏的墙墨跟主题色一起换成琥珀金：墙上那些区块列表 / TPS 柱列
      是屏上的数据，不是漆 —— 业务换色而墙还是薄荷绿，就是两套路灯装在同一个房间里。
      b 从原来的冷蓝换成更淡的一档，给金墙留一个能喘气的互补色 */
   chain: { bg: '#0f0a04', grid: 'rgba(242,183,92,0.07)', line: 'rgba(242,183,92,0.36)', wash: 'rgba(28,19,7,0.72)', soft: 'rgba(242,183,92,0.14)', a: '#F2B75C', b: '#8FC4FF' },
-  ai: { bg: '#0a0720', grid: 'rgba(169,139,255,0.08)', line: 'rgba(169,139,255,0.4)', wash: 'rgba(16,10,38,0.72)', soft: 'rgba(169,139,255,0.16)', a: '#A98BFF', b: '#FFC46A' },
+  ai: { bg: '#0a1b36', grid: 'rgba(37,212,255,0.1)', line: 'rgba(37,212,255,0.46)', wash: 'rgba(10,28,56,0.7)', soft: 'rgba(37,212,255,0.18)', a: THEME.ice, b: THEME.sky },
 }
 /* 确定性伪随机：同一个 variant 每次刷新画出来是同一张图 ——
    拿 Math.random 的话切一屏回来墙上东西全变了，读作贴图而不是读数 */
@@ -287,7 +288,7 @@ function wallEmbodied(g, ink, panel, rand) {
   g.beginPath(); g.moveTo(gz[0], gz[1]); g.lineTo(gz[0] + 15, gz[1] + 5); g.stroke()
   g.strokeStyle = '#5fe08a'
   g.beginPath(); g.moveTo(gz[0], gz[1]); g.lineTo(gz[0] - 2, gz[1] - 16); g.stroke()
-  g.strokeStyle = '#6fb2ff'
+  g.strokeStyle = THEME.sky
   g.beginPath(); g.moveTo(gz[0], gz[1]); g.lineTo(gz[0] - 13, gz[1] + 9); g.stroke()
   g.restore() // 解 clip
   g.restore() // 解视口的栏平移
@@ -711,10 +712,10 @@ function wallDemos(g) {
     g.strokeStyle = 'rgba(120,180,255,0.30)'
     g.lineWidth = 1
     g.stroke()
-    g.fillStyle = 'rgba(95,168,255,0.09)'
+    g.fillStyle = 'rgba(127,184,255,0.09)'
     rr(x + 1, y + 1, w - 2, 15, 7)
     g.fill()
-    ;['#5FA8FF', 'rgba(255,196,106,0.85)', 'rgba(62,224,164,0.85)'].forEach((c, i) => {
+    ;[THEME.sky, 'rgba(47,123,255,0.85)', 'rgba(37,212,255,0.85)'].forEach((c, i) => {
       g.fillStyle = c
       g.beginPath()
       g.arc(x + 11 + i * 11, y + 8, 2.6, 0, Math.PI * 2)
@@ -1091,7 +1092,7 @@ function planeUV(geo, u0, u1) {
  * 可辨）—— 两个尺度上都不会与 DOM 打架，所以这里可以放真代码。
  * ============================================================ */
 const MONO = 'ui-monospace, Consolas, "Courier New", monospace'
-const CODE_INK = { kw: '#6fb2ff', fn: '#e8c46a', str: '#3ee0a4', com: '#4f6b86', num: '#d78a5e', def: '#c3d4e8' }
+const CODE_INK = { kw: THEME.ice, fn: THEME.sky, str: '#5FE0C0', com: '#4f6b86', num: '#9CC0FF', def: '#C9DCF2' }
 /* 一行 = 若干 [文本, 色名] 段：手写分段比正则分词便宜且可控（能故意留错行缩进） */
 const CODE_PANELS = [
   {
@@ -1319,9 +1320,9 @@ function deskSimTexture() {
     g.strokeStyle = 'rgba(95,168,255,0.35)'
     g.strokeRect(ox + 10, 10, 108, 34)
     for (let i = 0; i < 3; i++) {
-      g.fillStyle = 'rgba(95,168,255,0.2)'
+      g.fillStyle = 'rgba(127,184,255,0.2)'
       g.fillRect(ox + 16, 17 + i * 9, 78, 4)
-      g.fillStyle = i === 1 ? '#3ee0a4' : '#6fb2ff'
+      g.fillStyle = i === 1 ? THEME.cyan : THEME.sky
       g.fillRect(ox + 16, 17 + i * 9, [58, 70, 34][i], 4)
     }
     g.fillStyle = '#9dc0e6'

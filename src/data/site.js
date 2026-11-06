@@ -24,6 +24,7 @@ import {
   Target,
   Send,
 } from 'lucide-react'
+import { PRODUCTS, PRODUCT_NAMES, PRODUCT_SHORT_NAMES, SOLUTIONS, SOLUTION_NAMES } from './vocabulary'
 
 /* ---------------- 品牌与导航 ---------------- */
 export const brand = {
@@ -39,33 +40,17 @@ export const nav = [
   { label: '解决方案', to: '/solutions' },
   { label: '产品体系', to: '/products' },
   { label: '产品设备', to: '/devices' },
-  { label: '智能产品', to: '/smart-products' },
   { label: '高校案例', to: '/cases' },
   { label: '校企合作', to: '/partnership' },
   { label: '关于我们', to: '/about' },
 ]
-export const navCta = { label: '预约演示', to: '/#contact' }
-
-/* 页内锚点导航（参考极光产品页骨架）
-   首屏不在这里：三屏业务特效（StoryHero）是开场而不是目录项，
-   导航栏的板块模式也要等滚过 problems 才接管，把它放进来会让
-   页面导航在首屏就消失。advisor = 原首屏 Hero，现改名「一站式 AI 方案顾问」。 */
-/* 顶栏「板块」导航与滚动高亮共用这一份顺序：必须与 Home 里各屏的实际
-   DOM 上下顺序一致（见 pages/Home.jsx）。此前 advisor 被排在倒数、matrix 与
-   architecture 又颠倒，导致滚到哪儿高亮就往哪儿乱跳——现按真实页序对齐。 */
-export const anchorSections = [
-  { id: 'problems', label: '挑战与问题' },
-  { id: 'advisor', label: 'AI 方案顾问' },
-  { id: 'architecture', label: '技术架构' },
-  { id: 'ai', label: 'AI 能力' },
-  { id: 'contact', label: '联系我们' },
-]
+export const navCta = { label: '预约演示', to: '/about#contact' }
 
 /* ---------------- 一站式 AI 方案顾问（原首屏 Hero，现位于痛点之后、产品矩阵之前）---------------- */
 export const advisorKicker = '构建下一代人才培养基础设施'
 export const advisorTitle = ['用科技重塑教育', '让培养的人才', '站在时代前沿']
 export const advisorDesc =
-  '我们为高校提供人工智能、具身智能、区块链与工程实训等全学科融合的未来教育解决方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
+  '我们为高校提供具身智能、区块链、AI 多智能体课堂、数字金融与数字经济五大产品体系，以及数字经济、金融科技、应用统计、商务数据分析、工商科一体化五套实验教学方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
 export const advisorCtas = [
   { label: '免费开通试用', primary: true },
   { label: '方案咨询', primary: false },
@@ -117,31 +102,31 @@ export const productMatrix = [
     id: 'embodied',
     en: 'EMBODIED ROBOT LAB',
     icon: Bot,
-    title: '具身智能 · 机器人实验室',
+    title: PRODUCT_NAMES.embodied,
     tagline: '从空间、硬件到软件，构建真正可以使用的机器人学习与实践环境',
     desc: '面向学校的完整具身机器人实验室方案：机器人硬件设备、实验管理平台、教学资源与技术支持一体交付，让学生在真实机器人环境中学习、实践与创新。',
     bullets: ['多机协同实验', '远程控制与监控', '数据采集与分析', '开放式开发接口'],
     stats: [{ k: '落地实验室', v: '200+' }, { k: '配套课程', v: '320+' }],
-    intent: '数字孪生实验室',
+    intent: PRODUCT_NAMES.embodied,
     rich: 'embodied',
   },
   {
     id: 'blockchain',
     en: 'BLOCKCHAIN & LEDGER',
     icon: Blocks,
-    title: '区块链 · 可信账本与量化实训',
+    title: PRODUCT_NAMES.blockchain,
     tagline: '一条真实的链，三套可直接进课堂的系统',
     desc: '学生从第一条交易开始就在真实链路上操作：联盟链上写合约、部署、看浏览器，公链侧做链上数据聚合与态势感知，再往上一层用事件驱动引擎把策略压进回测与执行。三套系统同源交付，覆盖联盟链搭建、链上数据聚合与量化回测实盘的完整链路。',
     bullets: ['联盟链 + 公链双环境', '合约 IDE 与区块浏览器', '链上数据聚合与态势大屏', '回测到实盘同内核'],
     stats: [{ k: '已部署合约', v: '33 份' }, { k: '覆盖公链', v: '10 条' }],
-    intent: '区块链与联盟链实训',
+    intent: PRODUCT_NAMES.blockchain,
     rich: 'chain',
   },
   {
     id: 'class',
     en: 'AI AGENT CLASSROOM',
     icon: GraduationCap,
-    title: 'AI 多智能体课堂',
+    title: PRODUCT_NAMES.class,
     tagline: '一句话生成一堂能讲的课，AI 教师与同学同堂互动',
     desc: '输入主题即由大模型先出教学大纲、再装配课堂场景：讲解幻灯、随堂提问、互动模拟与项目式任务四类组件按堂排布。课堂上 AI 教师主讲推导、多名 AI 同学追问举反例、组织讨论与圆桌辩论，学生随时打断提问；配套白板实时书写、教师语音与课件导出，模型可换、数据可不出校。',
     bullets: ['大纲 → 场景两阶段生成', '四类课堂组件', '多智能体讨论与白板推导', '深度交互与课件导出'],
@@ -149,19 +134,19 @@ export const productMatrix = [
       { k: '生成一堂课', v: '≤ 40s' },
       { k: '课堂组件', v: '4 类' },
     ],
-    intent: 'AI 多智能体课堂',
+    intent: PRODUCT_NAMES.class,
     rich: 'class',
   },
   {
     id: 'digital-finance',
     en: 'DIGITAL FINANCE LAB',
     icon: Landmark,
-    title: '数字金融 · 虚拟仿真实训体系',
+    title: PRODUCT_NAMES['digital-finance'],
     tagline: '按金融市场的真实链路排实验，五个环节 19 套系统',
     desc: '系统不按软件罗列，而是按旧平台自己标的市场链路分层：从国内外宏观经济运行与监管往下，经产品设计、发行承销、流通交易，到各类市场参与主体。每一行都是一套可直接开实验的实训系统，点开读它的适用专业、适用课程和实验项目大纲。',
     bullets: ['宏观运行与金融监管', '产品设计与估值定价', '发行与承销 · 并购重组', '流通交易与机构业务'],
     stats: [{ k: '实训系统', v: '19 套' }, { k: '实验项目', v: '212 条' }],
-    intent: '自然语言实验平台',
+    intent: PRODUCT_NAMES['digital-finance'],
     rich: 'systems',
     systems: 'finance',
   },
@@ -169,12 +154,12 @@ export const productMatrix = [
     id: 'digital-economy',
     en: 'DIGITAL ECONOMY & AI LAB',
     icon: DatabaseZap,
-    title: '数字经济 · 大数据与 AI 实训体系',
+    title: PRODUCT_NAMES['digital-economy'],
     tagline: '大数据、人工智能、云计算三个技术底座，18 套系统直接开课',
     desc: '按旧平台自己的技术分类收在三个篮子里：大数据技术 8 套、人工智能技术 7 套、云计算技术 3 套。列出来的都是平台在跑的系统，每套带自己的实验项目大纲与适用专业、适用课程；点一行展开，那套系统的原文就在下面。',
     bullets: ['大数据 ETL 与分析挖掘', '机器学习与 AIGC 大模型', '智能风控 · 投顾 · 交易', '云主机与金融 SaaS'],
     stats: [{ k: '实训系统', v: '18 套' }, { k: '实验项目', v: '280 条' }],
-    intent: '自然语言实验平台',
+    intent: PRODUCT_NAMES['digital-economy'],
     rich: 'systems',
     systems: 'economy',
   },
@@ -258,7 +243,7 @@ export const blockchainProducts = [
     name: '联盟链搭建实训',
     tag: '联盟链 · 合约到浏览器全链路',
     desc: '学生在一条真实联盟链上写 Solidity、编译部署、发交易，并用自己的钱包查看余额与 NFT；教师端按班级下发实验、自动采集成绩。',
-    intent: '区块链与联盟链实训',
+    intent: PRODUCT_NAMES.blockchain,
     demo: 'https://ecosim.sztzjy.com:8443/#/login',
     specs: [['共识节点', '6 节点'], ['已部署合约', '33 份'], ['链上交易', '134 笔'], ['交付形态', '校内私有化']],
     clip: {
@@ -281,7 +266,7 @@ export const blockchainProducts = [
     name: '链上态势感知平台',
     tag: '多链聚合 · 实时大屏',
     desc: '把多条公链的区块、交易、合约方法调用聚合到同一套时间坐标系里，支持小时/日度下钻，用于数据素养与风控课程的真景实训。',
-    intent: '区块链与联盟链实训',
+    intent: PRODUCT_NAMES.blockchain,
     demo: 'https://ecosim.sztzjy.com:8443/#/login',
     specs: [['覆盖公链', '10 条'], ['日度聚合', '933 组'], ['明细交易', '百万级'], ['更新频率', '小时级']],
     clip: {
@@ -302,7 +287,7 @@ export const blockchainProducts = [
     name: '量化挖掘终端',
     tag: '事件驱动回测 · 执行台',
     desc: '上层应用：同一套执行内核跑回测与仿真，撮合引擎还原排队与冲击成本；课堂里学生改一个参数就能看到夏普、回撤、换手的真实变化。',
-    intent: '区块链与联盟链实训',
+    intent: PRODUCT_NAMES.blockchain,
     demo: '#',
     specs: [['回测引擎', '事件驱动'], ['历史深度', '8.4 年'], ['参数网格', '3,240 组'], ['下单延迟', '≤ 6ms']],
     clip: {
@@ -437,7 +422,7 @@ export const customers = ['清华大学', '浙江大学', '上海交通大学', 
 export const caseFeatured = {
   school: '北京理工大学',
   img: '/images/d_casephoto.webp',
-  tags: ['AI实验室', '具身智能实验室', '工程实训中心'],
+  tags: [SOLUTION_NAMES['digital-economy'], SOLUTION_NAMES['biz-tech-integration'], PRODUCT_SHORT_NAMES.embodied],
   metrics: [
     { k: '建设面积', v: '5,000㎡' },
     { k: '服务学生', v: '5,000+' },
@@ -473,8 +458,8 @@ export const resources = [
   {
     title: '下载与体验',
     items: [
-      { label: '《高校 AI 实训建设方案》模板', to: '/#contact', kind: '洽谈提供' },
-      { label: 'Demo 体验环境申请', to: '/#contact', kind: '申请开通' },
+      { label: '《高校 AI 实训建设方案》模板', to: '/about#contact', kind: '洽谈提供' },
+      { label: 'Demo 体验环境申请', to: '/about#contact', kind: '申请开通' },
       { label: '同类院校案例集', to: '/cases', kind: '洽谈提供' },
       { label: '产品实机演示（链 / 课堂 / 具身）', to: '/products', kind: '在线' },
     ],
@@ -483,7 +468,8 @@ export const resources = [
 
 /* ---------------- 联系我们 ---------------- */
 export const contactHead = { en: 'CONTACT', zh: '联系我们', desc: '留下您的联系方式，我们的方案专家与教育顾问将在 1 个工作日内与您联系。' }
-export const contactProducts = ['AI 多智能体课堂', '自然语言实验平台', '数字孪生实验室', '区块链与联盟链实训', '课程资源共建', '私有化部署', '其他合作']
+/* 意向方向统一走词表：前 5 项 = 产品体系全名，后 3 项 = 合作方向 */
+export { CONTACT_INTENTS as contactProducts } from './vocabulary'
 export const contact = {
   phone: '400-000-0000',
   email: 'contact@sztzjy.com',
@@ -491,31 +477,23 @@ export const contact = {
 }
 export const offices = ['深圳总部', '北京', '重庆', '郑州', '西安', '长沙']
 
-/* ---------------- 页脚 ---------------- */
+/* ---------------- 页脚 ----------------
+   产品与方案两列都从词表生成：产品 = 5 大产品体系，方案 = 5 套学科方案，
+   链接落到各自的真实锚点，不再挂旧场景名与死链。 */
 export const footerNav = [
   {
     title: '产品',
-    links: [
-      { label: 'AI 多智能体课堂', to: '/#ai' },
-      { label: '自然语言实验平台', to: '/#ai' },
-      { label: '学情分析引擎', to: '/#ai' },
-    ],
+    links: PRODUCTS.map((p) => ({ label: p.short, to: '/products' })),
   },
   {
     title: '解决方案',
-    links: [
-      { label: 'AI 人工智能实验室', to: '/solutions' },
-      { label: '具身智能实验室', to: '/solutions' },
-      { label: '区块链实验室', to: '/solutions' },
-      { label: '工程实训中心', to: '/solutions' },
-      { label: '未来校园 · 创新中心', to: '/solutions' },
-    ],
+    links: SOLUTIONS.map((s) => ({ label: s.name, to: `/solutions#plan-${s.id}` })),
   },
   {
     title: '公司',
     links: [
       { label: '关于我们', to: '/about' },
-      { label: '联系我们', to: '/#contact' },
+      { label: '联系我们', to: '/about#contact' },
       { label: '加入我们', to: '/about' },
       { label: '合作生态', to: '/about' },
     ],

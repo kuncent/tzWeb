@@ -26,8 +26,6 @@ export default function Customers() {
         <div className="absolute -right-40 bottom-0 h-[460px] w-[460px] rounded-full bg-[radial-gradient(closest-side,rgba(22,119,255,0.08),transparent_70%)]" />
         <div className="absolute inset-0 opacity-[0.5] [background-image:radial-gradient(rgba(22,119,255,0.10)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:radial-gradient(80%_60%_at_50%_0%,#000,transparent)]" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/30 to-transparent" />
-        {/* 右上角编号水印：极淡的一枚「08」，给浅色区一点尺度与秩序 */}
-        <span aria-hidden className="absolute right-2 top-0 select-none font-mono text-[170px] font-black leading-none tracking-tighter text-ink-900/[0.028] sm:text-[230px] lg:right-8 lg:top-4 lg:text-[300px]">08</span>
       </div>
 
       <div className="relative z-10 container-x">

@@ -20,20 +20,22 @@ import { scrollToId } from '../hooks/useLenis'
    原来那两团大半径蓝雾是「模板感」的来源：越大越糊，谁家的官网都长这样。
    改成结构先行 —— 光只留一道压在顶部的窄地平线（读作「画面上方有光源」），
    纵深交给顶部渐变与两级网格：88px 主格给秩序，22px 次格给精度。
-   科技感来自刻度与层次，不来自亮度。 */
+   科技感来自刻度与层次，不来自亮度。
+   底色取主题的 night-900→night（与页脚第一段同色），内页翻下来不换底。 */
 function HeroBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[#06080d]" />
-      <div className="absolute inset-x-0 top-0 h-[460px] bg-gradient-to-b from-[#0a0e16] via-[#080b12]/70 to-transparent" />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #0a0e22 0%, #0e1430 60%, #141b3d 100%)' }} />
+      <div className="absolute inset-x-0 top-0 h-[460px]" style={{ background: 'linear-gradient(to bottom, rgba(10,14,34,0.72), rgba(10,14,34,0.26), transparent)' }} />
       {/* 地平线：1px 亮线 + 上方一道窄辉光，中心略亮、两端收干 */}
-      <div className="absolute inset-x-0 top-[118px] h-px bg-gradient-to-r from-transparent via-brand-400/30 to-transparent" />
-      <div className="absolute left-1/2 top-[94px] h-[150px] w-[min(1180px,96%)] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(22,119,255,0.14),transparent_72%)] blur-[18px]" />
+      <div className="absolute inset-x-0 top-[118px] h-px bg-gradient-to-r from-transparent via-accent-sky/30 to-transparent" />
+      <div className="absolute left-1/2 top-[94px] h-[150px] w-[min(1180px,96%)] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,var(--theme-halo-soft),transparent_72%)] blur-[18px]" />
       {/* 88px 主格 + 22px 次格：只在顶部渐隐，像工程图纸而不是背景图 */}
       <div className="absolute inset-0 opacity-[0.13] [background-image:linear-gradient(to_right,rgba(255,255,255,0.10)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.10)_1px,transparent_1px)] [background-size:88px_88px] [mask-image:radial-gradient(130%_85%_at_50%_-10%,#000_42%,transparent_80%)]" />
       <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(90%_62%_at_50%_8%,#000,transparent_74%)]" />
       {/* 底边一道收口，避免暗块生硬切断 */}
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#06080d]" />
+      <div className="absolute inset-x-0 bottom-0 h-24" style={{ background: 'linear-gradient(to bottom, transparent, #0a0f24)' }} />
+      <div aria-hidden className="dark-grain pointer-events-none absolute inset-0" />
     </div>
   )
 }
@@ -47,13 +49,33 @@ function HeroBackdropLight() {
       <div className="absolute inset-0 bg-gradient-to-b from-white via-white to-mist-100" />
       <div className="absolute inset-x-0 top-0 h-[460px] bg-gradient-to-b from-mist-100/70 via-white/40 to-transparent" />
       {/* 地平线：1px 细线 + 上方一道窄辉光，中心略亮、两端收干 */}
-      <div className="absolute inset-x-0 top-[118px] h-px bg-gradient-to-r from-transparent via-brand/25 to-transparent" />
-      <div className="absolute left-1/2 top-[94px] h-[150px] w-[min(1180px,96%)] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(22,119,255,0.10),transparent_72%)] blur-[18px]" />
+      <div className="absolute inset-x-0 top-[118px] h-px bg-gradient-to-r from-transparent via-accent/25 to-transparent" />
+      <div className="absolute left-1/2 top-[94px] h-[150px] w-[min(1180px,96%)] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,var(--theme-halo-soft),transparent_72%)] blur-[18px]" />
       {/* 88px 主格 + 22px 次格：ink 极低不透明度，只在顶部渐隐 */}
       <div className="absolute inset-0 opacity-[0.6] [background-image:linear-gradient(to_right,rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.05)_1px,transparent_1px)] [background-size:88px_88px] [mask-image:radial-gradient(130%_85%_at_50%_-10%,#000_42%,transparent_80%)]" />
       <div className="absolute inset-0 opacity-[0.4] [background-image:linear-gradient(to_right,rgba(15,23,42,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.06)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(90%_62%_at_50%_8%,#000,transparent_74%)]" />
       {/* 底边收口到 mist-100，给暗色产品矩阵屏让出一道干净的浅色过渡 */}
       <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-mist-100" />
+    </div>
+  )
+}
+
+/* 冰蓝首屏底：与深色 HeroBackdrop 同一套结构（地平线 + 双级网格 + 顶部窄辉光），
+   只把底色从近黑夜色抬成冰蓝渐变——用于「解决方案」首屏，与首页首屏主色调互换后的观感对齐。 */
+export function HeroBackdropIce() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #0a1a2e 0%, #0f2642 55%, #14325a 100%)' }} />
+      <div className="absolute inset-x-0 top-0 h-[460px]" style={{ background: 'linear-gradient(to bottom, rgba(10,26,46,0.6), rgba(10,26,46,0.2), transparent)' }} />
+      {/* 地平线：1px 亮线 + 上方一道窄辉光 */}
+      <div className="absolute inset-x-0 top-[118px] h-px bg-gradient-to-r from-transparent via-accent-ice/45 to-transparent" />
+      <div className="absolute left-1/2 top-[94px] h-[150px] w-[min(1180px,96%)] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,var(--theme-halo-cyan),transparent_72%)] blur-[18px]" />
+      {/* 88px 主格 + 22px 次格：只在顶部渐隐 */}
+      <div className="absolute inset-0 opacity-[0.13] [background-image:linear-gradient(to_right,rgba(255,255,255,0.10)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.10)_1px,transparent_1px)] [background-size:88px_88px] [mask-image:radial-gradient(130%_85%_at_50%_-10%,#000_42%,transparent_80%)]" />
+      <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(90%_62%_at_50%_8%,#000,transparent_74%)]" />
+      {/* 底部青辉光：呼应首页那圈冰蓝 */}
+      <div className="absolute inset-x-0 bottom-0 h-[42%] bg-[radial-gradient(70%_100%_at_50%_100%,rgba(37,212,255,0.16),transparent_72%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-24" style={{ background: 'linear-gradient(to bottom, transparent, #14325a)' }} />
     </div>
   )
 }
@@ -97,9 +119,9 @@ export function PageHero({ eyebrow, title, sub, stats, crumbs, cta, children, ba
             <Reveal y={12}>
               {/* HUD 式标签行：菱形刻度 + 渐隐细线 + 小字，比原来一根 8px 短线更像仪表 */}
               <div className="mt-6 flex items-center gap-3">
-                <span aria-hidden className="h-1.5 w-1.5 rotate-45 bg-brand-400/90" />
-                <span aria-hidden className="h-px w-10 bg-gradient-to-r from-brand-400/60 to-transparent" />
-                <span className={`text-caption font-semibold uppercase tracking-[0.3em] ${dark ? 'text-brand-300' : 'text-brand'}`}>{eyebrow}</span>
+                <span aria-hidden className={`h-1.5 w-1.5 rotate-45 ${dark ? 'bg-accent-ice/90' : 'bg-brand-400/90'}`} />
+                <span aria-hidden className={`h-px w-10 bg-gradient-to-r to-transparent ${dark ? 'from-accent-ice/60' : 'from-brand-400/60'}`} />
+                <span className={`text-caption font-semibold uppercase tracking-[0.3em] ${dark ? 'text-accent-sky' : 'text-brand'}`}>{eyebrow}</span>
               </div>
             </Reveal>
             <Reveal delay={0.06} y={16}>
@@ -163,8 +185,8 @@ export function PageHero({ eyebrow, title, sub, stats, crumbs, cta, children, ba
 export function HeroFrame({ index, label, hint, status = 'LIVE', children, bodyClass = '', className = '' }) {
   const reduced = useReducedMotion()
   return (
-    <div className={`relative w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] shadow-[0_30px_70px_-30px_rgba(0,0,0,0.75)] ${className}`}>
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-20 h-px bg-gradient-to-r from-transparent via-brand-400/60 to-transparent" />
+    <div className={`relative w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] shadow-[var(--shadow-theme-soft)] ${className}`}>
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-20 h-px bg-gradient-to-r from-transparent via-accent-sky/60 to-transparent" />
 
       {/* 开机扫描：一道横光自上而下走一遍即止 */}
       {!reduced && (
@@ -200,20 +222,20 @@ export function HeroFrame({ index, label, hint, status = 'LIVE', children, bodyC
 
       {index && (
         <div className="pointer-events-none absolute left-9 top-[13px] z-30 hidden items-center gap-2 font-mono text-micro tabular-nums tracking-eyebrow text-white/30 sm:flex">
-          <span aria-hidden className="h-1 w-1 rounded-full bg-brand-400/90" />
+          <span aria-hidden className="h-1 w-1 rounded-full bg-accent-ice/90" />
           {index}
         </div>
       )}
       {status && (
         <div className="pointer-events-none absolute right-9 top-[13px] z-30 hidden items-center gap-1.5 font-mono text-micro uppercase tracking-eyebrow text-white/28 sm:flex">
-          <span aria-hidden className="h-1 w-1 animate-pulse rounded-full bg-brand-300/90 motion-reduce:animate-none" />
+          <span aria-hidden className="h-1 w-1 animate-pulse rounded-full bg-accent-cyan/90 motion-reduce:animate-none" />
           {status}
         </div>
       )}
 
       {label && (
         <div className="pointer-events-none absolute left-1/2 top-3.5 z-30 -translate-x-1/2">
-          <span className="whitespace-nowrap rounded-full border border-brand/25 bg-[#06080d]/70 px-3 py-1 text-caption font-semibold uppercase tracking-[0.14em] text-brand-300 backdrop-blur-sm">{label}</span>
+          <span className="whitespace-nowrap rounded-full border border-accent/25 bg-night/70 px-3 py-1 text-caption font-semibold uppercase tracking-[0.14em] text-accent-sky backdrop-blur-sm">{label}</span>
         </div>
       )}
       {hint && (
@@ -262,7 +284,7 @@ export function InnerNav({ items, tone = 'light' }) {
   const jump = (id) => scrollToId(id, -116)
 
   return (
-    <div className={`sticky top-[64px] z-40 border-b backdrop-blur-xl ${dark ? 'border-white/[0.06] bg-[#06080d]/85' : 'border-ink-900/[0.06] bg-white/85'}`}>
+    <div className={`sticky top-[64px] z-40 border-b backdrop-blur-xl ${dark ? 'border-white/[0.06] bg-night/85' : 'border-ink-900/[0.06] bg-white/85'}`}>
       <div className="container-x flex gap-1 overflow-x-auto py-2.5 no-scrollbar">
         {items.map((s) => {
           const on = active === s.id
@@ -327,11 +349,11 @@ export function PageSection({ id, tone = 'light', head, children, className = ''
 }
 
 /* 收口 CTA：每个内页最后都回到同一句话 —— 先聊需求，再谈方案 */
-export function PageCTA({ title = '先聊聊贵校的情况，再谈方案', sub = '留下联系方式，方案顾问与教研老师会在 1 个工作日内对接；也可以直接索取一份同类院校的建设方案初稿。', to = '/#contact', link = '预约演示', back = null }) {
+export function PageCTA({ title = '先聊聊贵校的情况，再谈方案', sub = '留下联系方式，方案顾问与教研老师会在 1 个工作日内对接；也可以直接索取一份同类院校的建设方案初稿。', to = '/about#contact', link = '预约演示', back = null }) {
   return (
-    <section className="relative isolate overflow-hidden bg-[#06080d] py-20 text-white md:py-24">
+    <section className="relative isolate overflow-hidden bg-night py-20 text-white md:py-24">
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-[-160px] h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(22,119,255,0.3),transparent)]" />
+        <div className="absolute left-1/2 top-[-160px] h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--theme-halo),transparent)]" />
         <div className="absolute inset-0 opacity-[0.14] [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(70%_70%_at_50%_50%,#000,transparent)]" />
       </div>
       <div className="container-x relative flex flex-wrap items-end justify-between gap-8">

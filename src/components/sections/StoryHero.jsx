@@ -54,9 +54,9 @@ const LAST = N - 1
 const STEP_VH = 76
 const EASE = [0.22, 1, 0.36, 1]
 
-/* 五大产品入口色块的颜色：与首屏主题蓝、AgentPanels 面板同一族，
-   五支在蓝→青区间里拉开明度/饱和度，彼此可分辨又不跳色 */
-const PRODUCT_HUES = ['#5FA8FF', '#6FD4FF', '#3D7BFA', '#9CC0FF', '#4FC0E8']
+/* 五大产品入口色块：蓝→青等距阶梯，明度逐档对齐，读作一条刻意的光谱而非随机蓝；
+   与 3D 展板的 HUES 同族、各自一套（这一套略深，适合贴在近黑首屏上的小色块） */
+const PRODUCT_HUES = ['#4C7DFF', '#3D93FF', '#2BA9F5', '#1FBEDF', '#25CFC6']
 /* 色块用简称：取 title 「·」前的第一段，够短也够认 */
 const shortName = (t) => (t.includes('·') ? t.split('·')[0] : t).trim()
 
@@ -69,7 +69,19 @@ function Scrim({ accent, still = false }) {
   const drift = (dur, x, y) => (still ? undefined : { x, y, transition: { duration: dur, repeat: Infinity, ease: 'linear' } })
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(125%_95%_at_18%_8%,#10151e_0%,#080b12_52%,#05070c_100%)]" />
+      <div
+        className="absolute inset-0"
+        style={{
+          /* 底色压到页脚基座 night（#06080d）：与解决方案首屏主色调互换后，
+             首页走深近黑——不再抬成冰蓝 */
+          background:
+            'linear-gradient(180deg, #06080d 0%, #06080d 58%, #070e1d 100%)',
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{ background: 'radial-gradient(70% 42% at 50% 100%, rgba(37,212,255,0.06), transparent 70%)' }}
+      />
       <div className="absolute inset-0 opacity-70 [background-image:linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(75%_65%_at_38%_46%,black,transparent)]" />
       <motion.div
         className="absolute left-[8%] top-[6%] h-[560px] w-[560px] rounded-full opacity-70"
@@ -134,8 +146,11 @@ function HeroIntro({ scene, still }) {
       {/* 五大产品体系入口色块 —— 按用户要求收一档：字号/图标/内边距/间距整体缩小，
           但 py-2.5 + 9 号图标仍保证整块 ≥ 44px 的可点高度。
           这一轮再收长度：色块栅格限宽 580px（原随文案列 660px），单块 285px 宽 ——
-          比上一版窄约 32px，但 285 仍装得下 6 字中文 + 9px 英文名，不折行 */}
-      <motion.div className="mt-6 grid max-w-[580px] grid-cols-1 gap-2.5 sm:grid-cols-2" {...enter(0.26)}>
+          比上一版窄约 32px，但 285 仍装得下 6 字中文 + 9px 英文名，不折行
+          pointer-events-auto 必须显式加：整个左文案列是 pointer-events-none
+          （让 orbit 拖拽能穿到 canvas），交互子块要各自接回 auto，否则点色块
+          会穿到背后的 canvas，看着像点了没反应（与下方主 CTA 同一套做法） */}
+      <motion.div className="pointer-events-auto mt-6 grid max-w-[580px] grid-cols-1 gap-2.5 sm:grid-cols-2" {...enter(0.26)}>
         {productMatrix.map((p, i) => {
           const hue = PRODUCT_HUES[i % PRODUCT_HUES.length]
           const Icon = p.icon
@@ -163,8 +178,8 @@ function HeroIntro({ scene, still }) {
       {/* 主 CTA */}
       <motion.div className="pointer-events-auto mt-7 flex flex-wrap items-center gap-3.5" {...enter(0.32)}>
         <a
-          href="/#contact"
-          className="group inline-flex items-center gap-2.5 rounded-full px-6 py-3 text-[14px] font-semibold text-[#06080d] transition-all duration-300 hover:-translate-y-0.5"
+          href="/about#contact"
+          className="group inline-flex items-center gap-2.5 rounded-full px-6 py-3 text-[14px] font-semibold text-night transition-all duration-300 hover:-translate-y-0.5"
           style={{ background: scene.accent, boxShadow: `0 20px 48px -16px ${scene.accent}b0` }}
         >
           预约这套方案
@@ -212,12 +227,12 @@ function MobileHero({ scene, still }) {
         <HeroIntro scene={scene} still={still} />
         <div className="relative mt-10 rounded-2xl border border-white/12 p-5 shadow-[0_12px_40px_-16px_rgba(0,0,0,0.5)] overflow-hidden">
           {/* 独立暗底隔离下方 3D */}
-          <div className="absolute inset-0 bg-[#070b12] rounded-2xl" aria-hidden />
+          <div className="absolute inset-0 bg-night-900 rounded-2xl" aria-hidden />
           <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]" aria-hidden />
           <div className="relative">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em]" style={{ color: scene.accent }}>服务网络</p>
             <p className="mt-1.5 text-[13px] text-white/60">以深圳总部为中心，六大服务枢纽辐射全国</p>
-            <div className="relative mt-4 h-[320px] overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a111f]">
+            <div className="relative mt-4 h-[320px] overflow-hidden rounded-xl border border-white/[0.08] bg-night-900">
               <Suspense fallback={null}>
                 <HeroCoverage reduced={still} />
               </Suspense>
@@ -245,13 +260,15 @@ export default function StoryHero() {
   const heroEyebrow = useContent('heroMeta.eyebrow', heroMeta.eyebrow)
 
   /* 能力探测：WebGL / 减弱动效 / 视口宽度。三个都不满足时首屏退成纯 CSS + 看板 */
-  const [env, setEnv] = useState({ gl: true, reduced: false, desktop: true })
+  const [env, setEnv] = useState({ gl: true, reduced: false, desktop: true, wide: true, loose: true })
   useEffect(() => {
     /* WebGL 能力走全局单例（capability.js）：只测一次、探测上下文用完即弃，
        不在此处 getContext 新建一个常驻的一次性上下文去挤占名额 */
     const gl = hasWebGL()
     const rq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const read = () => setEnv({ gl, reduced: rq.matches, desktop: window.innerWidth >= 1024 })
+    /* desktop 决定挂不挂 3D；wide（≥1280）决定服务地图用完整版还是紧凑版；
+       loose（≥1440）决定 3D 展板用原始席位还是 1024–1439 的专用排布 */
+    const read = () => setEnv({ gl, reduced: rq.matches, desktop: window.innerWidth >= 1024, wide: window.innerWidth >= 1280, loose: window.innerWidth >= 1440 })
     read()
     window.addEventListener('resize', read)
     rq.addEventListener?.('change', read)
@@ -413,7 +430,7 @@ export default function StoryHero() {
   const still = env.reduced
 
   return (
-    <section id="hero" className="relative bg-[#06080d] text-white">
+    <section id="hero" className="relative bg-night-900 text-white">
       {/* ―― 桌面：钉屏三切 ―― */}
       <div ref={outerRef} className="hidden lg:block" style={{ height: `calc(100vh + ${LAST * STEP_VH}vh)` }}>
         <div className="sticky top-0 h-screen overflow-hidden">
@@ -441,6 +458,7 @@ export default function StoryHero() {
                   <HeroStage
                     idx={idx}
                     cmd={cmd}
+                    panelLayout={env.desktop && !env.loose ? (env.wide ? 'wide' : 'narrow') : false}
                     onContextLost={() => setStageLost(true)}
                     onContextRestored={() => setStageLost(false)}
                     onPainted={() => setStagePainted(true)}
@@ -463,11 +481,32 @@ export default function StoryHero() {
             className="pointer-events-none absolute inset-0"
             style={{
               backgroundImage:
-                'linear-gradient(to top, rgba(3,6,12,0.95), transparent), radial-gradient(120% 100% at 100% 100%, rgba(3,6,12,0.85), transparent 72%), linear-gradient(90deg, rgba(3,6,12,0.9) 0%, rgba(3,6,12,0.72) 26%, rgba(3,6,12,0.5) 37%, rgba(3,6,12,0.08) 48%, rgba(3,6,12,0.02) 62%, rgba(3,6,12,0.18) 100%)',
-              backgroundSize: '100% 180px, 48% 72%, 100% 100%',
-              backgroundPosition: '0 100%, 100% 100%, 0 0',
+                'radial-gradient(70% 40% at 50% 100%, rgba(37,212,255,0.05), transparent 72%), linear-gradient(to top, rgba(6,8,13,0.92), rgba(6,8,13,0.42) 15%, transparent 34%), radial-gradient(120% 100% at 100% 100%, rgba(6,8,13,0.82), transparent 72%), linear-gradient(90deg, rgba(6,8,13,0.9) 0%, rgba(6,8,13,0.74) 26%, rgba(6,8,13,0.5) 37%, rgba(6,8,13,0.07) 48%, rgba(6,8,13,0.02) 62%, rgba(6,8,13,0.2) 100%)',
+              /* 左侧那层仍压到 0.9：白字对比度是硬约束；色相收到近黑（night），与解决方案首屏主色调互换 */
+              backgroundSize: '100% 100%, 100% 260px, 50% 76%, 100% 100%',
+              backgroundPosition: '50% 100%, 0 100%, 100% 100%, 0 0',
               backgroundRepeat: 'no-repeat',
             }}
+          />
+
+          {/* 1024–1279 补一层左侧压暗：这一档地图已收成窄面板，3D 展板比 ≥1280
+              时更靠近文案，全靠原来那条 scrim 会在 40%–66% 区间偏亮。只加深左半段，
+              到 84% 处完全透明，不影响右侧面板与 3D 主体。 */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 hidden lg:block xl:hidden"
+            style={{ background: 'linear-gradient(90deg, rgba(6,8,13,0.86) 0%, rgba(6,8,13,0.82) 30%, rgba(6,8,13,0.72) 50%, rgba(6,8,13,0.6) 62%, rgba(6,8,13,0.28) 74%, transparent 84%)' }}
+          />
+
+          {/* 底沿羽化：首屏是近黑 #06080d，页脚顶是墨蓝 #0a1a2e——两者直接相接会
+              在接缝处出现“下缘突然亮一档”的台阶。用一层透明→#0a1a2e 的向下晕影
+              把最后一段化开，让 3D 地台收束到页脚顶色，接缝零台阶——页脚自身的冷
+              光缝线就落在两者交汇的同一档蓝上，读作“同一间机房往外延伸”。
+              这层在 canvas/scrim 之上、z-[70] 文案与地图面板之下，只染背景不染内容。 */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[160px]"
+            style={{ background: 'linear-gradient(to bottom, transparent, #0a1a2e)' }}
           />
 
           {/* 这层排版容器必须 pointer-events-none：它铺满整屏且叠在 canvas 之上，
@@ -484,8 +523,11 @@ export default function StoryHero() {
                那个 motion 容器）。真正要交互的只有下面那两个按钮，它们自己接回 auto */}
             {/* 左文案列：这一轮整体收窄约 24px（660→636，宽屏 740→716）——
                 正好一个中文字宽，标题仍按原来的断行位置换行（9 + 4 字），
-                右侧让出的 24px 给 3D 展板；整块再往下沉 28px（pt 80→132 的净效果） */}
-            <div className="pointer-events-none absolute inset-y-0 left-10 flex max-w-[636px] flex-col justify-center pt-[132px] pb-[156px] wide:max-w-[716px]">
+                右侧让出的 24px 给 3D 展板；整块再往下沉 28px（pt 80→132 的净效果）。
+                1024–1279 再收到 560：这一档展板改成右侧竖排，需要让出 600 以外的
+                整条右边；1280–1439 用 636：这一档 h1 约 70.4px，9 字标题需约
+                613px，600 会把「人才培养」拆行，而 636 仍给横排展板留出 700 起的起点 */}
+            <div className="pointer-events-none absolute inset-y-0 left-10 flex max-w-[600px] flex-col justify-center pt-[132px] pb-[156px] lg:max-w-[560px] xl:max-w-[636px] wide:max-w-[716px]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={scene.id}
@@ -506,32 +548,57 @@ export default function StoryHero() {
             {/* ―― 服务网络：贴着右下角的地图面板（半透明，尽量不遮挡 3D 实验室）――
                 位置在这一轮又上移了 20px（bottom-0 → bottom-[20px]），与首屏底沿拉开
                 一点呼吸，也给低位的商务数据分析展板让出下沿 */}
-            <div className="pointer-events-none absolute right-0 bottom-[20px] hidden w-[clamp(340px,30vw,460px)] xl:block" data-lenis-prevent>
+            {/* 1024–1279 用紧凑版：280px 窄面板 + 更矮的地图 + 精简标签，只保住
+                「6 枢纽 / 52 城」这组背书，不再挤占文案列；≥1280 恢复完整尺寸 */}
+            <div className="pointer-events-none absolute bottom-[20px] right-10 hidden w-[280px] lg:block xl:right-0 xl:w-[clamp(340px,30vw,460px)]" data-lenis-prevent>
               <motion.div
-                className="pointer-events-auto relative rounded-2xl border border-white/12 p-4 shadow-[0_16px_48px_-18px_rgba(0,0,0,0.55)] overflow-hidden"
+                className="pointer-events-auto relative overflow-hidden rounded-2xl border border-white/12 p-3 shadow-[0_16px_48px_-18px_rgba(0,0,0,0.55)] xl:p-4"
                 initial={still ? false : { opacity: 0, y: 34 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: still ? 0 : 0.16, ease: EASE }}
               >
-                {/* 半透明暗底：既要能透出 3D 舞台，又要托住面板内的文字 */}
-                <div className="absolute inset-0 rounded-2xl" style={{ background: 'rgba(7,11,18,0.34)' }} aria-hidden />
-                {/* 顶部 1px 高光内描边 */}
-                <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]" aria-hidden />
+                {/* 玻璃底：深空蓝半透明，透出身后的 3D 实验室；外框透明度不变 */}
+                <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(180deg, rgba(10,20,38,0.5), rgba(5,9,17,0.42))' }} aria-hidden />
+                {/* 细网格纹理：低对比度，只给玻璃一点「仪器面板」的质感 */}
+                <div className="absolute inset-0 rounded-2xl opacity-60" style={{ backgroundImage: 'linear-gradient(to right, rgba(120,160,220,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(120,160,220,0.05) 1px, transparent 1px)', backgroundSize: '18px 18px' }} aria-hidden />
+                {/* 左上冷光 + 内发光/内描边 */}
+                <div className="absolute inset-0 rounded-2xl" style={{ background: 'radial-gradient(80% 70% at 0% 0%, rgba(47,123,255,0.14), transparent 62%)' }} aria-hidden />
+                <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08),inset_0_0_26px_rgba(47,123,255,0.08)]" aria-hidden />
 
                 <div className="relative">
-                  <div className="flex items-baseline justify-between gap-3">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: scene.accent }}>服务网络</p>
                       <p className="mt-1 text-[12px] text-white/55">六大服务枢纽辐射全国</p>
                     </div>
-                    <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-white/40">NETWORK</span>
+                    <div className="mt-0.5 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-white/55">
+                      <span className="h-1 w-1 rounded-full" style={{ background: scene.accent, boxShadow: `0 0 6px ${scene.accent}` }} />
+                      live
+                    </div>
                   </div>
-                  <div className="relative mt-3 h-[clamp(240px,32vh,340px)] overflow-hidden rounded-xl border border-white/[0.06] bg-[rgba(10,17,31,0.22)]">
+                  <div className="relative mt-3 h-[190px] overflow-hidden rounded-xl border border-white/[0.06] bg-[rgba(10,17,31,0.22)] xl:h-[clamp(240px,32vh,340px)]">
+                    {/* 地图背后的冷光晕：陆地描边外再垫一层柔光，避免面板里出现一块硬边 */}
+                    <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(62% 56% at 50% 46%, rgba(47,123,255,0.14), transparent 72%)' }} aria-hidden />
                     <Suspense fallback={null}>
-                      <HeroCoverage reduced={still} />
+                      <HeroCoverage reduced={still} compact={!env.wide} />
                     </Suspense>
                   </div>
-                  <div className="mt-3 flex items-center gap-4 font-mono text-[9px] uppercase tracking-[0.12em] text-white/45">
+                  {/* 数据条：6 个枢纽在线 + 覆盖城市数，给面板一个「在运行」的状态锚点 */}
+                  <div className="mt-3 flex items-end justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.14em] text-white/40">
+                        <span>NODES</span>
+                        <span className="text-white/70">6 / 6</span>
+                      </div>
+                      <div className="mt-1.5 flex gap-1">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <span key={i} className="h-[3px] w-4 rounded-full" style={{ background: `linear-gradient(90deg, ${scene.accent}80, ${scene.accent})`, boxShadow: `0 0 6px ${scene.accent}55` }} />
+                        ))}
+                      </div>
+                    </div>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/40">52 城覆盖</span>
+                  </div>
+                  <div className="mt-3 hidden items-center gap-4 font-mono text-[9px] uppercase tracking-[0.12em] text-white/45 xl:flex">
                     <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full" style={{ background: '#CFE6FF', boxShadow: '0 0 6px #CFE6FF' }} />总部</span>
                     <span className="inline-flex items-center gap-1.5"><span className="h-1 w-1 rounded-full" style={{ background: scene.accent }} />枢纽</span>
                     <span className="inline-flex items-center gap-1.5"><span className="h-1 w-1 rounded-full bg-white/35" />城市</span>

@@ -194,7 +194,7 @@ export default function Contact() {
                       onChange={set('name')}
                       className={inputCls}
                     />
-                    {errors.name && <p id="err-name" className="mt-1.5 text-xs text-[#DC2626]">{errors.name}</p>}
+                    {errors.name && <p id="err-name" className="mt-1.5 text-xs text-danger">{errors.name}</p>}
                   </div>
                   <div>
                     <input
@@ -211,7 +211,7 @@ export default function Contact() {
                       maxLength={11}
                       className={inputCls}
                     />
-                    {errors.phone && <p id="err-phone" className="mt-1.5 text-xs text-[#DC2626]">{errors.phone}</p>}
+                    {errors.phone && <p id="err-phone" className="mt-1.5 text-xs text-danger">{errors.phone}</p>}
                   </div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -228,7 +228,7 @@ export default function Contact() {
                       onChange={set('org')}
                       className={inputCls}
                     />
-                    {errors.org && <p id="err-org" className="mt-1.5 text-xs text-[#DC2626]">{errors.org}</p>}
+                    {errors.org && <p id="err-org" className="mt-1.5 text-xs text-danger">{errors.org}</p>}
                   </div>
                   {/* 所在地区：线索分配 / 区域统计用，选填但落盘 */}
                   <div>
@@ -269,7 +269,7 @@ export default function Contact() {
                     ))}
                   </select>
                 </div>
-                {errors.product && <p id="err-product" className="text-xs text-[#DC2626]">{errors.product}</p>}
+                {errors.product && <p id="err-product" className="text-xs text-danger">{errors.product}</p>}
                 {/* 备注一直是表单字段（成功页会读它），但没有输入框；
                     产品屏「申请体验」要把体验项目带过来，必须给它一个落点 */}
                 <div>
@@ -284,7 +284,7 @@ export default function Contact() {
                   />
                 </div>
                 {fail && (
-                  <div className="rounded-xl border border-[#DC2626]/25 bg-[#DC2626]/[0.06] px-4 py-3 text-[13px] leading-relaxed text-[#B91C1C]">
+                  <div className="rounded-xl border border-danger/25 bg-danger/[0.06] px-4 py-3 text-[13px] leading-relaxed text-danger">
                     {fail}也可以直接
                     <a href={`tel:${phone.replace(/[^\d]/g, '')}`} className="mx-1 font-medium underline">致电 {phone}</a>
                     或

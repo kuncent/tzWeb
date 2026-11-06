@@ -132,10 +132,10 @@ export default function ClassroomPrep({ active, online, model, onSendToClass }) 
 
   const chip = (on) =>
     `rounded-full border px-2.5 py-[3px] text-[12.5px] transition-colors ${
-      on ? 'border-brand/50 bg-brand/15 text-white' : 'border-white/[0.08] text-ink-400 hover:border-white/25 hover:text-white/85'
+      on ? 'border-accent/50 bg-accent/15 text-white' : 'border-white/[0.08] text-ink-400 hover:border-white/25 hover:text-white/85'
     }`
   const btn =
-    'grid h-6 w-6 shrink-0 place-items-center rounded-md border border-white/12 bg-white/[0.04] text-white/70 transition-colors hover:border-brand/60 hover:bg-brand/20 hover:text-white'
+    'grid h-6 w-6 shrink-0 place-items-center rounded-md border border-white/12 bg-white/[0.04] text-white/70 transition-colors hover:border-accent/60 hover:bg-accent/20 hover:text-white'
   const stage = prog?.stage === 'slides' ? 1 : prog ? 0.45 : 0
 
   return (
@@ -143,17 +143,17 @@ export default function ClassroomPrep({ active, online, model, onSendToClass }) 
        所以可见性由自己管，hidden 时整棵子树不占位。 */
     <div className={`${active ? 'grid' : 'hidden'} mt-3 min-h-0 flex-1 gap-3.5 lg:grid-cols-[1.12fr_0.88fr]`}>
       {/* ―― 课件预览：官方画布直出 ―― */}
-      <div className="relative flex min-h-[300px] flex-col overflow-hidden rounded-2xl border border-white/[0.09] bg-[#060a11] px-4 pb-3 pt-2.5 lg:min-h-[190px] xl:min-h-[225px] 2xl:min-h-[280px]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_76%_0%,rgba(22,119,255,0.10),transparent_70%)]" />
+      <div className="relative flex min-h-[300px] flex-col overflow-hidden rounded-2xl border border-white/[0.09] bg-night px-4 pb-3 pt-2.5 lg:min-h-[190px] xl:min-h-[225px] 2xl:min-h-[280px]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_76%_0%,var(--theme-halo-soft),transparent_70%)]" />
         <div className="relative flex shrink-0 items-center gap-2">
           <span className="flex shrink-0 items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-white/15" />
             <span className="h-2 w-2 rounded-full bg-white/15" />
-            <span className="h-2 w-2 rounded-full bg-brand/70" />
+            <span className="h-2 w-2 rounded-full bg-accent/70" />
           </span>
           <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-white/85">
             {busy ? prog?.title || '正在备课' : deck.title}
-            <span className="ml-2 font-mono text-[11px] uppercase tracking-[0.14em] text-brand-300">{typeLabel(s?.type)}</span>
+            <span className="ml-2 font-mono text-[11px] uppercase tracking-[0.14em] text-accent-ice">{typeLabel(s?.type)}</span>
           </p>
           <button
             type="button"
@@ -169,7 +169,7 @@ export default function ClassroomPrep({ active, online, model, onSendToClass }) 
             onClick={() => onSendToClass({ ...deck, slides })}
             disabled={!total}
             title="把这份课件送进互动课堂放映"
-            className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-brand/50 bg-brand/20 px-2 text-[12.5px] text-white transition-colors hover:bg-brand disabled:opacity-50"
+            className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-accent/50 bg-accent/20 px-2 text-[12.5px] text-white transition-colors hover:bg-accent disabled:opacity-50"
           >
             <Play className="h-2.5 w-2.5" />
             送入课堂
@@ -225,7 +225,7 @@ export default function ClassroomPrep({ active, online, model, onSendToClass }) 
                   aria-label={`${pad(si)} ${typeLabel(x.type)} · ${title}`}
                   data-prep="thumb"
                   className={`w-[104px] shrink-0 overflow-hidden rounded-md border transition-colors ${
-                    si === at ? 'border-brand/60' : 'border-white/[0.07] hover:border-white/25'
+                    si === at ? 'border-accent/60' : 'border-white/[0.07] hover:border-white/25'
                   }`}
                 >
                   {/* 官方硬要求：容器要有确定宽高。104px 宽 ÷ 16:9 = 58.5px 高 */}
@@ -249,7 +249,7 @@ export default function ClassroomPrep({ active, online, model, onSendToClass }) 
       {/* ―― 备课输入 + 本页讲稿 ―― */}
       <div className="flex min-h-0 flex-col gap-2.5">
         <div className="shrink-0 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3">
-          <p className="text-[12.5px] font-semibold uppercase tracking-[0.2em] text-brand-400">智能备课 · 课程内容进，课件出</p>
+          <p className="text-[12.5px] font-semibold uppercase tracking-[0.2em] text-accent-ice">智能备课 · 课程内容进，课件出</p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {prepSamples.map((x) => (
               <button key={x.label} type="button" onClick={() => setContent(x.content)} className={chip(content === x.content)}>
@@ -262,7 +262,7 @@ export default function ClassroomPrep({ active, online, model, onSendToClass }) 
             onChange={(ev) => setContent(ev.target.value)}
             rows={3}
             placeholder="把讲义、教材段落或知识点清单贴进来，AI 会先出大纲再逐页生成幻灯与讲稿…"
-            className="mt-2 h-[58px] w-full resize-none rounded-lg border border-white/[0.09] bg-[#060a11] px-2.5 py-1.5 text-[12.5px] leading-[1.6] text-white outline-none transition-colors placeholder:text-ink-500 focus:border-brand/60 [@media(max-height:820px)]:h-[42px]"
+            className="mt-2 h-[58px] w-full resize-none rounded-lg border border-white/[0.09] bg-night px-2.5 py-1.5 text-[12.5px] leading-[1.6] text-white outline-none transition-colors placeholder:text-ink-500 focus:border-accent/60 [@media(max-height:820px)]:h-[42px]"
           />
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             {prepLevels.map((x) => (
@@ -306,7 +306,7 @@ export default function ClassroomPrep({ active, online, model, onSendToClass }) 
                     <span className={stage > si * 0.5 ? 'text-white/85' : 'text-ink-500'}>{label}</span>
                   </span>
                 ))}
-                <span className="ml-auto shrink-0 font-mono text-[11px] tabular-nums text-brand-300">
+                <span className="ml-auto shrink-0 font-mono text-[11px] tabular-nums text-accent-ice">
                   已备好 {prog?.got || 0} / {prog?.count || pages} 页
                 </span>
               </div>

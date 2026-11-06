@@ -48,11 +48,59 @@
   --color-brand-100: #d6e9ff;
   --color-brand-50: #eaf4ff;
 
-  --color-night: #06080d;
-  --color-night-950: #06080d;
-  --color-night-900: #0a0d14;
-  --color-night-800: #10151e;
-  --color-night-700: #171d28;
+  /* ―― 主题色 v2：以页脚为基准的「曜石靛蓝」体系 ――
+     页脚是全站最完整的一处深色样本：四段底色、冷光接缝、双强调
+     （#4B6BFF / #22D3EE）与一枚冰蓝高光 #7DD3FC。这里把它的取值收成
+     背景层级 + 强调色 + 渐变/光效三组 token，所有深色面（首页首屏、
+     内页 hero、产品矩阵、页脚）统一引用，不再各自写死。
+     浅色面继续走 ink/mist/brand：brand(#1677ff) 是同一支蓝色在白底上
+     的可读版本（#2F7BFF 在白底正文对比度不足 4.5:1，只用于大面积色块）。 */
+  --color-night: #06070f; /* 底色基座（靛黑），也是 3D 场景的 clear color */
+  --color-night-950: #06070f;
+  --color-night-900: #0a0d1c; /* surface-1 */
+  --color-night-800: #0f1430; /* surface-2：暗卡片 / 暗面板 */
+  --color-night-700: #141b3d; /* lift：最亮的一层暗面 */
+
+  /* 强调色：页脚 CTA 的两个端点 + 冰蓝高光 + 浅天蓝 + 一丝极光紫 */
+  --color-accent: #4b6bff;
+  --color-accent-cyan: #22d3ee;
+  --color-accent-ice: #7dd3fc;
+  --color-accent-sky: #93b4ff;
+  --color-accent-violet: #8b5cf6; /* 极光紫：仅用于 CTA 末端与发丝辉光，不做大面积 */
+  --color-accent-ink: #04101f; /* 渐变按钮上的字色 */
+  --color-accent-soft: rgba(255, 255, 255, 0.035); /* 暗面玻璃卡底 */
+  --color-accent-soft-strong: rgba(255, 255, 255, 0.05); /* 需要提亮一档的卡片 */
+  --color-accent-line: rgba(255, 255, 255, 0.07); /* 暗面卡片描边 */
+  --color-accent-line-strong: rgba(255, 255, 255, 0.09);
+
+  /* 渐变 / 光效 / 阴影：CSS 变量形式，给 inline style、任意值工具类
+     与 3D 场景之外的 DOM 层取用 */
+  /* 页脚纵向渐变：退回最开始的 night 近黑体系（#06080d→#0b1934）。
+     此 token 仅页脚引用，不影响其余面的靛蓝首屏。 */
+  --gradient-theme-deep: linear-gradient(
+    180deg,
+    #06080d 0%,
+    #070e1d 25%,
+    #0a1730 60%,
+    #0b1934 82%,
+    #070f1f 100%
+  );
+  --gradient-theme-cta: linear-gradient(135deg, #4b6bff, #22d3ee);
+  --gradient-theme-seam: linear-gradient(
+    90deg,
+    transparent,
+    rgba(147, 180, 255, 0.5) 30%,
+    rgba(34, 211, 238, 0.42) 70%,
+    transparent
+  );
+  --theme-grid-line: rgba(130, 160, 255, 0.055);
+  --theme-halo: rgba(75, 107, 255, 0.22);
+  --theme-halo-soft: rgba(75, 107, 255, 0.13);
+  --theme-halo-cyan: rgba(34, 211, 238, 0.15);
+  --theme-halo-blue: rgba(124, 108, 255, 0.13);
+  --theme-ice-glow: rgba(125, 211, 252, 0.75);
+  --shadow-theme-cta: 0 14px 34px -16px rgba(34, 211, 238, 0.6);
+  --shadow-theme-soft: 0 30px 70px -30px rgba(0, 0, 0, 0.75);
 
   /* 第二强调（数据/状态）与功能色：只做状态点、校验，不做装饰 */
   --color-data: #0e7490;
@@ -116,7 +164,7 @@
   --shadow-soft: 0 8px 30px rgba(11, 18, 32, 0.06);
   --shadow-lift: 0 16px 40px rgba(11, 18, 32, 0.1);
   --shadow-card: 0 2px 10px rgba(11, 18, 32, 0.05);
-  --shadow-glow: 0 0 24px rgba(22, 119, 255, 0.12);
+  --shadow-glow: 0 0 24px rgba(47, 123, 255, 0.16);
   --shadow-glass: 0 20px 50px rgba(30, 80, 160, 0.16);
   /* ―― 抬升阶梯（P1⑤）―― 两级真实高度：贴底层用双层投影（接触阴影 + 环境阴影），
      比原来单层 shadow-card/lift 更像“浮在纸上”。聚焦层用 -lg */
@@ -330,7 +378,17 @@
     text-rendering: optimizeLegibility;
   }
   body {
-    @apply bg-mist-100 font-sans text-ink-800;
+    /* 底色取 night 而不是 mist：全站首屏（首页 hero、各内页 HeroFrame）都是暗的，
+       而 index.css 是渲染阻塞的——在 React 挂载出暗色 hero 之前，#root 还空着，
+       body 就是唯一铺满视口的面。若它是亮色 #f7f8fa，首帧就会“白屏闪过”再翻黑。
+       钉成 night 后，首帧底色 = hero 底色，衔接无闪（与 index.html 内联的 html 暗底同源）。
+       文字色保持原样：各区块自带配色，不依赖这条 base。 */
+    @apply bg-night font-sans text-ink-800;
+  }
+  /* 管理后台是亮色壳：body 也留在亮底，否则开 /admin 会反过来闪一片暗。
+     html[data-admin] 由 index.html 里的同步脚本在首次绘制前打上。 */
+  html[data-admin] body {
+    @apply bg-mist-100;
   }
   ::selection {
     @apply bg-brand/20 text-ink-900;
@@ -383,6 +441,13 @@
   }
   .glass-card {
     @apply rounded-xl border border-white/70 bg-white/55 shadow-glass backdrop-blur-md;
+  }
+  /* 暗面胶片颗粒：叠在长距离大深色渐变上，用极细噪点打散色带（banding）。
+     overlay 混合 + 5% 不透明度，只扰色不带亮，是“质感”最立等可取的一招。 */
+  .dark-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.05;
+    mix-blend-mode: overlay;
   }
 
   /* ―― 统一卡片材质（P1⑤）――

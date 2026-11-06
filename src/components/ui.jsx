@@ -398,10 +398,10 @@ export function CoverCard({ img, imgAlt = '', index, title, tag, desc, bullets =
           className="img-duo absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.05]"
         />
       ) : (
-        <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_20%_0%,rgba(22,119,255,0.16),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_20%_0%,var(--theme-halo-soft),transparent_60%)]" />
       )}
       {/* 未 hover：底部一层渐变托住标题，保证白字在任何底图上都读得清 */}
-      <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[#06080d]/92 via-[#06080d]/55 to-transparent px-5 pb-5 pt-14 transition-opacity duration-300 group-hover:opacity-0">
+      <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-night/92 via-night/55 to-transparent px-5 pb-5 pt-14 transition-opacity duration-300 group-hover:opacity-0">
         {tag && <p className="font-mono text-caption uppercase tracking-label text-brand-300">{tag}</p>}
         <h3 className="mt-1 text-title font-semibold leading-snug text-white">{title}</h3>
       </div>

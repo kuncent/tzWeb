@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
-import { PageHero, InnerNav, PageSection, PageCTA, HeroFrame } from '../components/PageShell'
+import { PageHero, InnerNav, PageSection, HeroFrame, HeroBackdropIce } from '../components/PageShell'
 import { scrollToId } from '../hooks/useLenis'
 import { solutionPlans } from '../data/pages'
 import PlanDetail from '../components/sections/SolutionConsole'
@@ -22,7 +22,7 @@ function HeroPlanRail({ plans }) {
       <div className="pt-12">
         <div className="flex items-center justify-between border-b border-white/[0.08] px-5 pb-2.5">
           <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-white/32">Solution Matrix</p>
-          <p className="font-mono text-[9px] tracking-[0.24em] text-brand-300/75">05 PLANS</p>
+          <p className="font-mono text-[9px] tracking-[0.24em] text-accent-sky/75">05 PLANS</p>
         </div>
 
         {plans.map((p, i) => {
@@ -44,13 +44,13 @@ function HeroPlanRail({ plans }) {
                 <motion.span
                   layoutId="hero-plan-active"
                   transition={{ type: 'spring', stiffness: 360, damping: 34 }}
-                  className="pointer-events-none absolute inset-0 border-l-2 border-brand bg-brand/[0.07]"
+                  className="pointer-events-none absolute inset-0 border-l-2 border-accent bg-accent/[0.07]"
                 />
               )}
-              <span className={`relative font-mono text-[10px] tabular-nums tracking-[0.18em] transition-colors duration-300 ${on ? 'text-brand-300' : 'text-white/28'}`}>
+              <span className={`relative font-mono text-[10px] tabular-nums tracking-[0.18em] transition-colors duration-300 ${on ? 'text-accent-ice' : 'text-white/28'}`}>
                 {p.n}
               </span>
-              <span className={`relative grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-colors duration-300 ${on ? 'bg-brand text-white' : 'bg-white/[0.06] text-brand-300'}`}>
+              <span className={`relative grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-colors duration-300 ${on ? 'bg-accent text-white' : 'bg-white/[0.06] text-accent-ice'}`}>
                 <Icon className="h-4 w-4" strokeWidth={1.8} />
               </span>
               <span className="relative min-w-0 flex-1">
@@ -61,7 +61,7 @@ function HeroPlanRail({ plans }) {
                 <span className="mt-0.5 block truncate text-[11.5px] leading-snug text-white/45">{p.tagline}</span>
               </span>
               <ArrowRight
-                className={`relative h-3.5 w-3.5 shrink-0 transition-all duration-300 ${on ? 'translate-x-0.5 text-brand-300' : '-translate-x-1 text-white/25'}`}
+                className={`relative h-3.5 w-3.5 shrink-0 transition-all duration-300 ${on ? 'translate-x-0.5 text-accent-ice' : '-translate-x-1 text-white/25'}`}
               />
             </motion.button>
           )
@@ -75,10 +75,11 @@ export default function Solutions() {
   return (
     <>
       <PageHero
+        backdrop={<HeroBackdropIce />}
         eyebrow="EXPERIMENTAL TEACHING SOLUTIONS"
         crumbs="解决方案"
         title="五大实验教学方案，把一个专业建进真实场景"
-        sub="数字经济 · 金融科技 · 应用统计 · 大数据分析 · 工商科一体化平台 —— 每个方案都给全：建设目标、课程模块 ↔ 实验项目 ↔ 支撑产品的四层矩阵、实验室空间、实践教学四阶递进与一张方案架构图。选定一个，下方整份展开。"
+        sub="数字经济 · 金融科技 · 应用统计 · 商务数据分析 · 工商科一体化 —— 每个方案都给全：建设目标、课程模块 ↔ 实验项目 ↔ 支撑产品的四层矩阵、实验室空间。选定一个，下方整份展开。"
         stats={[
           { k: '实验教学方案', v: '5 类' },
           { k: '在跑实训系统', v: '37 套' },
@@ -86,7 +87,7 @@ export default function Solutions() {
           { k: '合作高校', v: '180+' },
         ]}
         cta={[
-          { label: '预约方案沟通', to: '/#contact', primary: true },
+          { label: '预约方案沟通', to: '/about#contact', primary: true },
           { label: '看产品体系', to: '/products' },
         ]}
       >
@@ -102,11 +103,6 @@ export default function Solutions() {
         </PageSection>
       ))}
 
-      <PageCTA
-        title="把场地、专业和学生数告诉我们"
-        sub="一次沟通通常能确定三件事：先建哪个方案、分几期、第一批课程能不能赶上这个学期的课表。方案初稿免费出。"
-        back={{ label: '看产品体系', to: '/products' }}
-      />
     </>
   )
 }

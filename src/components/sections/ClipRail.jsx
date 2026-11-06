@@ -64,12 +64,12 @@ export function ClipThumb({ pr, k, on, onPick }) {
         preload="none"
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <span className="absolute inset-0 bg-gradient-to-t from-[#06080d] via-transparent to-[#06080d]/25" />
+      <span className="absolute inset-0 bg-gradient-to-t from-night via-transparent to-night/25" />
       <span className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 px-2 pb-1">
         <span className={`font-mono text-[11px] tabular-nums ${on ? 'text-brand-300' : 'text-ink-400'}`}>{pad(k)}</span>
         <span className="min-w-0 flex-1 truncate text-left text-[12.5px] font-medium text-white/90">{pr.name}</span>
       </span>
-      <span className="absolute right-1.5 top-1.5 rounded-sm bg-[#06080d]/70 px-1 font-mono text-[8px] tabular-nums tracking-[0.1em] text-white/70">
+      <span className="absolute right-1.5 top-1.5 rounded-sm bg-night/70 px-1 font-mono text-[8px] tabular-nums tracking-[0.1em] text-white/70">
         {pr.clip.chapters.length} 幕
       </span>
       {on && (
@@ -154,7 +154,7 @@ export function ClipRail({ products, active, onPick }) {
   }
 
   const arrow =
-    'absolute top-1/2 z-10 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-white/12 bg-[#05080e]/85 text-white/75 backdrop-blur-sm transition-colors hover:border-brand/60 hover:bg-brand/25 hover:text-white'
+    'absolute top-1/2 z-10 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-white/12 bg-night/85 text-white/75 backdrop-blur-sm transition-colors hover:border-brand/60 hover:bg-brand/25 hover:text-white'
 
   return (
     <div className="relative flex shrink-0 items-center gap-3">
@@ -172,10 +172,10 @@ export function ClipRail({ products, active, onPick }) {
         </div>
         {/* 端点渐隐只在这一侧真的有内容时出现，比常驻一条更诚实 */}
         {edge.left && (
-          <span className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-[#05080e] to-transparent" />
+          <span className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-night to-transparent" />
         )}
         {edge.right && (
-          <span className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-[#05080e] to-transparent" />
+          <span className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-night to-transparent" />
         )}
         {edge.over && (
           <>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, useInView } from 'motion/react'
-import { MapPin, Calendar, ArrowUpRight, Cpu, Blocks, ChevronLeft, ChevronRight } from 'lucide-react'
+import { MapPin, ArrowUpRight, Cpu, Blocks, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Reveal, EASE } from '../ui'
 import { labCases } from '../../data/pages'
 
@@ -118,7 +118,7 @@ export default function LabShowcase() {
             <span className="h-px w-8 bg-gradient-to-r from-brand/60 to-transparent" />
             <h3 className="text-[13.5px] font-semibold uppercase tracking-[0.16em] text-ink-700">部分标杆院校 · 建设方案与成果实景</h3>
           </div>
-          <Link to="/#contact" className="group inline-flex items-center gap-1.5 self-start text-[13px] font-medium text-brand transition-colors hover:text-ink-900 sm:self-auto">
+          <Link to="/about#contact" className="group inline-flex items-center gap-1.5 self-start text-[13px] font-medium text-brand transition-colors hover:text-ink-900 sm:self-auto">
             看完整案例集
             <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
           </Link>
@@ -133,36 +133,38 @@ export default function LabShowcase() {
           <div
             onMouseEnter={() => setHovering(true)}
             onMouseLeave={() => setHovering(false)}
-            className="grid overflow-hidden rounded-3xl border border-ink-900/[0.08] bg-white shadow-lift ring-1 ring-white/60 lg:h-[560px] lg:grid-cols-[1.55fr_1fr]"
+            className="grid overflow-hidden rounded-3xl border border-ink-900/[0.08] bg-white shadow-lift ring-1 ring-white/60 lg:h-[560px] lg:grid-cols-[1.6fr_1fr] xl:h-[600px] xl:grid-cols-[1.7fr_1fr]"
           >
             {/* ―― 照片舞台 ―― */}
             <div
-              className="group/img relative aspect-[16/10] w-full touch-pan-y select-none overflow-hidden bg-[#070b14] lg:aspect-auto lg:h-full"
+              className="group/img relative aspect-[16/10] w-full touch-pan-y select-none overflow-hidden bg-night-900 lg:aspect-auto lg:h-full"
+              data-photo-stage
               onPointerDown={onDown}
               onPointerUp={onUp}
               onPointerLeave={() => { dragX.current = null }}
             >
-              {/* 交叉淡入淡出（非 mode="wait"）：两张图均 absolute 重叠，避免后台标签页 rAF
-                  暂停导致旧图 exit 回调丢失、新图永不挂载的「不切换」卡死，溶解过渡也更顺。 */}
-              <AnimatePresence initial={false}>
-                <motion.img
-                  key={img}
-                  src={img}
-                  alt={`${cur.school} ${cur.lab} 成果照片`}
-                  initial={reduced ? { opacity: 1 } : { opacity: 0 }}
-                  animate={reduced ? { opacity: 1 } : { opacity: 1, scale: running ? 1.06 : 1 }}
-                  exit={reduced ? { opacity: 0 } : { opacity: 0 }}
-                  transition={{ opacity: { duration: 0.7, ease: EASE }, scale: { duration: IMG_MS / 1000 + 0.6, ease: 'linear' } }}
-                  className="absolute inset-0 h-full w-full object-cover"
-                  loading="lazy"
-                  decoding="async"
-                  draggable={false}
-                />
-              </AnimatePresence>
+              {/* 悬停时整张照片小幅放大，轮播本身的缓推由 motion 控制，二者叠加不冲突 */}
+              <div className="absolute inset-0 transition-transform duration-[1600ms] ease-out group-hover/img:scale-[1.035]">
+                <AnimatePresence initial={false}>
+                  <motion.img
+                    key={img}
+                    src={img}
+                    alt={`${cur.school} ${cur.lab} 成果照片`}
+                    initial={reduced ? { opacity: 1 } : { opacity: 0 }}
+                    animate={reduced ? { opacity: 1 } : { opacity: 1, scale: running ? 1.06 : 1 }}
+                    exit={reduced ? { opacity: 0 } : { opacity: 0 }}
+                    transition={{ opacity: { duration: 0.7, ease: EASE }, scale: { duration: IMG_MS / 1000 + 0.6, ease: 'linear' } }}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                  />
+                </AnimatePresence>
+              </div>
 
-              {/* 压图渐变 + 内阴影，保证文字可读、照片更立体 */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#06080d]/88 via-[#06080d]/12 to-transparent" />
-              <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_120px_rgba(4,7,13,0.55)]" />
+              {/* 压图渐变 + 内阴影：只压暗底部文字区，照片主体保持敞亮 */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/75 via-night/6 to-transparent" />
+              <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_90px_rgba(4,7,13,0.32)]" />
 
               {/* 左上：自动播放状态徽标 */}
               <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-2.5 py-1 text-[10.5px] font-medium tracking-wide text-white/80 backdrop-blur-sm md:left-5 md:top-5">
@@ -186,8 +188,6 @@ export default function LabShowcase() {
                 </div>
                 <span className="hidden shrink-0 items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-[11.5px] font-medium text-white/80 backdrop-blur-sm sm:inline-flex">
                   <MapPin className="h-3.5 w-3.5 text-brand-300" strokeWidth={2} />{cur.city}
-                  <span className="mx-0.5 h-3 w-px bg-white/25" />
-                  <Calendar className="h-3.5 w-3.5 text-brand-300" strokeWidth={2} />{cur.year === '—' ? '在建' : cur.year}
                 </span>
               </div>
 
@@ -273,7 +273,7 @@ export default function LabShowcase() {
 
                   <div className="mt-auto pt-5">
                     <Link
-                      to="/#contact"
+                      to="/about#contact"
                       className="group inline-flex items-center gap-2 self-start rounded-full bg-ink-900 px-5 py-2.5 text-[13px] font-semibold text-white transition-all duration-300 hover:bg-brand"
                     >
                       获取「{cur.school}」完整方案
@@ -288,8 +288,8 @@ export default function LabShowcase() {
       </Reveal>
 
       {/* 院校切换轨：有照片的院校逐一点选，当前高亮 */}
-      <Reveal delay={0.1} className="mt-4">
-        <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+      <Reveal delay={0.1} className="mt-5">
+        <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
           {SHOWCASE.map((c, i) => {
             const on = i === pos.school
             return (
@@ -298,14 +298,14 @@ export default function LabShowcase() {
                 type="button"
                 onClick={() => pickSchool(i)}
                 aria-pressed={on}
-                className={`group relative h-16 w-[128px] shrink-0 overflow-hidden rounded-xl border transition-all duration-300 ${
+                className={`group relative h-[76px] w-[152px] shrink-0 overflow-hidden rounded-xl border transition-all duration-300 ${
                   on ? 'border-brand opacity-100 shadow-glow ring-1 ring-brand/30' : 'border-ink-900/[0.08] opacity-80 hover:opacity-100'
                 }`}
               >
-                <img src={c.imgs[0]} alt="" loading="lazy" decoding="async" className={`h-full w-full object-cover transition duration-500 ${on ? '' : 'grayscale-[0.4] group-hover:grayscale-0'}`} />
-                <span className="absolute inset-0 bg-gradient-to-t from-[#06080d]/85 to-transparent" />
-                <span className="absolute left-1.5 top-1.5 font-mono text-[9.5px] tabular-nums tracking-wide text-white/60">{String(i + 1).padStart(2, '0')}</span>
-                <span className={`absolute inset-x-1.5 bottom-1.5 truncate text-left text-[11px] font-semibold ${on ? 'text-white' : 'text-white/80'}`}>{c.school}</span>
+                <img src={c.imgs[0]} alt="" loading="lazy" decoding="async" className={`h-full w-full object-cover transition duration-500 ${on ? '' : 'grayscale-[0.35] group-hover:grayscale-0'}`} />
+                <span className="absolute inset-0 bg-gradient-to-t from-night/85 to-transparent" />
+                <span className="absolute left-2 top-2 font-mono text-[10px] tabular-nums tracking-wide text-white/60">{String(i + 1).padStart(2, '0')}</span>
+                <span className={`absolute inset-x-2 bottom-2 truncate text-left text-[11.5px] font-semibold ${on ? 'text-white' : 'text-white/80'}`}>{c.school}</span>
                 {on && <span className="absolute left-0 top-0 h-full w-[3px] bg-brand" />}
               </button>
             )

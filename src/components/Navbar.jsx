@@ -1,23 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { Menu, X, Search, Compass, ChevronDown, ArrowRight } from 'lucide-react'
-import { scrollToId, scrollToTop } from '../hooks/useLenis'
+import { Menu, X, Search, Compass, ChevronDown, ArrowRight, Sparkles } from 'lucide-react'
 import SiteSearch from './SiteSearch'
 import { BrandLockup } from './Brand'
-import { nav, navCta, anchorSections, productMatrix } from '../data/site'
+import { nav, navCta, productMatrix } from '../data/site'
 import { solutionPlans } from '../data/pages'
+import { deviceTypes } from '../data/devices'
 import { requestMatrixIndex } from '../lib/matrixNav'
-import { useSectionsMap } from '../lib/contentStore'
-
-/* 顶栏高 64px：板块锚点一律让区块顶边紧贴导航栏下沿（offset = -64），
-   不再留 120px 余量 —— 那 56px 缝会露出上一屏的尾巴，看着“没卡到边界”。
-   matrix（sticky 钉屏整屏）本就是 -64，现与默认一致，无需再特判。 */
-const HEADER_OFFSET = -64
 
 /* 这些页的第一屏是暗底 PageHero（与首页首屏同一底色）。顶栏在
    页首要保持透明 + 浅色字，否则深色 logo 压在暗底上读不出来。 */
 const DARK_HERO_PATHS = new Set(['/solutions', '/products', '/devices', '/about'])
+
+/* 这些页整页都是暗底（产品页第一屏是 sticky 钉死的暗色矩阵，其后没有
+   浅色内容）：顶栏要一路保持透明 + 浅色字，不能按普通页那样滚一点就翻白底，
+   否则浅色 bar 压在暗画面上会很突兀。 */
+const DARK_THROUGHOUT_PATHS = new Set(['/products'])
 
 /* 「智云平台」是外链：新标签打开外部登录页，不占用站内路由。 */
 const CLOUD_URL = 'https://zycloud.sztzjy.com/Login'
@@ -25,20 +24,31 @@ const CLOUD_URL = 'https://zycloud.sztzjy.com/Login'
 /* 顶栏悬停下拉：解决方案 / 产品体系 两项带二级菜单。
    方案项走站内锁点（/solutions#plan-<id>，App 的 ScrollToTop 会滚过去）；
    产品项走 matrixNav 总线（滚到矩阵并切到该产品）。
-   行内只留 icon + 标题 + 序号：英文副行（EMBODIED ROBOT LAB 那一类）干脆不挂 ——
-   菜单是导航不是介绍页，多一行后缀只会把每行撑高、把卡片拖长。 */
+   每项 = 线性图标 + 标题 + 一行描述（tagline），两列排布；
+   描述过长就单行省略 —— 下拉是导航，不承担介绍页的信息量。 */
 const FLYOUTS = {
   '/solutions': {
     head: '五大解决方案',
     en: 'SOLUTIONS',
-    all: { label: '全部解决方案', to: '/solutions' },
-    items: solutionPlans.map((p) => ({ label: p.short, icon: p.icon, to: `/solutions#plan-${p.id}` })),
+    all: { label: '全部解决方案', desc: '查看完整方案与交付清单', to: '/solutions' },
+    items: solutionPlans.map((p) => ({ label: p.short, icon: p.icon, to: `/solutions#plan-${p.id}`, desc: p.tagline })),
   },
   '/products': {
     head: '五大产品体系',
     en: 'PRODUCT MATRIX',
-    all: { label: '进入产品矩阵', to: '/products' },
-    items: productMatrix.map((p, i) => ({ label: p.title, icon: p.icon, index: i })),
+    all: { label: '进入产品矩阵', desc: '按实验室类型浏览五套产品体系', to: '/products' },
+    items: productMatrix.map((p, i) => ({ label: p.title, icon: p.icon, index: i, desc: p.tagline })),
+  },
+  /* 产品设备：把设备页页内的子导航（智能装备 + 7 类设备）提取到顶栏悬停下拉。
+     每项走锁点 /devices#<id>（与解决方案同一套：App 的 ScrollToTop 会 scrollToId 滚过去）。 */
+  '/devices': {
+    head: '产品设备分类',
+    en: 'PRODUCT HARDWARE',
+    all: { label: '浏览全部设备', desc: '按设备类型查看可交付教学装备与参数', to: '/devices' },
+    items: [
+      { label: '智能装备', icon: Sparkles, to: '/devices#smart', desc: '具身机器人六类成套实机' },
+      ...deviceTypes.map((t) => ({ label: t.zh, icon: t.icon, to: `/devices#${t.id}`, desc: t.note })),
+    ],
   },
 }
 
@@ -48,18 +58,19 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState(false)
-  const [mode, setMode] = useState('page') // page：站内页面链接；sections：首页板块链接
-  const [active, setActive] = useState(anchorSections[0].id)
   const location = useLocation()
   const navigate = useNavigate()
   const [openFly, setOpenFly] = useState(null) // 顶栏悬停下拉当前打开的导航项 to
   const [openSub, setOpenSub] = useState(null) // 移动抽屉里展开的二级菜单导航项 to
+  const flyTimers = useRef({ open: 0, close: 0 }) // 悬停意图的开关定时器
+  const flyPanelRef = useRef(null) // 当前展开面板，键盘方向键在它内部找可聚焦项
+  const flyAnchorRef = useRef(null) // 触发项，用来算面板的左对齐 / 屏幕边缘收边
+  const suppressFocusOpen = useRef(false) // Esc 把焦点还给触发项时，别让 onFocus 又把面板弹开
+  const [flyLeft, setFlyLeft] = useState(0) // 面板相对触发项的 left（px）
   const onHome = location.pathname === '/'
-
-  /* 后台关掉某屏时，顶栏「板块」导航与滚动高亮同步隐去它（只列启用项）。 */
-  const sections = useSectionsMap()
-  const visible = anchorSections.filter((s) => sections[s.id]?.enabled !== false)
-  const visibleKey = visible.map((s) => s.id).join(',')
+  const navRef = useRef(null)
+  /* 选中项背景胶囊位置（measurePill 量出）；null = 不显 */
+  const [pillBox, setPillBox] = useState(null)
 
   useEffect(() => {
     /* 首屏（StoryHero）是整屏暗底且被 sticky 钉住：只按 scrollY > 24 判定的话，
@@ -95,7 +106,13 @@ export default function Navbar() {
     }
   }, [onHome])
 
-  useEffect(() => setOpen(false), [location.pathname])
+  useEffect(() => {
+    setOpen(false)
+    /* 路由变了就收起下拉：点触发项本身会直接跳页，别让面板留在新页面上 */
+    window.clearTimeout(flyTimers.current.open)
+    window.clearTimeout(flyTimers.current.close)
+    setOpenFly(null)
+  }, [location.pathname])
 
   /* ⌘K / Ctrl+K 拉起搜索；Esc 交给面板自己处理 */
   useEffect(() => {
@@ -109,129 +126,159 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  /* 滚过首个板块后，顶栏自动接管板块导航（原第二条导航已合并进来）。
-     坑：首屏之下的板块现在延后一轮才挂载（见 pages/Home.jsx），effect 跑的时候
-     #problems 常常还不存在，一次性 measure 会拿到 MAX → 之后只有 resize 才重测量，
-     于是“板块模式偶尔出不来”。改成：元素没出现前，每次滚动惰性补测一次。 */
-  useEffect(() => {
-    if (!onHome) {
-      setMode('page')
-      return
-    }
-    const measure = () => {
-      const el = document.getElementById((visible[0] || anchorSections[0]).id)
-      return el ? window.scrollY + el.getBoundingClientRect().top - 72 : null
-    }
-    let from = measure()
-    const threshold = () => (from == null ? (from = measure()) : from) ?? Number.MAX_SAFE_INTEGER
-    const onScroll = () => setMode(window.scrollY > threshold() ? 'sections' : 'page')
-    const onResize = () => {
-      from = measure()
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
-    }
-  }, [onHome, visibleKey])
-
-  useEffect(() => {
-    if (mode !== 'sections') return
-    const els = visible.map((s) => document.getElementById(s.id)).filter(Boolean)
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const en of entries) if (en.isIntersecting) setActive(en.target.id)
-      },
-      { rootMargin: '-35% 0px -55% 0px' }
-    )
-    els.forEach((el) => io.observe(el))
-    return () => io.disconnect()
-  }, [mode, visibleKey])
-
-  const goSection = (id) => {
-    setActive(id)
-    setOpen(false)
-    /* 不在这里自拼 getElementById + lenis：首屏之下那几屏现在延后一轮才挂
-       （见 pages/Home.jsx），那一瞬元素还不存在。scrollToId 里带了轮询，
-       而且只有它一处知道「拿到了才能飞」 */
-    scrollToId(id, HEADER_OFFSET)
-  }
-
-  const solid = scrolled || open
+  const solid = (scrolled && !DARK_THROUGHOUT_PATHS.has(location.pathname)) || open
+  /* 整页暗底页（/products）：滚过首屏后不翻白、也不留纯透明，
+     而是一条与矩阵同色的暗玻璃实底 bar —— 既避免浅色 bar 压在暗画面上突兀，
+     又让顶栏在滚动态有明确边界，不再“透明得看不出有导航栏”。 */
+  const solidDark = DARK_THROUGHOUT_PATHS.has(location.pathname) && scrolled && !open
   /* 新版首屏是深夜蓝整屏暗底，首屏内顶栏保持透明 + 浅色字；
      真正滚过首屏（或抽屉展开、进了其它白底页）才转成白底深色字。 */
   const light = !solid && (onHome || DARK_HERO_PATHS.has(location.pathname))
 
+  /* 选中项背景胶囊：改用单例、自主沿 X 平移，不再用 framer 跨节点共享布局（layoutId）。
+     共享布局在「页面已滚动」时的路由切换里，会把 fixed 头部里的锁点连同当时 scrollY
+     一起算进位移，新页胶囊于是从刚才的滚动位置“从下面飞上来”。这里自己用视口 rect 相减：
+     头部 fixed，rect 与 scrollY 无关，量出的 x 只剩水平差 → 永远只沿 X 平移。 */
+  const measurePill = () => {
+    const box = navRef.current
+    if (!box) { setPillBox(null); return }
+    const el = box.querySelector('a[aria-current="page"]')
+    if (!el) { setPillBox(null); return }
+    const br = box.getBoundingClientRect()
+    const er = el.getBoundingClientRect()
+    setPillBox({ x: er.left - br.left, y: er.top - br.top, w: er.width, h: er.height })
+  }
+  useLayoutEffect(() => { measurePill() }, [location.pathname, light, openFly])
+  useEffect(() => {
+    measurePill()
+    window.addEventListener('resize', measurePill)
+    return () => window.removeEventListener('resize', measurePill)
+  }, [location.pathname, light, openFly])
+
+  /* ―― 悬停下拉的开关策略 ――
+     进入 100ms 才开：鼠标只是扫过导航时不会一路弹面板；
+     离开 180ms 才关：从触发项斜穿到面板、或临时扫到相邻项，不会「闪开又闪回」。
+     键盘聚焦 / Esc / 方向键走立即开关，不吃这段延迟。 */
+  const clearFlyTimers = () => {
+    window.clearTimeout(flyTimers.current.open)
+    window.clearTimeout(flyTimers.current.close)
+  }
+  const openFlyNow = (to, el) => {
+    clearFlyTimers()
+    if (el) flyAnchorRef.current = el
+    setOpenFly(to)
+  }
+  const closeFlyNow = () => {
+    clearFlyTimers()
+    setOpenFly(null)
+  }
+  const hoverFly = (to, el) => {
+    clearFlyTimers()
+    if (el) flyAnchorRef.current = el
+    flyTimers.current.open = window.setTimeout(() => setOpenFly(to), 100)
+  }
+  const leaveFly = (to) => {
+    clearFlyTimers()
+    flyTimers.current.close = window.setTimeout(() => setOpenFly((v) => (v === to ? null : v)), 180)
+  }
+
+  useEffect(() => clearFlyTimers, [])
+
+  /* 面板默认与触发项左对齐；靠右的项会把面板顶出视口时整体回收，
+     左右至少留 16px。窗口尺寸变化时重算，不靠猜。 */
+  useLayoutEffect(() => {
+    if (!openFly || !flyAnchorRef.current) return
+    const place = () => {
+      const r = flyAnchorRef.current.getBoundingClientRect()
+      const vw = document.documentElement.clientWidth
+      const w = Math.min(600, vw - 32)
+      setFlyLeft(Math.min(Math.max(r.left, 16), vw - w - 16) - r.left)
+    }
+    place()
+    window.addEventListener('resize', place)
+    return () => window.removeEventListener('resize', place)
+  }, [openFly])
+
+  /* 点击外部关闭：键盘打开或触控点击后，鼠标不在 wrapper 上，mouseleave 不会兜底 */
+  useEffect(() => {
+    if (!openFly) return
+    const onDoc = (e) => {
+      if (!e.target.closest('[data-flyout]')) setOpenFly(null)
+    }
+    document.addEventListener('pointerdown', onDoc)
+    return () => document.removeEventListener('pointerdown', onDoc)
+  }, [openFly])
+
+  /* 键盘：↓/↑ 在面板内循环移动焦点，Esc 收起并把焦点还给触发项，Enter 交给焦点元素自身 */
+  const onFlyKeyDown = (e, to) => {
+    if (e.key === 'Escape') {
+      if (openFly !== to) return
+      e.stopPropagation()
+      closeFlyNow()
+      /* 焦点还给触发项；这一步会触发 wrapper 的 onFocus，先压住，别把面板又弹开 */
+      suppressFocusOpen.current = true
+      e.currentTarget.querySelector('a')?.focus()
+      window.setTimeout(() => {
+        suppressFocusOpen.current = false
+      }, 0)
+      return
+    }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+    if (openFly !== to || !flyPanelRef.current) return
+    const items = Array.from(flyPanelRef.current.querySelectorAll('button'))
+    if (!items.length) return
+    e.preventDefault()
+    const at = items.indexOf(document.activeElement)
+    const dir = e.key === 'ArrowDown' ? 1 : -1
+    if (at === -1) {
+      items[dir === 1 ? 0 : items.length - 1].focus()
+    } else {
+      items[(at + dir + items.length) % items.length].focus()
+    }
+  }
+
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-        solid ? 'border-b border-ink-900/[0.06] bg-white/80 shadow-soft backdrop-blur-xl' : 'bg-transparent'
+        solid
+          ? 'border-b border-ink-900/[0.06] bg-white/80 shadow-soft backdrop-blur-xl'
+          : solidDark
+            ? 'border-b border-white/[0.07] bg-night/85 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.9)] backdrop-blur-xl'
+            : 'bg-transparent'
       }`}
     >
-      {/* 三段网格：两侧 1fr、中间 auto —— 导航因此是真正对齐页面中心，
-          而不是“在剩下的空里居中”（左 160 右 240 时它会往左偏一大截）。
-          移动端汉堡按钮归到右格，保证子元素始织是三列。 */}
-      <div className="container-x grid h-[64px] grid-cols-[1fr_auto_1fr] items-center gap-4">
-        <BrandLockup tone={light ? 'dark' : 'light'} className="justify-self-start" />
+      {/* 左右两端对齐内容栅格：左 = logo + 紧接其后的一级导航组（成组左对齐、间距均匀），
+          右 = 末端的主 CTA 与辅助入口；中间空白交给 ml-auto，不把导航推到右侧。
+          窄屏（<lg）导航与辅助入口整体收起，只留汉堡。 */}
+      <div className="container-x flex h-[64px] items-center gap-6 xl:gap-8">
+        <BrandLockup tone={light ? 'dark' : 'light'} className="shrink-0" />
 
-        {/* center nav：首屏内为页面导航，滚过首屏后自动切为板块导航 */}
-        <nav className="hidden min-w-0 justify-self-center lg:flex">
-          {mode === 'sections' ? (
-            <div className="no-scrollbar flex min-w-0 items-center gap-0.5 overflow-x-auto">
-              <span className="mr-1.5 flex shrink-0 items-center gap-1 text-micro font-semibold uppercase tracking-label text-ink-400">
-                <Compass className="h-3.5 w-3.5" />
-                板块
-              </span>
-              {/* 板块模式会整体隐去页面导航（含「首页」），这里补一个回到顶部的入口；
-                 不进 anchorSections，避免污染滚动高亮 IO 与板块模式接管的触发阈值。 */}
-              <button
-                onClick={() => {
-                  setOpen(false)
-                  scrollToTop()
-                }}
-                className="relative shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-ui-sm font-medium text-ink-500 transition-colors hover:bg-ink-900/[0.05] hover:text-ink-900"
-              >
-                <span className="relative z-10">首页</span>
-              </button>
-              {visible.map((s) => {
-                const isActive = active === s.id
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => goSection(s.id)}
-                    className={`relative shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-ui-sm font-medium transition-colors ${
-                      isActive ? 'text-white' : 'text-ink-500 hover:bg-ink-900/[0.05] hover:text-ink-900'
-                    }`}
-                  >
-                    {isActive && (
-                      <motion.span
-                        layoutId="nav-anchor-active"
-                        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                        className="absolute inset-0 rounded-full bg-ink-900"
-                      />
-                    )}
-                    <span className="relative z-10">{s.label}</span>
-                  </button>
-                )
-              })}
-            </div>
-          ) : (
-            /* 不折行靠 shrink-0 + whitespace-nowrap，而不是靠 overflow-x-auto：
-               滚动容器会把 overflow-y 的 visible 一并算成 auto（CSS 规定：一个轴
-               不是 visible，另一个轴的 visible 也失效），而下拉面板就挂在这个行里 ——
-               实测（tmp/nav-probe.mjs）那样二级菜单只在 DOM 里有布局、根本不绘制。
-               中间列是 auto、两侧是 1fr：真放不下时让网格去挤两侧，导航本身保持完整。 */
-            <div className="flex min-w-0 items-center justify-center gap-0.5 xl:gap-1">
+        {/* 一级导航：紧跟 logo 左侧成组，不折行靠 shrink-0 + whitespace-nowrap，
+            而不是 overflow-x-auto —— 滚动容器会把下拉面板一起裁掉
+            （实测 tmp/nav-probe.mjs，二级菜单只布局不绘制）。 */}
+        <nav className="hidden min-w-0 lg:flex">
+          <div ref={navRef} className="relative flex min-w-0 items-center gap-0.5 xl:gap-1.5">
+              {/* 选中项背景：单例胶囊，自主沿 X 平移（见 measurePill）。放在 map 之前，
+                  后续 NavLink 均为 relative，自然浮在它上面；pointer-events-none 不挡点击 */}
+              {pillBox && (
+                <motion.span
+                  aria-hidden
+                  initial={false}
+                  animate={{ x: pillBox.x, y: pillBox.y, width: pillBox.w, height: pillBox.h }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                  className={`pointer-events-none absolute left-0 top-0 rounded-full ${light ? 'bg-white/[0.18]' : 'bg-ink-900'}`}
+                />
+              )}
               {nav.map((item) => {
                 const fl = FLYOUTS[item.to]
                 const link = (
                   <NavLink
                     to={item.to}
                     end
+                    aria-haspopup={fl ? 'true' : undefined}
+                    aria-expanded={fl ? openFly === item.to : undefined}
                     className={({ isActive }) =>
-                      `relative shrink-0 whitespace-nowrap rounded-full px-3 py-2 text-ui-sm font-medium transition-colors xl:px-4 ${
+                      `group/nav relative shrink-0 whitespace-nowrap rounded-full px-2 py-2 text-ui-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#7FB8FF]/60 xl:px-4 xl:py-2.5 ${
                         isActive
                           ? 'text-white'
                           : light
@@ -242,13 +289,13 @@ export default function Navbar() {
                   >
                     {({ isActive }) => (
                       <>
-                        {/* 选中态交给胶囊（与板块模式同一套语言），不再用那条 2px 下划线：
-                            下划线只标当前页、悬停乻么反馈都没有，整排看着像没做完 */}
-                        {isActive && (
-                          <motion.span
-                            layoutId="nav-page-active"
-                            transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                            className={`absolute inset-0 rounded-full ${light ? 'bg-white/[0.18]' : 'bg-ink-900'}`}
+                        {/* 选中背景改由导航条里的单例胶囊负责（见 pillBox）；这里不再挂
+                            layoutId，避免带滚动切换时共享布局把 fixed 头部误算进 scrollY。
+                            悬停时下划线做光标指示（见下方 !isActive 分支） */}
+                        {!isActive && (
+                          <span
+                            className="pointer-events-none absolute bottom-1.5 left-2 right-2 h-[2px] origin-left scale-x-0 rounded-full bg-current opacity-0 transition-[transform,opacity] duration-200 group-hover/nav:scale-x-100 group-hover/nav:opacity-70 group-focus-visible/nav:scale-x-100 group-focus-visible/nav:opacity-70 xl:bottom-2 xl:left-4 xl:right-4"
+                            aria-hidden
                           />
                         )}
                         <span className="relative z-10">{item.label}</span>
@@ -268,76 +315,112 @@ export default function Navbar() {
                 return (
                   <div
                     key={item.to}
+                    data-flyout
                     className="relative flex"
-                    onMouseEnter={() => setOpenFly(item.to)}
-                    onMouseLeave={() => setOpenFly((v) => (v === item.to ? null : v))}
-                    onFocus={() => setOpenFly(item.to)}
-                    onBlur={(e) => {
-                      if (!e.currentTarget.contains(e.relatedTarget)) setOpenFly(null)
+                    onMouseEnter={(e) => hoverFly(item.to, e.currentTarget)}
+                    onMouseLeave={() => leaveFly(item.to)}
+                    onFocus={(e) => {
+                      if (suppressFocusOpen.current) {
+                        suppressFocusOpen.current = false
+                        return
+                      }
+                      openFlyNow(item.to, e.currentTarget)
                     }}
+                    onBlur={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget)) closeFlyNow()
+                    }}
+                    onKeyDown={(e) => onFlyKeyDown(e, item.to)}
                   >
                     {link}
                     <AnimatePresence>
                       {openFly === item.to && (
                         <motion.div
-                          initial={{ opacity: 0, y: 6, scale: 0.985 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 6, scale: 0.985 }}
+                          key="flyout"
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4, transition: { duration: 0.12, ease: 'easeIn' } }}
                           transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                          className="absolute left-1/2 top-full z-50 origin-top -translate-x-1/2 pt-2.5"
+                          className="absolute top-full z-50 pt-2.5"
+                          style={{ left: flyLeft }}
                         >
-                          {/* 宽度由内容定（w-max）+ 行内 whitespace-nowrap：
-                              旧的固定 240px 会把“数字经济·大数据与 AI 实训体系”这类长标题
-                              折成两行，第五行只剩一个孤字 —— 下拉菜单最丑的一种坏形。 */}
-                          <div className="w-max max-w-[calc(100vw_-_40px)] overflow-hidden rounded-2xl border border-ink-900/[0.07] bg-white shadow-lift">
-                            <div className="flex items-baseline justify-between gap-5 border-b border-ink-900/[0.05] bg-mist-100 px-4 py-2.5">
-                              <span className="text-micro font-semibold uppercase tracking-label text-ink-500">{fl.head}</span>
-                              <span className="font-mono text-micro uppercase tracking-[0.14em] text-ink-300">{fl.en}</span>
-                            </div>
-                            <div className="p-1.5">
-                              {fl.items.map((c, ci) => {
-                                const Icon = c.icon
-                                return (
-                                  <button
-                                    key={ci}
-                                    type="button"
-                                    onClick={() => {
-                                      setOpenFly(null)
-                                      if (c.to) {
-                                        navigate(c.to)
-                                      } else {
-                                        requestMatrixIndex(c.index)
-                                        navigate('/products')
-                                      }
-                                    }}
-                                    className="group/fo flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-mist-100"
-                                  >
-                                    {Icon && (
-                                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-ink-900/[0.06] bg-mist-100 text-ink-500 transition-colors duration-200 group-hover/fo:border-brand/25 group-hover/fo:bg-brand/10 group-hover/fo:text-brand">
-                                        <Icon className="h-4 w-4" strokeWidth={2} />
+                          {/* 白底下拉（只借鉴极光的版式与层次，色值全用本站 token）：
+                              轻描边 + 柔和浅灰投影 + 8px 圆角，顶部一条品牌色细线点睛；
+                              两列 6 格 = 5 个二级项 + 1 个「全部」入口，图标左、标题与一行描述右。
+                              白底不做发光、不做模糊；导航栏与首屏仍保持深色，只有这块面板转白。 */}
+                          <div
+                            ref={flyPanelRef}
+                            className="relative w-[600px] max-w-[calc(100vw-32px)] overflow-hidden rounded-lg border border-ink-900/[0.07] bg-white shadow-[0_16px_40px_-16px_rgba(15,23,42,0.22),0_2px_8px_-4px_rgba(15,23,42,0.10)]"
+                          >
+                            <span className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,rgba(22,119,255,0.85),rgba(22,119,255,0.28)_55%,rgba(22,119,255,0))]" aria-hidden />
+
+                            <div className="relative">
+                              <div className="flex items-baseline gap-2 px-4 pb-2.5 pt-3.5">
+                                <span className="text-[12px] font-semibold tracking-[0.02em] text-ink-900">{fl.head}</span>
+                                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-300">{fl.en}</span>
+                                <span className="ml-auto font-mono text-[9px] tabular-nums tracking-[0.12em] text-ink-300">
+                                  {String(fl.items.length).padStart(2, '0')}
+                                </span>
+                              </div>
+                              <div className="mx-4 h-px bg-ink-900/[0.06]" aria-hidden />
+
+                              <div className="grid grid-cols-2 gap-1 p-2">
+                                {fl.items.map((c, ci) => {
+                                  const Icon = c.icon
+                                  return (
+                                    <button
+                                      key={ci}
+                                      type="button"
+                                      onClick={() => {
+                                        closeFlyNow()
+                                        if (c.to) {
+                                          navigate(c.to)
+                                        } else {
+                                          requestMatrixIndex(c.index)
+                                          navigate('/products')
+                                        }
+                                      }}
+                                      className="group/fo flex items-start gap-3 rounded-md px-3 py-2.5 text-left outline-none transition-colors duration-150 hover:bg-brand-soft/60 focus-visible:ring-2 focus-visible:ring-brand/40"
+                                    >
+                                      {Icon && (
+                                        <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-brand-soft/70 text-brand/75 transition-colors duration-150 group-hover/fo:bg-brand-soft group-hover/fo:text-brand">
+                                          <Icon className="h-4 w-4" strokeWidth={1.9} />
+                                        </span>
+                                      )}
+                                      <span className="min-w-0 flex-1">
+                                        <span className="block truncate text-[13px] font-semibold text-ink-700 transition-colors duration-150 group-hover/fo:text-ink-900">
+                                          {c.label}
+                                        </span>
+                                        <span className="mt-0.5 block truncate text-[11px] leading-4 text-ink-400/90 transition-colors duration-150 group-hover/fo:text-ink-500">
+                                          {c.desc}
+                                        </span>
                                       </span>
-                                    )}
-                                    {/* 一项一行，不挂英文副行：后缀已去掉，这里连条件分支也不留，
-                                        免得留一段永远不会渲染的死 JSX */}
-                                    <span className="min-w-0 flex-1 whitespace-nowrap text-ui font-medium text-ink-700 transition-colors group-hover/fo:text-ink-900">
-                                      {c.label}
+                                    </button>
+                                  )
+                                })}
+
+                                {/* 第 6 格：与二级项同格的「全部」入口，两列排布不留空位 */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    closeFlyNow()
+                                    navigate(fl.all.to)
+                                  }}
+                                  className="group/fa flex items-start gap-3 rounded-md px-3 py-2.5 text-left outline-none transition-colors duration-150 hover:bg-brand-soft/60 focus-visible:ring-2 focus-visible:ring-brand/40"
+                                >
+                                  <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-brand-soft/70 text-brand/75 transition-colors duration-150 group-hover/fa:bg-brand-soft group-hover/fa:text-brand">
+                                    <ArrowRight className="h-4 w-4" strokeWidth={1.9} />
+                                  </span>
+                                  <span className="min-w-0 flex-1">
+                                    <span className="block truncate text-[13px] font-semibold text-ink-700 transition-colors duration-150 group-hover/fa:text-ink-900">
+                                      {fl.all.label}
                                     </span>
-                                    <span className="shrink-0 font-mono text-micro tabular-nums text-ink-300 transition-colors group-hover/fo:text-brand">{pad2(ci)}</span>
-                                  </button>
-                                )
-                              })}
+                                    <span className="mt-0.5 block truncate text-[11px] leading-4 text-ink-400/90 transition-colors duration-150 group-hover/fa:text-ink-500">
+                                      {fl.all.desc}
+                                    </span>
+                                  </span>
+                                </button>
+                              </div>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setOpenFly(null)
-                                navigate(fl.all.to)
-                              }}
-                              className="group flex w-full items-center justify-between gap-6 border-t border-ink-900/[0.05] px-4 py-2.5 text-left text-ui-sm font-medium text-ink-500 transition-colors hover:bg-mist-100 hover:text-ink-900"
-                            >
-                              {fl.all.label}
-                              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                            </button>
                           </div>
                         </motion.div>
                       )}
@@ -346,12 +429,17 @@ export default function Navbar() {
                 )
               })}
             </div>
-          )}
-        </nav>
+          </nav>
 
-        {/* 右格：桌面动作区 + 移动端汉堡共用一个单元格，保证上面是干净的三列网格 */}
-        <div className="flex items-center justify-end gap-2 xl:gap-3">
-          <div className="hidden items-center gap-2.5 lg:flex">
+          {/* 右端：辅助入口 + 主 CTA + 移动端汉堡。
+              ml-auto 把整组推到右端，同时把「导航区」与「CTA 区」的空白拉开。 */}
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 xl:gap-2.5">
+            {/* 与导航分隔的细线：让 CTA 区有明确边界，颜色跟随深浅两种顶栏状态 */}
+            <span
+              className={`mr-1 hidden h-5 w-px shrink-0 lg:block xl:mr-2 ${light ? 'bg-white/15' : 'bg-ink-900/10'}`}
+              aria-hidden
+            />
+          <div className="hidden items-center gap-1.5 lg:flex xl:gap-2.5">
             <a
               href={CLOUD_URL}
               target="_blank"
@@ -392,7 +480,7 @@ export default function Navbar() {
           >
             {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
-        </div>
+          </div>
       </div>
 
       <AnimatePresence>
@@ -464,26 +552,31 @@ export default function Navbar() {
                           exit={{ opacity: 0, height: 0 }}
                           className="overflow-hidden"
                         >
-                          <div className="flex flex-col gap-0.5 py-1 pl-4">
-                            {fl.items.map((c, ci) => (
-                              <button
-                                key={ci}
-                                type="button"
-                                onClick={() => {
-                                  setOpen(false)
-                                  setOpenSub(null)
-                                  if (c.to) {
-                                    navigate(c.to)
-                                  } else {
-                                    requestMatrixIndex(c.index)
-                                    navigate('/products')
-                                  }
-                                }}
-                                className="rounded-lg px-4 py-2.5 text-left text-ui font-medium text-ink-500 hover:bg-mist hover:text-ink-900"
-                              >
-                                {c.label}
-                              </button>
-                            ))}
+                          <div className="ml-4 flex flex-col gap-0.5 border-l border-ink-900/[0.06] py-1 pl-3">
+                            {fl.items.map((c, ci) => {
+                              const Icon = c.icon
+                              return (
+                                <button
+                                  key={ci}
+                                  type="button"
+                                  onClick={() => {
+                                    setOpen(false)
+                                    setOpenSub(null)
+                                    if (c.to) {
+                                      navigate(c.to)
+                                    } else {
+                                      requestMatrixIndex(c.index)
+                                      navigate('/products')
+                                    }
+                                  }}
+                                  className="group/sub flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-ui font-medium text-ink-500 outline-none transition-colors hover:bg-mist hover:text-ink-900 focus-visible:bg-mist"
+                                >
+                                  {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-ink-300 transition-colors group-hover/sub:text-brand" strokeWidth={1.9} />}
+                                  <span className="min-w-0 flex-1 whitespace-nowrap">{c.label}</span>
+                                  <span className="shrink-0 font-mono text-micro tabular-nums text-ink-300 transition-colors group-hover/sub:text-brand">{pad2(ci)}</span>
+                                </button>
+                              )
+                            })}
                           </div>
                         </motion.div>
                       )}
@@ -494,27 +587,6 @@ export default function Navbar() {
               <Link to={navCta.to} className="mt-2 rounded-full bg-ink-900 px-5 py-3 text-center text-sm font-medium text-white">
                 {navCta.label}
               </Link>
-              {onHome && (
-                <div className="mt-4 border-t border-ink-900/[0.06] pt-3">
-                  <p className="flex items-center gap-1.5 px-4 pb-1 text-caption font-semibold uppercase tracking-label text-ink-400">
-                    <Compass className="h-3.5 w-3.5" />
-                    页面板块
-                  </p>
-                  <div className="flex flex-wrap gap-1 px-2">
-                    {visible.map((s) => (
-                      <button
-                        key={s.id}
-                        onClick={() => goSection(s.id)}
-                        className={`rounded-full px-3.5 py-2 text-ui-sm transition-colors ${
-                          active === s.id ? 'bg-ink-900 text-white' : 'bg-mist text-ink-700 hover:bg-mist-200'
-                        }`}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </motion.div>
         )}

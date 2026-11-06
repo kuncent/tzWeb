@@ -31,32 +31,32 @@ const tc = (s) => `${z(Math.floor((s || 0) / 60))}:${z(Math.floor((s || 0) % 60)
    放映中让位给画面本身 */
 function TopBar({ clip, product, t, dur, playing, show, onToggle, onReplay, onExpand, onClose }) {
   const btn =
-    'grid h-6 w-6 shrink-0 place-items-center rounded-md border border-white/12 bg-white/[0.04] text-white/70 transition-colors hover:border-brand/60 hover:bg-brand/20 hover:text-white'
+    'grid h-6 w-6 shrink-0 place-items-center rounded-md border border-white/12 bg-white/[0.04] text-white/70 transition-colors hover:border-accent/60 hover:bg-accent/20 hover:text-white'
   return (
     <div
-      className={`absolute inset-x-0 top-0 z-10 flex items-center gap-2 bg-gradient-to-b from-[#06080d]/92 via-[#06080d]/55 to-transparent px-3 pb-7 pt-2 transition-opacity duration-300 ${
+      className={`absolute inset-x-0 top-0 z-10 flex items-center gap-2 bg-gradient-to-b from-night/92 via-night/55 to-transparent px-3 pb-7 pt-2 transition-opacity duration-300 ${
         show ? 'opacity-100' : 'pointer-events-none opacity-0'
       }`}
     >
       <span className="flex shrink-0 items-center gap-1.5">
         <span className="h-2 w-2 rounded-full bg-white/15" />
         <span className="h-2 w-2 rounded-full bg-white/15" />
-        <span className="h-2 w-2 rounded-full bg-brand/70" />
+        <span className="h-2 w-2 rounded-full bg-accent/70" />
       </span>
       <span className="ml-1 hidden min-w-0 shrink truncate font-mono text-[11px] uppercase tracking-[0.14em] text-ink-400 sm:inline">
         {clip.domain}
       </span>
       <span className="ml-2 hidden min-w-0 shrink truncate text-[13px] font-medium text-white/85 lg:inline">
         {product.name}
-        <span className="ml-2 font-mono text-[11px] uppercase tracking-[0.14em] text-brand-300">{product.code}</span>
+        <span className="ml-2 font-mono text-[11px] uppercase tracking-[0.14em] text-accent-ice">{product.code}</span>
       </span>
       <span className="ml-auto flex shrink-0 items-center gap-2">
         <span className="font-mono text-[11px] tabular-nums tracking-[0.1em] text-ink-400">
           {tc(t)} / {tc(dur)}
         </span>
         <span className="relative flex h-1.5 w-1.5">
-          {playing && <span className="absolute inline-flex h-full w-full animate-pingslow rounded-full bg-brand-400" />}
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-400" />
+          {playing && <span className="absolute inline-flex h-full w-full animate-pingslow rounded-full bg-accent-ice" />}
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent-ice" />
         </span>
         <span className="hidden font-mono text-[11px] uppercase tracking-[0.16em] text-white/60 sm:inline">REAL FOOTAGE</span>
         <button type="button" onClick={onToggle} aria-label={playing ? '暂停' : '播放'} className={btn}>
@@ -83,7 +83,7 @@ function TopBar({ clip, product, t, dur, playing, show, onToggle, onReplay, onEx
 function BottomBar({ at, chapters, t, dur, onSeek, index }) {
   const pct = dur ? Math.min(100, (t / dur) * 100) : 0
   return (
-    <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[#06080d] via-[#06080d]/80 to-transparent px-3 pb-2 pt-6">
+    <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-night via-night/80 to-transparent px-3 pb-2 pt-6">
       <div className="flex items-center gap-2.5">
         <span className="h-3 w-[2px] shrink-0 rounded-full bg-brand" />
         <AnimatePresence mode="wait">
@@ -95,7 +95,7 @@ function BottomBar({ at, chapters, t, dur, onSeek, index }) {
             transition={{ duration: 0.3, ease: EASE }}
             className="min-w-0 flex-1 truncate text-[13px] text-white/85"
           >
-            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-brand-300">{at.label}</span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-accent-ice">{at.label}</span>
             <span className="mx-2 text-ink-500">/</span>
             {at.cap}
           </motion.p>
@@ -123,7 +123,7 @@ function BottomBar({ at, chapters, t, dur, onSeek, index }) {
               onClick={() => onSeek(c.t)}
               title={c.cap}
               className={`min-w-0 flex-1 truncate rounded-sm px-1 py-1 text-left font-mono text-[10px] uppercase tracking-[0.02em] transition-colors sm:px-1.5 sm:text-[11px] sm:tracking-[0.1em] ${
-                on ? 'bg-brand text-white' : 'text-ink-400 hover:bg-white/[0.08] hover:text-white/85'
+                on ? 'bg-accent text-white' : 'text-ink-400 hover:bg-white/[0.08] hover:text-white/85'
               }`}
             >
               {c.label}
@@ -150,7 +150,7 @@ function Surface({ clip, product, live, playing, t, dur, at, chapters, index, th
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className={`relative overflow-hidden border border-white/[0.09] bg-[#05080e] aspect-video ${
+      className={`relative overflow-hidden border border-white/[0.09] bg-night aspect-video ${
         theater
           ? 'h-full w-auto max-w-full max-h-[calc(100vh-6rem)] rounded-xl shadow-[0_40px_120px_-20px_rgba(0,0,0,0.9)]'
           : 'w-full max-h-full lg:h-full lg:w-auto lg:max-w-full rounded-2xl'
@@ -193,9 +193,9 @@ function Surface({ clip, product, live, playing, t, dur, at, chapters, index, th
         <motion.span
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="pointer-events-none absolute inset-0 z-[6] grid place-items-center bg-[#05080e]/40"
+          className="pointer-events-none absolute inset-0 z-[6] grid place-items-center bg-night/40"
         >
-          <span className="grid h-14 w-14 place-items-center rounded-full border border-white/25 bg-brand/85 text-white shadow-glow">
+          <span className="grid h-14 w-14 place-items-center rounded-full border border-white/25 bg-accent/85 text-white shadow-glow">
             <Play className="ml-0.5 h-6 w-6" fill="currentColor" />
           </span>
         </motion.span>
@@ -215,16 +215,16 @@ function Surface({ clip, product, live, playing, t, dur, at, chapters, index, th
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22, ease: EASE }}
             data-trial="veil"
-            className="pointer-events-none absolute inset-0 z-[7] grid place-items-center bg-[#03060b]/62"
+            className="pointer-events-none absolute inset-0 z-[7] grid place-items-center bg-night/62"
           >
             <div className="flex flex-col items-center gap-3">
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-brand-300">体验项目 · {product.name}</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-ice">体验项目 · {product.name}</p>
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
                   data-trial="apply"
                   onClick={() => requestTrial({ name: product.name, code: product.code, intent: product.intent })}
-                  className="pointer-events-auto rounded-xl bg-brand px-4 py-2 text-[13.5px] font-medium text-white shadow-glow transition-colors hover:bg-brand-500"
+                  className="pointer-events-auto rounded-xl bg-accent px-4 py-2 text-[13.5px] font-medium text-white shadow-glow transition-colors hover:bg-brand-500"
                 >
                   申请体验
                 </button>
@@ -387,7 +387,7 @@ function FilmStage({ clip, product, live, playing, setPlaying }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25, ease: EASE }}
-              className="fixed inset-0 z-[120] flex items-center justify-center bg-[#03050a]/94 p-4 backdrop-blur-sm md:p-8"
+              className="fixed inset-0 z-[120] flex items-center justify-center bg-night/94 p-4 backdrop-blur-sm md:p-8"
               onClick={(e) => e.target === e.currentTarget && setTheater(false)}
             >
               <Surface {...shared} live theater videoRef={bigRef} onClose={() => setTheater(false)} />
@@ -434,10 +434,10 @@ export default function ChainScreen({ p, i, withIndex }) {
         {/* 标题带：产品切换已经交给下面的缩略图，这里只留板块自述 */}
         <div className="shrink-0">
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand text-white shadow-glow">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent text-white shadow-glow">
               <Icon className="h-4 w-4" />
             </span>
-            <p className="text-[12.5px] font-semibold uppercase tracking-[0.22em] text-brand-400">{p.en}</p>
+            <p className="text-[12.5px] font-semibold uppercase tracking-[0.22em] text-accent-ice">{p.en}</p>
             {withIndex && (
               <p className="text-[12.5px] tabular-nums text-ink-400">
                 {pad(i)} / {pad(LAST)}
@@ -445,7 +445,7 @@ export default function ChainScreen({ p, i, withIndex }) {
             )}
           </div>
           <h3 className="mt-2.5 text-[22px] font-bold tracking-tight text-white md:text-[27px] xl:text-[32px]">{p.title}</h3>
-          <p className="mt-1 text-[13.5px] font-medium text-brand-300 xl:text-[15px]">{p.tagline}</p>
+          <p className="mt-1 text-[13.5px] font-medium text-accent-ice xl:text-[15px]">{p.tagline}</p>
         </div>
 
         {/* 录屏：减掉缩略图那一行后剩下的空间全给它。桌面钉屏行高有限，卡片按高度
@@ -479,12 +479,12 @@ export default function ChainScreen({ p, i, withIndex }) {
             ))}
           </ul>
           <a
-            href="/#contact"
+            href="/about#contact"
             onClick={(e) => {
               e.preventDefault()
               requestProductContact({ name: cur.name, code: cur.code, intent: cur.intent || p.intent, source: `chain-scheme-${cur.code}`, cta: `索取 ${cur.name} 实训方案` })
             }}
-            className="group ml-auto inline-flex shrink-0 items-center gap-2 rounded-xl border border-brand/40 bg-brand/10 px-4 py-2 text-[13px] font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
+            className="group ml-auto inline-flex shrink-0 items-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2 text-[13px] font-medium text-accent-sky transition-colors hover:bg-brand hover:text-white"
           >
             索取 {cur.code} 实训方案
             <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

@@ -1,16 +1,14 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowUpRight, Target, FlaskConical, Boxes, Layers, Waypoints, ChevronRight, GraduationCap } from 'lucide-react'
+import { FlaskConical, Boxes, Layers, ChevronRight, GraduationCap } from 'lucide-react'
 import { spotMove, SpotlightGlow } from '../ui'
-import SolutionArchDiagram from './SolutionArchDiagram'
 
 /* ============================================================
  * 单个实验教学方案的完整展开（浅色 · 全宽编辑式叙事）
  * ------------------------------------------------------------
  * 供解决方案页纵向堆叠调用：方案横幅（口号 / 主线链 / 目标 + 2×2 指标）
- * → 课程体系四层并排全展开（悬停某层联动架构图高亮）
- * → 实验室 / 实践四阶 / 架构图 / CTA 各自成带。
- * 每个方案块各自持有 hotLayer（课程层 ↔ 架构图联动），互不干扰。
+ * → 课程体系四层并排全展开（悬停某层高亮该层）
+ * → 实验室建设成带。
+ * 每个方案块各自持有 hotLayer（课程层悬停高亮），互不干扰。
  *
  * 浅色视觉纪律：分区底 mist，成段用白卡 + hairline 边框 + 柔和投影立
  * 层次；卡内再分格用 gap-px 发丝线（父层给 ink 底色、子格给白底）；
@@ -25,9 +23,6 @@ export default function PlanDetail({ plan }) {
       <PlanBanner plan={plan} />
       <CurriculumMatrix plan={plan} hotLayer={hotLayer} setHotLayer={setHotLayer} />
       <LabBand plan={plan} />
-      <PracticeBand plan={plan} />
-      <ArchBand plan={plan} hotLayer={hotLayer} />
-      <PlanCTA plan={plan} />
     </div>
   )
 }
@@ -94,7 +89,7 @@ const LAYER_DESC = {
 function CurriculumMatrix({ plan, hotLayer, setHotLayer }) {
   return (
     <section className="rounded-3xl border border-ink-900/[0.06] bg-white p-6 shadow-card md:p-9">
-      <SectionHead icon={Layers} title="课程体系建设" en="Curriculum Matrix" hint="四层并排 · 悬停某层联动下方架构图" />
+      <SectionHead icon={Layers} title="课程体系建设" en="Curriculum Matrix" hint="四层并排 · 打底层 → 核心层 → 进阶层 → 创新层" />
       <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {plan.layers.map((layer, li) => {
           const on = hotLayer === layer.key
@@ -160,68 +155,6 @@ function LabBand({ plan }) {
             <SpotlightGlow />
           </div>
         ))}
-      </div>
-    </section>
-  )
-}
-
-/* ―― 实践教学四阶：编号流程面板 ―― */
-function PracticeBand({ plan }) {
-  return (
-    <section className="rounded-3xl border border-ink-900/[0.06] bg-white p-6 shadow-card md:p-9">
-      <SectionHead icon={Waypoints} title="实践教学体系建设" en="Four-Stage Practice" hint="实验教学 → 实训教学 → 竞赛演练 → 科研创新" />
-      <div className="mt-6 grid gap-px overflow-hidden rounded-2xl bg-ink-900/[0.08] sm:grid-cols-2 lg:grid-cols-4">
-        {plan.practice.map((st, i) => (
-          <div key={st.stage} onMouseMove={spotMove} className="group relative overflow-hidden bg-white p-5">
-            <div className="flex items-center gap-2.5">
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-50 font-mono text-ui-sm font-bold text-brand ring-1 ring-inset ring-brand/20">{i + 1}</span>
-              <div>
-                <h5 className="text-ui font-semibold tracking-tight text-ink-900">{st.stage}</h5>
-                <p className="font-mono text-micro uppercase tracking-[0.16em] text-ink-400">{st.en}</p>
-              </div>
-            </div>
-            <ul className="mt-4 space-y-2">
-              {st.systems.map((s) => (
-                <li key={s} className="flex items-start gap-2 text-ui-sm leading-snug text-ink-500">
-                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-brand" />
-                  <span className="min-w-0">{s}</span>
-                </li>
-              ))}
-            </ul>
-            <SpotlightGlow />
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-/* ―― 架构图：带框图版 ―― */
-function ArchBand({ plan, hotLayer }) {
-  return (
-    <section className="rounded-3xl border border-ink-900/[0.06] bg-white p-6 shadow-card md:p-9">
-      <SectionHead icon={Target} title="方案架构图" en="Architecture" hint="自下而上：课程四层 → 培养目标，横向对齐主线与实践四阶" />
-      <figure className="mt-6 rounded-2xl border border-ink-900/[0.06] bg-mist-100 p-4 md:p-7">
-        <SolutionArchDiagram plan={plan} hovered={hotLayer} />
-      </figure>
-    </section>
-  )
-}
-
-function PlanCTA({ plan }) {
-  return (
-    <section className="relative overflow-hidden rounded-3xl border border-brand/15 bg-gradient-to-br from-brand-50 to-white p-6 md:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-5">
-        <div className="min-w-0">
-          <h4 className="text-title font-semibold tracking-tight text-ink-900 md:text-title">要把「{plan.short}」这套落到贵校？</h4>
-          <p className="mt-1.5 text-ui text-ink-500">留下场地、专业与年级人数，方案顾问按这套体系出一份可对接课表的初稿。</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <Link to="/#contact" className="group inline-flex items-center gap-2.5 rounded-full bg-brand-action px-6 py-3 text-ui font-semibold text-white transition-all duration-300 hover:bg-brand-press hover:shadow-glow">
-            索取完整方案书
-            <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Link>
-        </div>
       </div>
     </section>
   )

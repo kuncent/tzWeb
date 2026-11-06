@@ -81,9 +81,9 @@ function Board({ board, n }) {
   if (!board || !board.text) return null
   const done = n >= board.text.length
   return (
-    <div className="relative mt-3 overflow-hidden rounded-xl border border-white/[0.07] bg-[#070c14] px-4 py-3">
+    <div className="relative mt-3 overflow-hidden rounded-xl border border-white/[0.07] bg-night-900 px-4 py-3">
       <p className="font-mono text-caption uppercase tracking-label text-ink-500">{board.kind === 'formula' ? 'BOARD · 推导' : 'BOARD · 示意'}</p>
-      <p className="mt-1 wrap-break-word font-mono text-ui leading-relaxed text-brand-200 xl:text-ui-lg">
+      <p className="mt-1 wrap-break-word font-mono text-ui leading-relaxed text-accent-sky xl:text-ui-lg">
         {board.text.slice(0, n)}
         <span className={`ml-0.5 inline-block h-[1em] w-[6px] translate-y-[2px] bg-brand-400 ${done ? 'opacity-0' : 'animate-pulse'}`} />
       </p>
@@ -124,7 +124,7 @@ function Scene({ scene, b, answer, onAnswer }) {
                   : picked
                     ? 'border-rose-400/45 bg-rose-400/[0.08] text-white/80'
                     : 'border-white/[0.06] text-ink-400'
-                : 'border-white/10 text-white/80 hover:border-brand/45 hover:bg-brand/[0.08]'
+                : 'border-white/10 text-white/80 hover:border-accent/45 hover:bg-accent/[0.08]'
             return (
               <li key={oi} className="transition-all duration-500" style={{ opacity: on ? 1 : 0, transform: `translateY(${on ? 0 : 8}px)` }}>
                 <button
@@ -149,9 +149,9 @@ function Scene({ scene, b, answer, onAnswer }) {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="mt-2.5 rounded-lg border-l-2 border-brand/60 bg-brand/[0.07] px-3 py-2 text-ui-sm leading-relaxed text-brand-100"
+              className="mt-2.5 rounded-lg border-l-2 border-accent/60 bg-accent/[0.07] px-3 py-2 text-ui-sm leading-relaxed text-brand-100"
             >
-              <span className="font-mono text-caption uppercase tracking-[0.16em] text-brand-300">AI 教师判分 / </span>
+              <span className="font-mono text-caption uppercase tracking-[0.16em] text-accent-ice">AI 教师判分 / </span>
               {answer === scene.answer ? '答对了。' : '再想想。'}
               {scene.explain}
             </motion.p>
@@ -166,7 +166,7 @@ function Scene({ scene, b, answer, onAnswer }) {
   if (scene.type === 'discussion') {
     return (
       <div className="mt-3">
-        <p className="text-ui font-medium leading-snug text-brand-200 xl:text-ui-lg">{scene.topic}</p>
+        <p className="text-ui font-medium leading-snug text-accent-sky xl:text-ui-lg">{scene.topic}</p>
         <ul className="mt-3 space-y-2">
           {scene.turns.slice(0, b.shown).map((t, ti) => {
             const a = agentOf(t.who)
@@ -182,7 +182,7 @@ function Scene({ scene, b, answer, onAnswer }) {
                 <span className={`mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.05] text-ui-sm font-semibold ${a.color}`}>
                   {a.name.replace('AI 同学 · ', '').replace('AI 教师', '师').slice(0, 1)}
                 </span>
-                <p className={`min-w-0 flex-1 rounded-xl rounded-tl-sm border px-3 py-2 text-ui-sm leading-relaxed transition-colors ${last ? 'border-brand/30 bg-brand/[0.08] text-white' : 'border-white/[0.07] bg-white/[0.03] text-ink-400'}`}>
+                <p className={`min-w-0 flex-1 rounded-xl rounded-tl-sm border px-3 py-2 text-ui-sm leading-relaxed transition-colors ${last ? 'border-accent/30 bg-accent/[0.08] text-white' : 'border-white/[0.07] bg-white/[0.03] text-ink-400'}`}>
                   <span className={`mr-2 font-mono text-caption uppercase tracking-[0.12em] ${a.color}`}>{t.who}</span>
                   {t.text}
                 </p>
@@ -209,7 +209,7 @@ function Scene({ scene, b, answer, onAnswer }) {
             >
               <span className="flex items-start gap-2.5">
                 {/* 激光笔：落在正在讲的那一条上 */}
-                <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${lit ? 'bg-brand shadow-[0_0_0_4px_rgba(22,119,255,0.18)]' : 'bg-white/20'}`} />
+                <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${lit ? 'bg-accent shadow-[0_0_0_4px_rgba(47,123,255,0.18)]' : 'bg-white/20'}`} />
                 <span className={`text-ui leading-relaxed xl:text-ui-lg ${lit ? 'text-white' : 'text-white/70'}`}>{bl}</span>
               </span>
             </motion.li>
@@ -509,7 +509,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
   }
 
   const online = status.online || lesson.source === 'qwen'
-  const btn = 'grid h-6 w-6 shrink-0 place-items-center rounded-md border border-white/12 bg-white/[0.04] text-white/70 transition-colors hover:border-brand/60 hover:bg-brand/20 hover:text-white'
+  const btn = 'grid h-6 w-6 shrink-0 place-items-center rounded-md border border-white/12 bg-white/[0.04] text-white/70 transition-colors hover:border-accent/60 hover:bg-accent/20 hover:text-white'
 
   return (
     <div className="relative flex h-full flex-col justify-center">
@@ -521,10 +521,10 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
         {/* 标题带 */}
         <div className="shrink-0">
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand text-white shadow-glow">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent text-white shadow-glow">
               <Icon className="h-4 w-4" />
             </span>
-            <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{p.en}</p>
+            <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-accent-ice">{p.en}</p>
             {withIndex && (
               <p className="text-ui-sm tabular-nums text-ink-400">
                 {pad(i)} / {pad(LAST)}
@@ -541,7 +541,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
             </span>
           </div>
           <h3 className="mt-2.5 text-title font-bold tracking-tight text-white md:text-[27px] xl:text-[32px]">{p.title}</h3>
-          <p className="mt-1 text-ui font-medium text-brand-300 xl:text-ui-lg">{p.tagline}</p>
+          <p className="mt-1 text-ui font-medium text-accent-ice xl:text-ui-lg">{p.tagline}</p>
           <p className="mt-1.5 line-clamp-2 max-w-3xl text-ui-sm leading-[1.7] text-ink-400 [@media(max-height:860px)]:line-clamp-1" title={p.desc}>
             {p.desc}
           </p>
@@ -564,7 +564,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                     if (t.id === 'prep') setPrepSeen(true)
                   }}
                   className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-ui-sm font-medium transition-colors ${
-                    on ? 'border-brand/55 bg-brand/15 text-white' : 'border-white/[0.08] text-ink-400 hover:border-white/25 hover:text-white/85'
+                    on ? 'border-accent/55 bg-accent/15 text-white' : 'border-white/[0.08] text-ink-400 hover:border-white/25 hover:text-white/85'
                   }`}
                 >
                   <Ic className="h-3.5 w-3.5" />
@@ -583,18 +583,18 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
             整行溢出到下面的能力标签与指标条上（字一放大就叠在一起，而屏底还没越界，量裁切量不到） */}
         <div className={`${tab === 'class' ? 'grid' : 'hidden'} mt-3 min-h-0 flex-1 gap-3.5 lg:grid-cols-[1.12fr_0.88fr] lg:grid-rows-[minmax(0,1fr)]`}>
           {/* ―― 投影 ―― */}
-          <div className="relative flex min-h-[300px] flex-col overflow-hidden rounded-2xl border border-white/[0.09] bg-[#060a11] px-4 pb-3 pt-2.5 lg:min-h-[190px] xl:min-h-[225px] 2xl:min-h-[280px]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_24%_0%,rgba(22,119,255,0.10),transparent_70%)]" />
+          <div className="relative flex min-h-[300px] flex-col overflow-hidden rounded-2xl border border-white/[0.09] bg-night px-4 pb-3 pt-2.5 lg:min-h-[190px] xl:min-h-[225px] 2xl:min-h-[280px]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_24%_0%,var(--theme-halo-soft),transparent_70%)]" />
             {/* 放映顶栏 */}
             <div className="relative flex shrink-0 items-center gap-2">
               <span className="flex shrink-0 items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-white/15" />
                 <span className="h-2 w-2 rounded-full bg-white/15" />
-                <span className="h-2 w-2 rounded-full bg-brand/70" />
+                <span className="h-2 w-2 rounded-full bg-accent/70" />
               </span>
               <p className="min-w-0 flex-1 truncate text-ui-sm font-semibold text-white/85">
                 {lesson.title}
-                <span className="ml-2 font-mono text-caption uppercase tracking-[0.14em] text-brand-300">{scene?.title || ''}</span>
+                <span className="ml-2 font-mono text-caption uppercase tracking-[0.14em] text-accent-ice">{scene?.title || ''}</span>
               </p>
               <button type="button" onClick={() => setView(view === 'stage' ? 'map' : 'stage')} title="切换投影/课堂图谱" className={btn}>
                 {view === 'stage' ? <ListTree className="h-3 w-3" /> : <Presentation className="h-3 w-3" />}
@@ -606,7 +606,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                 type="button"
                 onClick={() => setVoice((v) => !v)}
                 title={voice ? '关闭教师语音' : '开启教师语音（浏览器 TTS）'}
-                className={`${btn} ${voice ? '!border-brand/60 !bg-brand/20 !text-white' : ''}`}
+                className={`${btn} ${voice ? '!border-accent/60 !bg-accent/20 !text-white' : ''}`}
               >
                 {voice ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
               </button>
@@ -649,7 +649,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                 </AnimatePresence>
                 {/* 口播：逐字打出的教师讲稿 */}
                 <div className="relative mt-2 shrink-0 border-t border-white/[0.06] pt-2">
-                  <p className="font-mono text-caption uppercase tracking-[0.16em] text-brand-300">
+                  <p className="font-mono text-caption uppercase tracking-[0.16em] text-accent-ice">
                     {scene?.type === 'quiz' ? 'AI 教师 · 等待作答' : scene?.type === 'discussion' ? 'AI 教师 · 组织讨论' : 'AI 教师 · 口播'}
                   </p>
                   <p className="mt-0.5 line-clamp-2 min-h-[2.9em] text-ui-sm leading-[1.6] text-white/70">
@@ -674,7 +674,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                   onClick={() => goto(si)}
                   title={s.title}
                   className={`min-w-0 flex-1 truncate rounded-sm px-1.5 py-1 text-left font-mono text-caption uppercase tracking-[0.1em] transition-colors ${
-                    si === sceneIdx && view === 'stage' ? 'bg-brand text-white' : si < sceneIdx ? 'text-brand-300 hover:bg-white/[0.08]' : 'text-ink-400 hover:bg-white/[0.08] hover:text-white/85'
+                    si === sceneIdx && view === 'stage' ? 'bg-accent text-white' : si < sceneIdx ? 'text-accent-ice hover:bg-white/[0.08]' : 'text-ink-400 hover:bg-white/[0.08] hover:text-white/85'
                   }`}
                 >
                   {pad(si)} {s.title}
@@ -691,7 +691,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
           <div className="flex min-h-0 flex-col gap-2.5">
             <div data-lenis-prevent className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pr-1">
             <div className="shrink-0 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3">
-              <p className="text-ui-sm font-semibold uppercase tracking-label text-brand-400">课堂生成流水线 · 两阶段</p>
+              <p className="text-ui-sm font-semibold uppercase tracking-label text-accent-ice">课堂生成流水线 · 两阶段</p>
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 {classroomTopics.map((t) => (
                   <button
@@ -699,7 +699,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                     type="button"
                     onClick={() => applyLesson(pickLesson(t))}
                     className={`rounded-full border px-2.5 py-1 text-ui-sm transition-colors ${
-                      cur === t ? 'border-brand/50 bg-brand/15 text-white' : 'border-white/[0.08] text-ink-400 hover:border-white/25 hover:text-white/85'
+                      cur === t ? 'border-accent/50 bg-accent/15 text-white' : 'border-white/[0.08] text-ink-400 hover:border-white/25 hover:text-white/85'
                     }`}
                   >
                     {t}
@@ -717,7 +717,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                   value={topic}
                   onChange={(ev) => setTopic(ev.target.value)}
                   placeholder="输入任意主题，如「傅里叶变换的直觉」"
-                  className="min-w-0 flex-1 rounded-lg border border-white/[0.09] bg-[#060a11] px-2.5 py-1.5 text-ui-sm text-white outline-none transition-colors placeholder:text-ink-500 focus:border-brand/60"
+                  className="min-w-0 flex-1 rounded-lg border border-white/[0.09] bg-night px-2.5 py-1.5 text-ui-sm text-white outline-none transition-colors placeholder:text-ink-500 focus:border-accent/60"
                 />
                 <button
                   type="submit"
@@ -740,7 +740,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
                     ))}
                   </div>
                   <div className="mt-1.5 h-[3px] overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full rounded-full bg-brand" style={{ width: phase >= 2 ? '82%' : '46%', transition: 'width .5s' }} />
+                    <div className="h-full rounded-full bg-accent" style={{ width: phase >= 2 ? '82%' : '46%', transition: 'width .5s' }} />
                   </div>
                 </div>
               </div>
@@ -753,7 +753,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
 
             {/* 智能体花名册 */}
             <div className="shrink-0 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-2.5">
-              <p className="text-ui-sm font-semibold uppercase tracking-label text-brand-400">同堂智能体</p>
+              <p className="text-ui-sm font-semibold uppercase tracking-label text-accent-ice">同堂智能体</p>
               <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 [@media(max-height:820px)]:grid-cols-4 [@media(max-height:820px)]:gap-y-1">
                 {classroomAgents.map((a) => (
                   <li key={a.id} className="flex min-w-0 items-center gap-1.5">
@@ -801,14 +801,14 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
               data-classroom="ask"
               className="flex shrink-0 items-center gap-1.5 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3 py-2"
             >
-              <span className="shrink-0 font-mono text-caption uppercase tracking-[0.16em] text-brand-300">ASK</span>
+              <span className="shrink-0 font-mono text-caption uppercase tracking-[0.16em] text-accent-ice">ASK</span>
               <input
                 value={draft}
                 onChange={(ev) => setDraft(ev.target.value)}
                 placeholder="打断一下，问个具体问题…"
                 className="min-w-0 flex-1 bg-transparent text-ui-sm text-white outline-none placeholder:text-ink-500"
               />
-              <button type="submit" disabled={pending || !draft.trim()} aria-label="发送提问" className="shrink-0 text-brand-200 transition-colors hover:text-white disabled:text-ink-500">
+              <button type="submit" disabled={pending || !draft.trim()} aria-label="发送提问" className="shrink-0 text-accent-sky transition-colors hover:text-white disabled:text-ink-500">
                 <Send className="h-3.5 w-3.5" />
               </button>
             </form>
@@ -819,7 +819,7 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
         {prepSeen && (
           <Suspense
             fallback={
-              <div className="mt-3 grid min-h-[300px] flex-1 place-items-center rounded-2xl border border-white/[0.09] bg-[#060a11] lg:min-h-[190px] xl:min-h-[225px]">
+              <div className="mt-3 grid min-h-[300px] flex-1 place-items-center rounded-2xl border border-white/[0.09] bg-night lg:min-h-[190px] xl:min-h-[225px]">
                 <p className="text-ui-sm text-ink-500">备课台加载中…</p>
               </div>
             }
@@ -845,12 +845,12 @@ ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
               </div>
             ))}
             <a
-              href="/#contact"
+              href="/about#contact"
               onClick={(e) => {
                 e.preventDefault()
                 requestProductContact({ name: p.title, intent: p.intent, source: `classroom-${p.id}`, cta: '预约课堂演示' })
               }}
-              className="group inline-flex items-center gap-2 rounded-xl border border-brand/40 bg-brand/10 px-4 py-2 text-ui-sm font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
+              className="group inline-flex items-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2 text-ui-sm font-medium text-accent-sky transition-colors hover:bg-brand hover:text-white"
             >
               预约课堂演示
               <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

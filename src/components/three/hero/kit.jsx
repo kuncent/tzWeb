@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { buildClock } from './buildBus'
+import { THEME } from '../../../theme'
 
 /* ============================================================
  * 首屏三屏共用的舞台件
@@ -128,11 +129,11 @@ void main() {
 }
 `
 
-export function Floor({ accent = '#5FA8FF', size = 46 }) {
+export function Floor({ accent = THEME.sky, size = 46 }) {
   const uniforms = useMemo(
     () => ({
       uColor: { value: new THREE.Color(accent) },
-      /* 与场景 background / fog 同色：不然这块 46×46 的方地会露出一个矩形边 */
+      /* 与场景 background / fog 同色（#06080d）：不然这块 46×46 的方地会露出一个矩形边 */
       uBase: { value: new THREE.Color('#06080d') },
       uSize: { value: size },
     }),
@@ -152,7 +153,7 @@ export function Floor({ accent = '#5FA8FF', size = 46 }) {
 }
 
 /** 贴地软光斑：给每个布景一个“落在台上”的接触感，比真阴影便宜得多 */
-export function ContactGlow({ radius = 1.6, color = '#5FA8FF', opacity = 0.5, y = 0.012 }) {
+export function ContactGlow({ radius = 1.6, color = THEME.sky, opacity = 0.5, y = 0.012 }) {
   const tex = useMemo(() => {
     const c = document.createElement('canvas')
     c.width = c.height = 128
@@ -399,7 +400,7 @@ const _pk = new THREE.Vector3()
  * active 是一个逐帧取值的函数（该弧此刻的强度 0~1），
  * onDeliver 在包跑到终点那一刻回调一次 —— 布景拿它去点亮收方。
  */
-export function FlowArc({ a, b, bend = 0.16, lift = 0.1, towardCamera = 0.12, color = '#A98BFF', radius = 0.006, opacity = 0.9, speed = 0.34, size = 0.07, active, onDeliver }) {
+export function FlowArc({ a, b, bend = 0.16, lift = 0.1, towardCamera = 0.12, color = THEME.sky, radius = 0.006, opacity = 0.9, speed = 0.34, size = 0.07, active, onDeliver }) {
   const tube = useRef(null)
   const packs = useRef([])
   const phase = useRef(0)

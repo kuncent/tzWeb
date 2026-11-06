@@ -4,12 +4,15 @@
  * 无需后端，所有结果均由输入实时计算
  * ============================================================ */
 
+import { PRODUCT_NAMES } from '../data/vocabulary'
+
+/* 意向方向一律取自商品词表，保证预填值能逐字命中联系表单的选项 */
 const SUBJECT_RULES = [
-  { key: 'ai', label: '人工智能', product: 'AI 多智能体课堂', match: [/人工智能|机器学习|深度学习|神经网络|transformer|大模型|llm|ai\b/i] },
-  { key: 'blockchain', label: '区块链', product: '自然语言实验平台', match: [/区块链|web3|智能合约|solidity|链上|比特币|以太坊|共识/i] },
-  { key: 'robotics', label: '具身智能 / 机器人', product: '数字孪生实验室', match: [/机器人|具身|运动学|机械臂|伺服|pid|控制|robot/i] },
-  { key: 'data', label: '数据工程', product: '自然语言实验平台', match: [/大数据|数据分析|sql|pandas|统计|可视化|数仓/i] },
-  { key: 'engineering', label: '工程实训', product: '数字孪生实验室', match: [/工程|制造|数控|电气|自动化|实训中心|金工/i] },
+  { key: 'ai', label: '人工智能', product: PRODUCT_NAMES.class, match: [/人工智能|机器学习|深度学习|神经网络|transformer|大模型|llm|ai\b/i] },
+  { key: 'blockchain', label: '区块链', product: PRODUCT_NAMES.blockchain, match: [/区块链|web3|智能合约|solidity|链上|比特币|以太坊|共识/i] },
+  { key: 'robotics', label: '具身智能 / 机器人', product: PRODUCT_NAMES.embodied, match: [/机器人|具身|运动学|机械臂|伺服|pid|控制|robot/i] },
+  { key: 'data', label: '数据工程', product: PRODUCT_NAMES['digital-economy'], match: [/大数据|数据分析|sql|pandas|统计|可视化|数仓/i] },
+  { key: 'engineering', label: '工程实训', product: PRODUCT_NAMES.embodied, match: [/工程|制造|数控|电气|自动化|实训中心|金工/i] },
 ]
 const DEFAULT_SUBJECT = { key: 'general', label: '前沿科技', product: '其他合作' }
 
@@ -62,11 +65,11 @@ const SCENE_PAINS = {
 }
 
 const CASE_BY_SUBJECT = {
-  ai: { school: '北京理工大学', note: 'AI 实验室 · 300+ 课程 · 5,000 学生' },
-  robotics: { school: '北京理工大学', note: '具身智能实验室 · 虚实结合实训' },
-  blockchain: { school: '深圳职业技术大学', note: '区块链沙箱实验 · 链上清算课程' },
-  data: { school: '哈尔滨工业大学（深圳）', note: '数据工程课程集群共建' },
-  engineering: { school: '北京理工大学', note: '工程实训中心 · 数字孪生联动' },
+  ai: { school: '北京理工大学', note: 'AI 多智能体课堂 · 300+ 课程 · 5,000 学生' },
+  robotics: { school: '北京理工大学', note: '具身智能 · 机器人实验室 · 虚实结合实训' },
+  blockchain: { school: '深圳职业技术大学', note: '区块链 · 可信账本与量化实训' },
+  data: { school: '哈尔滨工业大学（深圳）', note: '数字经济 · 大数据与 AI 实训体系' },
+  engineering: { school: '北京理工大学', note: '工商科一体化平台 · 产线实训' },
   general: { school: '华南理工大学', note: 'AI 通识课堂与学情分析试点' },
 }
 
@@ -177,7 +180,10 @@ export function pushHistory(analysis, score) {
 /* ---------- 4. 带着上下文跳到联系表单（预填） ---------- */
 export const PREFILL_KEY = 'tianze.contact.prefill'
 
-/* 联系表单只认 localStorage + 一个自定义事件，所以不管从哪个板块过去都走这一个口子。 */
+/* 联系表单只认 localStorage + 一个自定义事件，所以不管从哪个板块过去都走这一个口子。
+   表单现已迁到关于我们页（/about#contact）：当前页有 #contact 就地平滑滚过去，
+   没有就整页跳到 /about#contact（与首屏 / 页脚那些 <a href="/about#contact"> 同一走法）。
+   预填存 localStorage，Contact 挂载时自取（见 sections/Contact.jsx 的 read()）。 */
 function handoff(payload) {
   try {
     localStorage.setItem(PREFILL_KEY, JSON.stringify(payload))
@@ -189,6 +195,8 @@ function handoff(payload) {
   if (el) {
     if (window.__lenis) window.__lenis.scrollTo(el, { offset: -64 })
     else el.scrollIntoView({ behavior: 'smooth' })
+  } else {
+    window.location.assign('/about#contact')
   }
 }
 

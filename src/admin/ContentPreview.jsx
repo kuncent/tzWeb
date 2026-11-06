@@ -11,14 +11,12 @@
  * ============================================================ */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ExternalLink, RotateCw } from 'lucide-react'
-import { anchorSections } from '../data/site'
 import { Btn, Skeleton, cx } from './ui'
 
 const PREVIEW_SRC = '/?admin_preview=1'
 
-/* 锁点面包屑：从 anchorSections 派生，加 products 别名兼容旧引用 */
-const ANCHOR_LABEL = Object.fromEntries(anchorSections.map((s) => [s.id, s.label]))
-ANCHOR_LABEL.products = '产品矩阵' // 别名
+/* 锁点标签：现站点结构里就那几个落点，仅供预览头显示 */
+const ANCHOR_LABEL = { hero: '首屏', matrix: '产品矩阵', products: '产品矩阵', contact: '联系方式' }
 
 export default function ContentPreview({ anchor, refreshKey, onLoadChange }) {
   const iframeRef = useRef(null)

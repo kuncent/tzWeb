@@ -104,10 +104,10 @@ function Expanded({ s, group, roomy }) {
     >
       <div className={`flex flex-col border-t border-white/[0.06] pb-3.5 pt-2.5 pl-[34px] ${roomy ? 'min-h-0 grow' : ''}`}>
         <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-          <span className="font-mono text-caption tracking-[0.14em] text-brand-300">{s.code}</span>
+          <span className="font-mono text-caption tracking-[0.14em] text-accent-ice">{s.code}</span>
           {s.tag && <span className="text-ui-sm text-ink-400">‹ {s.tag} ›</span>}
           <span className="ml-auto flex items-center gap-2">
-            {s.hours && <span className="font-mono text-caption tabular-nums text-brand-200">{s.hours} 学时</span>}
+            {s.hours && <span className="font-mono text-caption tabular-nums text-accent-sky">{s.hours} 学时</span>}
             <span className="font-mono text-caption tabular-nums text-ink-400">{s.projectCount} 条实验</span>
           </span>
         </div>
@@ -116,7 +116,7 @@ function Expanded({ s, group, roomy }) {
         <div className={`mt-2.5 grid gap-4 md:grid-cols-2 ${roomy ? 'min-h-0 grow' : ''}`}>
           <div className="min-w-0 space-y-2.5">
             <div>
-              <p className="flex items-center gap-1.5 text-ui-sm font-semibold uppercase tracking-[0.16em] text-brand-400">
+              <p className="flex items-center gap-1.5 text-ui-sm font-semibold uppercase tracking-[0.16em] text-accent-ice">
                 <GraduationCap className="h-3 w-3" /> 适用专业
                 {s.majorTotal > s.majors.length && <span className="font-mono tracking-normal text-ink-500">共 {s.majorTotal} 个</span>}
               </p>
@@ -134,14 +134,14 @@ function Expanded({ s, group, roomy }) {
               </ul>
             </div>
             <div>
-              <p className="flex items-center gap-1.5 text-ui-sm font-semibold uppercase tracking-[0.16em] text-brand-400">
+              <p className="flex items-center gap-1.5 text-ui-sm font-semibold uppercase tracking-[0.16em] text-accent-ice">
                 <BookOpenCheck className="h-3 w-3" /> 适用课程
                 {s.courseTotal > s.courses.length && <span className="font-mono tracking-normal text-ink-500">共 {s.courseTotal} 门</span>}
               </p>
               <ul className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1">
                 {s.courses.map((c) => (
                   <li key={c} className="flex items-start gap-1 text-ui-sm leading-snug text-white/70">
-                    <span className="mt-[6px] h-[3px] w-[3px] shrink-0 rounded-full bg-brand/60" />
+                    <span className="mt-[6px] h-[3px] w-[3px] shrink-0 rounded-full bg-accent/60" />
                     {c}
                   </li>
                 ))}
@@ -150,7 +150,7 @@ function Expanded({ s, group, roomy }) {
           </div>
 
           <div className="flex min-w-0 flex-col">
-            <p className="shrink-0 text-ui-sm font-semibold uppercase tracking-[0.16em] text-brand-400">
+            <p className="shrink-0 text-ui-sm font-semibold uppercase tracking-[0.16em] text-accent-ice">
               实验项目大纲 <span className="font-mono tracking-normal text-ink-500">· 平台原文</span>
             </p>
             {s.chapters.length ? (
@@ -189,24 +189,24 @@ function Row({ s, g, open, onPick, roomy }) {
       <button
         onClick={() => onPick(s.code)}
         aria-expanded={open}
-        className={`group/row relative flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors duration-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand/70 ${
-          open ? 'border-brand/40 bg-brand/[0.1]' : 'border-transparent hover:border-white/15 hover:bg-white/[0.04]'
+        className={`group/row relative flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors duration-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent/70 ${
+          open ? 'border-accent/40 bg-accent/[0.1]' : 'border-transparent hover:border-white/15 hover:bg-white/[0.04]'
         }`}
       >
         <span
           className={`grid h-[28px] w-[28px] shrink-0 place-items-center rounded-lg border transition-colors duration-300 ${
-            open ? 'border-brand/40 bg-brand text-white' : 'border-white/[0.07] bg-white/[0.04] text-ink-400 group-hover/row:text-brand-200'
+            open ? 'border-accent/40 bg-accent text-white' : 'border-white/[0.07] bg-white/[0.04] text-ink-400 group-hover/row:text-accent-sky'
           }`}
         >
           <Icon className="h-[17px] w-[17px]" strokeWidth={1.6} />
         </span>
         <span className={`min-w-0 flex-1 truncate text-ui ${open ? 'text-white' : 'text-white/80'}`}>{s.name}</span>
         <span className="hidden shrink-0 truncate text-ui-sm text-ink-500 sm:block sm:w-[86px]">{s.tag}</span>
-        <span className={`w-[34px] shrink-0 text-right font-mono text-ui-sm tabular-nums ${open ? 'text-brand-200' : 'text-ink-400'}`}>
+        <span className={`w-[34px] shrink-0 text-right font-mono text-ui-sm tabular-nums ${open ? 'text-accent-sky' : 'text-ink-400'}`}>
           {s.projectCount || '—'}
         </span>
         <ChevronRight
-          className={`h-3.5 w-3.5 shrink-0 text-ink-500 transition-transform duration-300 ${open ? 'rotate-90 text-brand-300' : ''}`}
+          className={`h-3.5 w-3.5 shrink-0 text-ink-500 transition-transform duration-300 ${open ? 'rotate-90 text-accent-ice' : ''}`}
         />
       </button>
       <AnimatePresence initial={false}>{open && <Expanded s={s} group={g} roomy={roomy} />}</AnimatePresence>
@@ -242,11 +242,11 @@ export default function SystemsScreen({ p, i, withIndex }) {
         {/* 标题带 */}
         <div className="shrink-0">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-brand text-white shadow-glow">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-accent text-white shadow-glow">
               <Icon className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-brand-400">{p.en}</p>
+              <p className="text-ui-sm font-semibold uppercase tracking-eyebrow text-accent-ice">{p.en}</p>
               {withIndex && (
                 <p className="text-ui-sm tabular-nums text-ink-400">
                   {pad(i)} / {pad(LAST)}
@@ -255,7 +255,7 @@ export default function SystemsScreen({ p, i, withIndex }) {
             </div>
           </div>
           <h3 className="mt-3 text-[23px] font-bold tracking-tight text-white md:text-[28px] xl:text-[34px]">{p.title}</h3>
-          <p className="mt-1.5 text-ui font-medium text-brand-300 xl:text-ui-lg">{p.tagline}</p>
+          <p className="mt-1.5 text-ui font-medium text-accent-ice xl:text-ui-lg">{p.tagline}</p>
           <p className="mt-1.5 max-w-3xl text-ui-sm leading-[1.75] text-ink-400">{p.desc}</p>
         </div>
 
@@ -273,18 +273,18 @@ export default function SystemsScreen({ p, i, withIndex }) {
                   onClick={() => pickGroup(k)}
                   aria-pressed={on}
                   className={`relative flex shrink-0 items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors duration-300 lg:rounded-none lg:border-0 lg:bg-transparent lg:py-3 ${
-                    on ? 'border-brand/40 bg-brand/[0.12] lg:bg-transparent' : 'border-white/[0.07] hover:border-white/20'
+                    on ? 'border-accent/40 bg-accent/[0.12] lg:bg-transparent' : 'border-white/[0.07] hover:border-white/20'
                   }`}
                 >
                   {/* 脊线段与节点：只有桌面端有，hover/选中点亮自己这一段 */}
                   <span
                     className={`absolute left-[7px] hidden h-full w-px lg:block ${k === 0 ? 'top-1/2' : 'top-0'} ${
-                      on ? 'bg-brand/55' : 'bg-white/[0.09]'
+                      on ? 'bg-accent/55' : 'bg-white/[0.09]'
                     }`}
                   />
                   <span
                     className={`absolute left-[7px] top-1/2 hidden h-[7px] w-[7px] -translate-x-[3px] -translate-y-1/2 rounded-full border transition-colors duration-300 lg:block ${
-                      on ? 'border-brand bg-brand' : 'border-white/25 bg-night'
+                      on ? 'border-accent bg-accent' : 'border-white/25 bg-night'
                     }`}
                   />
                   <span className="ml-5 min-w-0 flex-1 lg:ml-6">
@@ -292,7 +292,7 @@ export default function SystemsScreen({ p, i, withIndex }) {
                     {/* 说明只在选中那一条露出：五条都写两行，导轨就把清单挤没了 */}
                     {on && <span className="mt-0.5 hidden text-ui-sm leading-snug text-ink-500 lg:block">{g.note}</span>}
                   </span>
-                  <span className={`shrink-0 font-mono text-caption tabular-nums ${on ? 'text-brand-200' : 'text-ink-500'}`}>
+                  <span className={`shrink-0 font-mono text-caption tabular-nums ${on ? 'text-accent-sky' : 'text-ink-500'}`}>
                     {g.systems.length}
                   </span>
                 </button>
@@ -303,7 +303,7 @@ export default function SystemsScreen({ p, i, withIndex }) {
               onClick={() => pickGroup(-1)}
               aria-pressed={allOn}
               className={`relative mt-1.5 flex shrink-0 items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition-colors duration-300 lg:ml-[7px] lg:w-[calc(100%-7px)] ${
-                allOn ? 'border-brand/40 bg-brand/[0.12] text-white' : 'border-dashed border-white/[0.1] text-ink-400 hover:border-white/25 hover:text-white/75'
+                allOn ? 'border-accent/40 bg-accent/[0.12] text-white' : 'border-dashed border-white/[0.1] text-ink-400 hover:border-white/25 hover:text-white/75'
               }`}
             >
               <span className="min-w-0 flex-1 whitespace-nowrap text-ui-sm">全部系统</span>
@@ -341,12 +341,12 @@ export default function SystemsScreen({ p, i, withIndex }) {
             </div>
           ))}
           <a
-            href="/#contact"
+            href="/about#contact"
             onClick={(e) => {
               e.preventDefault()
               requestProductContact({ name: p.title, intent: p.intent, source: `systems-${p.id}`, cta: '咨询产品体系' })
             }}
-            className="group inline-flex items-center gap-2 self-center rounded-xl border border-brand/40 bg-brand/10 px-4 py-2.5 text-ui font-medium text-brand-200 transition-colors hover:bg-brand hover:text-white"
+            className="group inline-flex items-center gap-2 self-center rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-ui font-medium text-accent-sky transition-colors hover:bg-accent hover:text-white"
           >
             咨询该产品体系
             <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

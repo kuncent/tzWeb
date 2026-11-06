@@ -13,6 +13,7 @@ import { EffectComposer, Noise, SMAA, ToneMapping, Vignette } from '@react-three
 import { ToneMappingMode } from 'postprocessing'
 import * as THREE from 'three'
 import { useCanvasVisibility } from '../../hooks/useCanvasVisibility'
+import { THEME } from '../../theme'
 import { boostModelMaterials } from './boost'
 
 const damp = THREE.MathUtils.damp
@@ -143,7 +144,7 @@ const M = {
     ior: 1.52,
     envMapIntensity: 1.5,
   }),
-  ledBlue: new THREE.MeshBasicMaterial({ color: hdr('#5FA8FF', 2.6), toneMapped: false }),
+  ledBlue: new THREE.MeshBasicMaterial({ color: hdr(THEME.sky, 2.6), toneMapped: false }),
   ledGreen: new THREE.MeshBasicMaterial({ color: hdr('#3EE0A4', 2.6), toneMapped: false }),
   ledWarm: new THREE.MeshBasicMaterial({ color: hdr('#FFC46B', 2.6), toneMapped: false }),
 }
@@ -407,7 +408,7 @@ function Pedestal({ active }) {
       </mesh>
       <mesh position={[0, 0.013, 0]} rotation-x={-Math.PI / 2}>
         <ringGeometry args={[0.49, 0.555, 96]} />
-        <meshBasicMaterial ref={ring} color="#5FA8FF" transparent opacity={0.2} toneMapped={false} side={THREE.DoubleSide} />
+        <meshBasicMaterial ref={ring} color={THEME.ice} transparent opacity={0.2} toneMapped={false} side={THREE.DoubleSide} />
       </mesh>
       <mesh position={[0, 0.011, 0]} rotation-x={-Math.PI / 2}>
         <circleGeometry args={[0.62, 48]} />
@@ -658,8 +659,8 @@ function CameraRig() {
 function Scene({ active, hi }) {
   return (
     <>
-      <color attach="background" args={['#060a11']} />
-      <fog attach="fog" args={['#060a11', 11, 27]} />
+      <color attach="background" args={[THEME.night]} />
+      <fog attach="fog" args={[THEME.night, 11, 27]} />
 
       <Floor hi={hi} />
       <Suspense fallback={null}>
@@ -675,7 +676,7 @@ function Scene({ active, hi }) {
       <ambientLight intensity={0.22} color="#bcd2ff" />
       <hemisphereLight intensity={0.36} color="#54687f" groundColor="#04060a" />
       <directionalLight position={[4.5, 7.5, 5]} intensity={1.85} color="#f2f7ff" />
-      <directionalLight position={[-5.5, 3.2, -1.5]} intensity={1.1} color="#5FA8FF" />
+      <directionalLight position={[-5.5, 3.2, -1.5]} intensity={1.1} color={THEME.sky} />
       <directionalLight position={[0, 2.4, -6.5]} intensity={1.35} color="#cfe4ff" />
       <directionalLight position={[-2.4, 1.8, 6]} intensity={0.75} color="#dbe9ff" />
       <pointLight position={[0, 2.6, 5]} intensity={0.7} color="#9FCAFF" distance={14} />
@@ -685,7 +686,7 @@ function Scene({ active, hi }) {
         <Lightformer form="rect" intensity={1.6} color="#e8f0fa" position={[0, 3.4, 0]} rotation-x={Math.PI / 2} scale={[7, 7, 1]} />
         <Lightformer form="rect" intensity={1.05} color="#dce9f8" position={[-1.6, 2.6, 2.4]} rotation-x={Math.PI / 2.6} scale={[5, 0.9, 1]} />
         <Lightformer form="rect" intensity={0.9} color="#cfe0f5" position={[2.2, 2.4, 1.6]} rotation-x={Math.PI / 2.8} rotation-z={0.4} scale={[4.5, 0.7, 1]} />
-        <Lightformer form="rect" intensity={0.95} color="#5FA8FF" position={[-4.6, 1.6, -1]} rotation-y={Math.PI / 2} scale={[4.5, 2.2, 1]} />
+        <Lightformer form="rect" intensity={0.95} color={THEME.sky} position={[-4.6, 1.6, -1]} rotation-y={Math.PI / 2} scale={[4.5, 2.2, 1]} />
         <Lightformer form="rect" intensity={0.8} color="#cfe0f5" position={[4.6, 1.8, 0]} rotation-y={-Math.PI / 2} scale={[5, 2.6, 1]} />
         <Lightformer form="rect" intensity={1.1} color="#dcefff" position={[0, 2.2, -5.5]} scale={[9, 3, 1]} />
         <Lightformer form="ring" intensity={0.95} color="#ffffff" position={[2.6, 3, 3]} scale={2.2} />

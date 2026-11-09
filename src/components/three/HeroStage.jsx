@@ -510,8 +510,8 @@ function Scene({ idx, cmd, tier, panelLayout }) {
           这一轮整体再抬一档（用户要「明亮但不刺眼」）：ambient 0.22→0.30、
           hemi 0.28→0.36、主光 1.65→1.85、补光 0.42→0.52 —— 抬的是中间调，
           暗部仍压在 0.3 以下，金属与白壳的面不会被糊平 */}
-      <ambientLight intensity={0.3} color="#a8c4e6" />
-      <hemisphereLight intensity={0.36} color="#4a6480" groundColor="#03050a" />
+      <ambientLight intensity={0.33} color="#a8c4e6" />
+      <hemisphereLight intensity={0.4} color="#4a6480" groundColor="#03050a" />
       <directionalLight position={[3.5, 6, 4]} intensity={1.85} color="#eaf2ff" />
       <directionalLight position={[-4.5, 2.6, -2]} intensity={0.52} color="#5FA8FF" />
       <KeyLight accent={accent} />
@@ -550,7 +550,10 @@ function Scene({ idx, cmd, tier, panelLayout }) {
               强制成 NoToneMapping，不显式挂这个效果，线性值 >1 就直接削成死白 ——
               真 Chrome 实测：白壳机械臂糊成一团、AI 内核炸成一个大白球。 */}
           <ToneMapping mode={ToneMappingMode.AGX} />
-          <Vignette eskil={false} offset={0.3} darkness={0.92} />
+          {/* 四周亮度：Vignette 从 offset .3 / darkness .92 收到 .34 / .82 ——
+              画面四角不再一路压到近黑，实验室的墙体与地台边缘能读出轮廓。
+              仍保留压角（它是把视线收进中央的手段），只是不再吃掉四周那一档 */}
+          <Vignette eskil={false} offset={0.34} darkness={0.82} />
           {tier >= 1 && <Noise opacity={0.022} />}
           {q.smaa && <SMAA />}
         </EffectComposer>

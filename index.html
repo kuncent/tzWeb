@@ -53,7 +53,7 @@
       "logo": "https://www.sztzjy.com/images/brand-logo.png",
       "description": "具身智能 · 区块链 · AI 多智能体课堂 · 数字金融 · 数字经济 · 智能产品，六大产品体系与五套学科方案，覆盖全学科的下一代人才培养基础设施",
       "email": "contact@sztzjy.com",
-      "address": { "@type": "PostalAddress", "addressRegion": "广东", "addressLocality": "深圳市", "streetAddress": "光明区金融科技大厦" },
+      "address": { "@type": "PostalAddress", "addressRegion": "广东", "addressLocality": "深圳市", "streetAddress": "光明区科技金融大厦" },
       "sameAs": [ "https://www.sztzjy.com" ]
     }
     </script>
@@ -95,6 +95,12 @@
     </script>
     <noscript>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      <!-- 关掉 JS 时白幕永远等不到收口指令，必须直接藏掉，别把无脚本的爬虫/读者挡在门外 -->
+      <style>
+        #intro {
+          display: none !important;
+        }
+      </style>
     </noscript>
     <style>
       /* ―― 首屏 loading 角标：只标「舞台还没在画」，不挡页面 ――
@@ -174,7 +180,569 @@
           opacity: 0.5;
         }
       }
+
+      /* ============================================================
+       * 开屏遮挡页：白底 + 中央「六节点装配」动画 + 圆形扩散揭开
+       * ------------------------------------------------------------
+       * 为什么写在 index.html 内联而不是 React 组件：它要盖住的正是
+       * 「入口 JS、字体、3D chunk 都还没到」那一段 —— 挂在 React 里
+       * 等于让遮罩等自己。零依赖、零请求，进 HTML 就已在屏上。
+       * 视觉：白色画布 + 极淡品牌蓝光晕与网格；中央六边形对应六大产品
+       * 体系，六个节点依次点亮，Z 字标最后落笔；外圈刻度与两段弧缓慢
+       * 反向旋转，读作「系统在接入」。收口时中央内容先缩小淡出，再让
+       * 孔径从六边形自身的轮廓起跳，保持六边形形状向外扩散到盖住四角 ——
+       * 页面从中心动画的轮廓里长出来，而不是从一个小圆点捅开。
+       * 只在首页演；后台/内页/预览/减弱动效由 data-intro-off 直接隐藏。
+       * ============================================================ */
+      html[data-intro-off] #intro {
+        display: none !important;
+      }
+
+      #intro {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        /* 白幕本身交给下面那层内联 SVG 的 rect：只有它带 mask，孔径才能是六边形。
+           这里留透明底，不然自己的白底会把孔径挡住 */
+        background: transparent;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        font-family: Inter, 'HarmonyOS Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+      }
+
+      /* ―― 白幕 + 孔径：一块 100% 白 rect，被 mask 里一枚可缩放的黑六边形挖空 ――
+         六边形在这里就是“中心动画的轮廓”：收口时孔径从标记本身的六边形尺寸起跳，
+         保持轮廓形状放大到盖住四角，页面从六边形里面长出来。
+         描边两条：1.4px 的渐变轮廓 + 14px 的低透明度青光，跟随孔径一起走，
+         用 non-scaling-stroke 让线宽在放大时不跟着变粗。 */
+      #intro .it-wipe {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      #intro .it-curtain {
+        fill: #fff;
+      }
+      #intro .it-hole {
+        will-change: transform;
+      }
+      #intro .it-outline,
+      #intro .it-outline-glow {
+        fill: none;
+        opacity: 0;
+        will-change: transform, opacity;
+      }
+      #intro .it-outline {
+        stroke: url(#itEdge);
+        stroke-width: 1.2;
+        vector-effect: non-scaling-stroke;
+      }
+      #intro .it-outline-glow {
+        stroke: rgba(37, 212, 255, 0.24);
+        stroke-width: 12;
+        vector-effect: non-scaling-stroke;
+      }
+
+      /* ―― 背景：中心一团很淡的品牌蓝，四周收白；一层几乎看不见的网格给技术感 ――
+         这两层都是近乎白色的柔光/网纹，收口时先淡掉，
+         否则会盖在六边形孔径上，把下面露出的页面糊住 */
+      #intro .it-bg {
+        position: absolute;
+        transition: opacity 0.28s ease;
+        inset: 0;
+        background:
+          radial-gradient(52% 42% at 50% 44%, rgba(22, 119, 255, 0.075), rgba(22, 119, 255, 0.022) 42%, transparent 72%),
+          linear-gradient(180deg, #ffffff 0%, #ffffff 58%, #fbfcff 100%);
+      }
+      #intro .it-grid {
+        position: absolute;
+        inset: 0;
+        opacity: 0.7;
+        transition: opacity 0.28s ease;
+        background-image:
+          linear-gradient(to right, rgba(11, 15, 23, 0.028) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(11, 15, 23, 0.028) 1px, transparent 1px);
+        background-size: 58px 58px;
+        -webkit-mask-image: radial-gradient(58% 54% at 50% 45%, #000 0%, transparent 78%);
+        mask-image: radial-gradient(58% 54% at 50% 45%, #000 0%, transparent 78%);
+      }
+
+      /* ―― 中央组：舞台 + 字标 + 进度线；收口时整组缩小淡出 ―― */
+      #intro .it-center {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        will-change: transform, opacity;
+      }
+      #intro .it-stage {
+        position: relative;
+        width: clamp(236px, 30vmin, 300px);
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+      }
+
+      /* 外圈刻度：40 枚短齿，只留最外侧 6px 环带 */
+      #intro .it-ticks {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: repeating-conic-gradient(
+          from 0deg,
+          rgba(22, 119, 255, 0.24) 0deg 0.8deg,
+          transparent 0.8deg 9deg
+        );
+        -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+        mask: radial-gradient(closest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+        will-change: transform;
+        animation: it-spin 44s linear infinite;
+      }
+      /* 发丝圆：比刻度再外一档，压住白底边界 */
+      #intro .it-hairline {
+        position: absolute;
+        inset: -7%;
+        border: 1px solid rgba(11, 15, 23, 0.06);
+        border-radius: 50%;
+      }
+      /* 两段弧反向转：一段青、一段蓝，慢到只在余光里动 */
+      #intro .it-arc {
+        position: absolute;
+        inset: 11%;
+        border-radius: 50%;
+        background: conic-gradient(
+          from 0deg,
+          rgba(34, 211, 238, 0),
+          rgba(34, 211, 238, 0.5) 20%,
+          rgba(22, 119, 255, 0.14) 38%,
+          rgba(22, 119, 255, 0) 52%,
+          rgba(22, 119, 255, 0) 100%
+        );
+        -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+        mask: radial-gradient(closest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+        will-change: transform;
+        animation: it-spin 5.6s linear infinite;
+      }
+      #intro .it-arc.b {
+        inset: 22%;
+        opacity: 0.55;
+        animation-duration: 8.2s;
+        animation-direction: reverse;
+      }
+      /* 两颗卫星：在弧外慢慢绕，给静止的圆盘一点「活物」 */
+      #intro .it-sat {
+        position: absolute;
+        inset: 3%;
+        border-radius: 50%;
+        will-change: transform;
+        animation: it-spin 13s linear infinite;
+      }
+      #intro .it-sat::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 4px;
+        height: 4px;
+        margin-left: -2px;
+        border-radius: 50%;
+        background: #1677ff;
+        box-shadow: 0 0 12px rgba(22, 119, 255, 0.8);
+      }
+      #intro .it-sat.b {
+        inset: 15%;
+        animation-duration: 9s;
+        animation-direction: reverse;
+      }
+      #intro .it-sat.b::before {
+        background: #25d4ff;
+        box-shadow: 0 0 12px rgba(37, 212, 255, 0.75);
+      }
+
+      /* ―― 中央标记：六边形 / 六节点 / Z 字标 ―― */
+      #intro .it-glow {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 46%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(22, 119, 255, 0.14), rgba(22, 119, 255, 0.03) 55%, transparent);
+        filter: blur(6px);
+      }
+      #intro .it-spokes {
+        opacity: 0;
+        animation: it-in 0.7s ease 0.5s forwards;
+      }
+      #intro .it-spokes line {
+        stroke: rgba(22, 119, 255, 0.16);
+        stroke-width: 1;
+      }
+      #intro .it-mark {
+        position: relative;
+        z-index: 2;
+        width: 64%;
+        height: 64%;
+        overflow: visible;
+      }
+      #intro .it-mark .it-hex {
+        fill: none;
+        stroke: rgba(22, 119, 255, 0.4);
+        stroke-width: 1.2;
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation: it-draw 1.05s cubic-bezier(0.5, 0.1, 0.3, 1) 0.12s forwards;
+      }
+      /* 沿着六边形跑一圈的亮段：把静态描边变成「有电流」 */
+      #intro .it-mark .it-runner {
+        fill: none;
+        stroke: url(#itg);
+        stroke-width: 1.5;
+        stroke-dasharray: 9 91;
+        stroke-dashoffset: 0;
+        opacity: 0;
+        animation:
+          it-in 0.5s linear 1.05s forwards,
+          it-run 2.6s linear 1.05s infinite;
+      }
+      #intro .it-mark .it-spoke {
+        stroke: rgba(22, 119, 255, 0.18);
+        stroke-width: 1;
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation: it-draw 0.9s ease-out 0.45s forwards;
+      }
+      #intro .it-mark .it-inner {
+        fill: none;
+        stroke: rgba(22, 119, 255, 0.12);
+        stroke-width: 1;
+        stroke-dasharray: 2 7;
+        will-change: transform;
+        animation: it-spin 34s linear infinite;
+        transform-origin: 120px 120px;
+      }
+      /* Z 字标按品牌 logo（/images/brand-logo.png）的实际字形填充绘制：
+         上横下垂一竖、下横上耸一竖、右上到左下一条粗斜笔，
+         上横与斜笔之间还有一枚封闭的白色三角孔 —— 这些都不是描边能画的，
+         所以字标本身改为实心 fill。
+         落笔动效：mask 里五支笔刷按「上横 → 斜笔 → 下横 → 左竖 → 右竖」
+         的顺序逐笔扫出（见 .it-z-brush），0.5s 起笔、1.95s 收笔。
+         上一版只用“比笔画略宽”的笔刷控制边界：上横刷比字形底边多探出 0.4、
+         下横刷比字形顶边多探出 2.15，于是左竖顶端、右竖底座会提前露出一条
+         短竖 —— 那正是“Z 上多出来一点竖笔”。这一版给上横、下横各配一把
+         剪刀（<defs> 里的 itClipTop / itClipBar），刀口正好压在横竖分界线上：
+           · 上横的刀口压在 y=89.8（上横底边），左竖从这条线以下才开始；
+           · 斜笔不裁（裁到 120.6 会多出十单位宽的台阶、裁到 133.8 会啃掉斜笔下端）；
+         b4 / b5 各自的笔顺开始（1.50s / 1.74s）才揭开（Z 全程 0.5–1.47s
+         两侧竖线不提前露出）。
+         不再给字标挂 drop-shadow：模糊光晕叠在锐利字形上就是一圈「毛边」，
+         而且它让被 mask 遮罩、每帧都在改 dashoffset 的元素整块重绘滤镜，
+         首屏同时还在编译 3D 着色器，这一层就是卡顿的主要来源（光晕由
+         舞台里的 .it-glow 提供，保持同样的观感）。 */
+      #intro .it-mark .it-z {
+        fill: url(#itg);
+        fill-rule: evenodd;
+      }
+      /* 落笔墨刷一律用 butt 端头：起笔/收笔的截面是垂直于笔画的一条直线，
+         起点又放在字标剪影之外，所以不会像圆头刷那样用半个圆先啃出字标
+         的一角 —— 上一版 Z 起笔处的毛边就来自圆头刷与 drop-shadow 的叠加。
+         笔刷宽度只保证盖满自己那条笔画，越界的那一点由上面三把刀剪掉。
+         五笔在时间上首尾相接、每帧只有一支在动，避免一个 mask 里多条 dash
+         同时重绘。 */
+      #intro .it-mark .it-z-brush {
+        fill: none;
+        stroke: #fff;
+        stroke-linecap: butt;
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation: it-draw 0.28s cubic-bezier(0.42, 0.05, 0.22, 1) 0.5s forwards;
+      }
+      /* b1 上横（y80–89.8） */
+      #intro .it-mark .it-z-brush.b1 {
+        stroke-width: 12;
+      }
+      /* b2 斜笔：右上起笔，笔尖落进下横左端（16.6：刚够盖住斜笔两侧与
+         下横左角；再宽就会越过三角孔、把左竖融合段啃出来） */
+      #intro .it-mark .it-z-brush.b2 {
+        stroke-width: 16.6;
+        animation-delay: 0.79s;
+        animation-duration: 0.45s;
+      }
+      /* b3 下横（y147.7–160） */
+      #intro .it-mark .it-z-brush.b3 {
+        stroke-width: 13;
+        animation-delay: 1.25s;
+        animation-duration: 0.22s;
+      }
+      /* b4 左竖（x101.5–111.4） */
+      #intro .it-mark .it-z-brush.b4 {
+        stroke-width: 12;
+        animation-delay: 1.5s;
+        animation-duration: 0.22s;
+      }
+      /* b5 右竖（x127.4–138.4）：比字宽多留 0.7 的两侧余量 —— mask 在
+         154px 的显示尺寸下只有 0.64px/单位，余量太小会被栅格化抹掉，
+         竖笔右缘会被削掉半像素 */
+      #intro .it-mark .it-z-brush.b5 {
+        stroke-width: 12.4;
+        animation-delay: 1.74s;
+        animation-duration: 0.21s;
+      }
+      #intro .it-mark .it-node {
+        fill: #1677ff;
+        opacity: 0;
+        transform: scale(0.2);
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: it-pop 0.52s cubic-bezier(0.2, 1.5, 0.4, 1) forwards;
+      }
+      #intro .it-mark .it-node.cyan {
+        fill: #25d4ff;
+      }
+
+      /* ―― 字标 + 进度线 ―― */
+      #intro .it-copy {
+        margin-top: 34px;
+        text-align: center;
+        opacity: 0;
+        animation: it-copy-in 0.62s cubic-bezier(0.22, 1, 0.36, 1) 1.12s forwards;
+      }
+      #intro .it-cn {
+        font-size: clamp(20px, 2.2vmin, 23px);
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-indent: 0.2em;
+        color: #0b0f17;
+      }
+      #intro .it-en {
+        margin-top: 9px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.3em;
+        text-indent: 0.3em;
+        color: #1677ff;
+      }
+      #intro .it-track {
+        position: relative;
+        width: 148px;
+        height: 2px;
+        margin-top: 30px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(11, 15, 23, 0.07);
+      }
+      #intro .it-track i {
+        display: block;
+        width: 0;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #1677ff, #25d4ff);
+        animation: it-fill 2.3s cubic-bezier(0.34, 0.62, 0.24, 1) 0.2s forwards;
+      }
+
+      /* ―― 四角小字：只做信息密度，不做主角 ―― */
+      #intro .it-meta {
+        position: absolute;
+        z-index: 3;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.22em;
+        color: rgba(11, 15, 23, 0.32);
+        opacity: 0;
+        animation: it-in 0.55s ease 1.3s forwards;
+      }
+      #intro .it-meta.tl {
+        left: 32px;
+        top: 30px;
+      }
+      #intro .it-meta.tr {
+        right: 32px;
+        top: 30px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: 0.16em;
+      }
+      #intro .it-meta.tr i {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #1677ff;
+        box-shadow: 0 0 10px rgba(22, 119, 255, 0.7);
+        animation: it-beat 1.6s ease-in-out infinite;
+      }
+      #intro .it-meta.bl {
+        left: 32px;
+        bottom: 30px;
+      }
+      #intro .it-skip {
+        position: absolute;
+        right: 32px;
+        bottom: 30px;
+        z-index: 3;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        color: rgba(11, 15, 23, 0.3);
+        opacity: 0;
+        animation: it-in 0.5s ease 1.5s forwards;
+        transition: color 0.25s ease;
+      }
+      #intro .it-skip span {
+        margin-left: 4px;
+        color: rgba(22, 119, 255, 0.5);
+      }
+      #intro:hover .it-skip {
+        color: rgba(11, 15, 23, 0.55);
+      }
+
+      /* ―― 收口：中央内容先缩小淡出，随后六边形孔径从标记的轮廓处起跳，
+         保持同样的六边形向外扩散到盖住四角，页面从形状里长出来 ――
+         孔径缩放由脚本逐帧写 transform（SVG mask 跟着走），
+         轮廓描边的显现/退场按同一时间轴走 CSS。
+         it-gone 仍是兜底：孔径没跑起来时，白幕也会自己淡掉。 */
+      #intro.it-open {
+        pointer-events: none;
+        animation: it-gone 0.3s linear 1.5s forwards;
+      }
+      #intro.it-open .it-bg,
+      #intro.it-open .it-grid {
+        opacity: 0;
+      }
+      #intro.it-open .it-outline {
+        animation:
+          it-line-in 0.3s ease 0.5s forwards,
+          it-line-out 0.34s ease 1.4s forwards;
+      }
+      #intro.it-open .it-outline-glow {
+        animation:
+          it-line-in 0.4s ease 0.52s forwards,
+          it-line-out 0.4s ease 1.36s forwards;
+      }
+      #intro.it-open .it-center {
+        animation: it-center-out 0.6s cubic-bezier(0.4, 0, 0.7, 1) forwards;
+      }
+      #intro.it-open .it-meta,
+      #intro.it-open .it-skip {
+        animation: none;
+        opacity: 0;
+      }
+
+      @keyframes it-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes it-draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      @keyframes it-run {
+        to {
+          stroke-dashoffset: -100;
+        }
+      }
+      @keyframes it-in {
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes it-pop {
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @keyframes it-copy-in {
+        from {
+          opacity: 0;
+          transform: translateY(9px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes it-fill {
+        to {
+          width: 100%;
+        }
+      }
+      @keyframes it-beat {
+        0%,
+        100% {
+          opacity: 0.45;
+          transform: scale(0.9);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.15);
+        }
+      }
+      @keyframes it-center-out {
+        to {
+          opacity: 0;
+          transform: scale(1.14);
+          filter: blur(5px);
+        }
+      }
+      @keyframes it-line-in {
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes it-line-out {
+        to {
+          opacity: 0;
+        }
+      }
+      @keyframes it-gone {
+        to {
+          opacity: 0;
+        }
+      }
+
+      @media (max-width: 640px) {
+        #intro .it-meta.tl,
+        #intro .it-meta.tr {
+          left: 20px;
+          right: auto;
+          top: 22px;
+        }
+        #intro .it-meta.tr {
+          display: none;
+        }
+        #intro .it-meta.bl {
+          display: none;
+        }
+        #intro .it-skip {
+          right: 20px;
+          bottom: 22px;
+        }
+      }
     </style>
+    <!-- 开屏遮挡页只在官网首页演：后台、内页、后台预览 iframe 与「减弱动效」
+         一律打 data-intro-off，由 CSS 直接关掉 —— 登录页/内页不该被一层白幕
+         挡在门外。判定放这里是为了赶在首次绘制之前，连一帧白幕都不闪。 -->
+    <script>
+      if (
+        location.pathname !== '/' ||
+        /[?&]admin_preview=1\b/.test(location.search) ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ) {
+        document.documentElement.dataset.introOff = '1'
+      }
+    </script>
     <!-- 管理后台是亮色壳（bg-mist-100），但上面为官网 3D 首屏把 html 底色钉成了近黑 #04070d；
          直接开 /admin 时 React 尚未挂载，会先闪一片黑。这里在首次绘制前用同步内联脚本
          把 html 底色改回加载后的亮色 #f7f8fa（与后台加载完成后的背景一致）。 -->
@@ -225,6 +793,285 @@
       <span class="bt-tip">正在装配实验室…</span>
       <span class="bt-bar"><i></i></span>
     </div>
+    <!-- 开屏遮挡页本体：纯内联，无图片、无字体、无请求。
+         中央六边形 = 六大产品体系（六个节点依次点亮），Z 字标最后落笔；
+         收口动作看下面那段脚本：孔径从标记自身的六边形轮廓起跳，
+         保持六边形向外扩散，页面从形状里长出来。 -->
+    <div id="intro" aria-hidden="true">
+      <!-- 白幕本体：一整块白 rect，mask 里用一枚可缩放的黑六边形挖孔。
+           孔在收口前 scale(0) —— 演出期间看不到页面；收口时先跳到标记自身的
+           六边形尺寸，再保持形状放大。描边跟着孔走，读作「轮廓向外扩散」。 -->
+      <svg class="it-wipe" aria-hidden="true" focusable="false">
+        <defs>
+          <mask
+            id="itHole"
+            maskUnits="userSpaceOnUse"
+            maskContentUnits="userSpaceOnUse"
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+          >
+            <rect x="0" y="0" width="100%" height="100%" fill="#fff" />
+            <path
+              class="it-hole"
+              d="M0 -62 L53.7 -31 L53.7 31 L0 62 L-53.7 31 L-53.7 -31 Z"
+              fill="#000"
+              transform="scale(0)"
+            />
+          </mask>
+          <linearGradient id="itEdge" x1="0" y1="0" x2="1" y2="1">
+            <stop stop-color="#1677FF" stop-opacity="0.62" />
+            <stop offset="0.5" stop-color="#4FA9FF" stop-opacity="0.46" />
+            <stop offset="1" stop-color="#25D4FF" stop-opacity="0.34" />
+          </linearGradient>
+        </defs>
+        <rect class="it-curtain" x="0" y="0" width="100%" height="100%" mask="url(#itHole)" />
+        <path
+          class="it-outline-glow"
+          d="M0 -62 L53.7 -31 L53.7 31 L0 62 L-53.7 31 L-53.7 -31 Z"
+          transform="scale(0)"
+        />
+        <path
+          class="it-outline"
+          d="M0 -62 L53.7 -31 L53.7 31 L0 62 L-53.7 31 L-53.7 -31 Z"
+          transform="scale(0)"
+        />
+      </svg>
+      <div class="it-bg"></div>
+      <div class="it-grid"></div>
+      <div class="it-center">
+        <div class="it-stage">
+          <div class="it-hairline"></div>
+          <div class="it-ticks"></div>
+          <div class="it-sat"></div>
+          <div class="it-sat b"></div>
+          <div class="it-arc"></div>
+          <div class="it-arc b"></div>
+          <div class="it-glow"></div>
+          <svg class="it-mark" viewBox="0 0 240 240" aria-hidden="true">
+            <defs>
+              <linearGradient id="itg" x1="34" y1="24" x2="206" y2="216" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#1677FF" />
+                <stop offset="0.52" stop-color="#4FA9FF" />
+                <stop offset="1" stop-color="#25D4FF" />
+              </linearGradient>
+              <!-- 字标的“落笔”笔刷：五支白色平头笔按书写顺序扫过 ——
+                   上横、斜笔、下横、左竖、右竖。起笔点都在字标剪影之外，
+                   笔画进入字形时截面已是干净的直线，不会啃出圆弧毛边。
+                   坐标按 240×240 viewBox 里的字形轮廓量出来：
+                   上横 y84.9、下横 y153.85、左竖 x106.45、右竖 x132.9。
+                   两把刀只裁 Z 的上横和下横（斜笔不裁），把不属于它们的竖笔区域剪掉；
+                   左竖、右竖两笔不裁（它们的笔刷本来就只覆盖自己那一列）。 -->
+              <clipPath id="itClipTop" clipPathUnits="userSpaceOnUse">
+                <!-- 刀口压在上横底边 y=89.8：以下属于左竖，等 b4 揭开 -->
+                <rect x="87.4" y="0" width="65.4" height="89.8" />
+              </clipPath>
+              <clipPath id="itClipBar" clipPathUnits="userSpaceOnUse">
+                <!-- 刀口压在下横顶边 y=147.7：以上属于右竖底座，等 b5 揭开 -->
+                <rect x="0" y="147.7" width="240" height="92.3" />
+              </clipPath>
+              <mask id="itZBrush" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="240">
+                <rect x="0" y="0" width="240" height="240" fill="#000" />
+                <g clip-path="url(#itClipTop)">
+                  <path class="it-z-brush b1" pathLength="100" d="M87.8 84.9 H152.2" />
+                </g>
+                <path class="it-z-brush b2" pathLength="100" d="M155.6 78 L88.6 153.85" />
+                <g clip-path="url(#itClipBar)">
+                  <path class="it-z-brush b3" pathLength="100" d="M87.8 153.85 H152.2" />
+                </g>
+                <path class="it-z-brush b4" pathLength="100" d="M106.45 88.5 V134" />
+                <path class="it-z-brush b5" pathLength="100" d="M132.9 119.9 V148.6" />
+              </mask>
+            </defs>
+            <g class="it-spokes">
+              <line x1="120" y1="120" x2="120" y2="58" />
+              <line x1="120" y1="120" x2="173.7" y2="89" />
+              <line x1="120" y1="120" x2="173.7" y2="151" />
+              <line x1="120" y1="120" x2="120" y2="182" />
+              <line x1="120" y1="120" x2="66.3" y2="151" />
+              <line x1="120" y1="120" x2="66.3" y2="89" />
+            </g>
+            <circle class="it-inner" cx="120" cy="120" r="52" />
+            <path
+              class="it-hex"
+              pathLength="100"
+              d="M120 58 L173.7 89 L173.7 151 L120 182 L66.3 151 L66.3 89 Z"
+            />
+            <path
+              class="it-runner"
+              pathLength="100"
+              d="M120 58 L173.7 89 L173.7 151 L120 182 L66.3 151 L66.3 89 Z"
+            />
+            <!-- Z 字标＝品牌 logo 的真实字形（public/images/brand-logo.png）：
+                 外轮廓 15 点 + 上横与斜笔之间那枚封闭三角孔，
+                 整体按 logo 的 100×130 比例缩放后居中放进六边形。 -->
+            <path
+              class="it-z"
+              mask="url(#itZBrush)"
+              d="M89.2 80 H150.8 V93.5 L103.4 147.7 H127.4 V132.3 L138.4 120 V147.7 H150.8 V160 H89.2 V147.7 L101.5 132.9 V89.8 H89.2 Z M111.4 89.8 H137.2 L111.4 120.6 Z"
+            />
+            <circle class="it-node" cx="120" cy="58" r="3.2" style="animation-delay: 0.6s" />
+            <circle class="it-node" cx="173.7" cy="89" r="3.2" style="animation-delay: 0.68s" />
+            <circle class="it-node cyan" cx="173.7" cy="151" r="3.2" style="animation-delay: 0.76s" />
+            <circle class="it-node" cx="120" cy="182" r="3.2" style="animation-delay: 0.84s" />
+            <circle class="it-node cyan" cx="66.3" cy="151" r="3.2" style="animation-delay: 0.92s" />
+            <circle class="it-node" cx="66.3" cy="89" r="3.2" style="animation-delay: 1s" />
+          </svg>
+        </div>
+        <div class="it-copy">
+          <div class="it-cn">天择教育</div>
+          <div class="it-en">TIANZE · FUTURE EDUCATION</div>
+        </div>
+        <div class="it-track"><i></i></div>
+      </div>
+      <div class="it-meta tl">TIANZE EDUCATION</div>
+      <div class="it-meta tr"><i></i> 实验室网络接入中</div>
+      <div class="it-meta bl">INFRASTRUCTURE FOR FUTURE TALENT</div>
+      <div class="it-skip">跳过<span>›</span></div>
+    </div>
+    <script>
+      /* ―― 开屏遮挡页的收口控制 ――
+         正常路径：main.jsx 在「首屏舞台真的在画」那一拍调 __introExit；
+         兜底路径：下面 T_MAX 定时器（3D 编译慢/网络抽风也不能把白幕挂太久）；
+         用户路径：滚轮/触摸/按键/点击 —— 900ms 之后任意一个手势直接揭开，
+         但事件被 capture 拦下并 preventDefault，避免 Lenis 把页面先滚走半屏。
+         中央动画至少演 T_MIN 才允许正常收口（演到一半揭开不如不演）；
+         跳过手势不受 T_MIN 限制，用户想进就进。 */
+      (function () {
+        var intro = document.getElementById('intro')
+        if (!intro) return
+        if (document.documentElement.dataset.introOff) {
+          intro.parentNode && intro.parentNode.removeChild(intro)
+          return
+        }
+
+        var T_MIN = 2350
+        var T_MAX = 3800
+        var ARMED = 900
+        var t0 = performance.now()
+        var done = false
+        var heroReady = false
+        var timer = 0
+
+        function unlock() {
+          window.removeEventListener('wheel', onGesture, true)
+          window.removeEventListener('touchmove', onGesture, true)
+          window.removeEventListener('keydown', onGesture, true)
+        }
+
+        function exit(reason) {
+          if (done) return
+          done = true
+          clearTimeout(timer)
+          /* 先量几何再上 it-open：此刻中央内容还没开始放大，量出来的
+             六边形位置/尺寸才和屏幕上那枚对齐 */
+          runWipe()
+          intro.classList.add('it-open')
+          /* 给量测脚本留一个「白幕演了多久 / 从哪条出口走的」的凭据 */
+          window.__introExitAt = Math.round(performance.now() - t0)
+          window.__introExitReason = reason
+          unlock()
+          setTimeout(function () {
+            intro.parentNode && intro.parentNode.removeChild(intro)
+          }, 1800)
+        }
+
+        /* 六边形扩散：孔径不是从小圆点开始的，而是从中央那枚六边形自身的
+           轮廓处起跳，保持六边形形状放大到盖住四角。
+           白幕 rect 的 mask 里放了一枚黑六边形，缩到多大，页面就从多大的
+           六边形里露出来；描边两条跟它同步，读作“轮廓在向外扩散”。
+           起点留 560ms 让中央内容先缩小淡出，再让轮廓接上。 */
+        function runWipe() {
+          var svg = intro.querySelector('.it-wipe')
+          var hole = svg.querySelector('.it-hole')
+          var line = svg.querySelector('.it-outline')
+          var glow = svg.querySelector('.it-outline-glow')
+          var mark = intro.querySelector('.it-mark')
+          var mr = mark.getBoundingClientRect()
+          var w = window.innerWidth
+          var h = window.innerHeight
+          var cx = mr.left + mr.width / 2
+          var cy = mr.top + mr.height / 2
+          /* 标记 viewBox 是 240，六边形半径 62：s0 让孔径正好落在画出来的轮廓上 */
+          var s0 = mr.width / 240
+          /* 尖朝上的六边形：点 (ax,ay) 在内部的条件是 ay + ax/√3 ≤ R 且 ax ≤ .866R */
+          function reach(x, y) {
+            var ax = Math.abs(x - cx)
+            var ay = Math.abs(y - cy)
+            return Math.max(ay + ax / 1.732, ax / 0.866)
+          }
+          var R = Math.max(reach(0, 0), reach(w, 0), reach(0, h), reach(w, h)) * 1.06
+          var s1 = R / 62
+          var DELAY = 560
+          var DUR = 900
+          function place(s) {
+            var tr = 'translate(' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ') scale(' + s.toFixed(3) + ')'
+            hole.setAttribute('transform', tr)
+            line.setAttribute('transform', tr)
+            glow.setAttribute('transform', tr)
+          }
+          var started = 0
+          function step(now) {
+            if (!started) started = now
+            var t = (now - started - DELAY) / DUR
+            if (t <= 0) {
+              requestAnimationFrame(step)
+              return
+            }
+            if (t > 1) t = 1
+            /* easeInOutCubic：先让六边形轮廓被看清，中段迅速外扩，末段收住 */
+            var e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+            place(s0 + (s1 - s0) * e)
+            if (t < 1) requestAnimationFrame(step)
+            else place(s1)
+          }
+          requestAnimationFrame(step)
+        }
+
+        function leave(reason) {
+          if (done) return
+          var wait = T_MIN - (performance.now() - t0)
+          if (wait > 0) {
+            clearTimeout(timer)
+            timer = setTimeout(function () {
+              timer = 0
+              exit(reason)
+            }, wait)
+            return
+          }
+          exit(reason)
+        }
+
+        /* main.jsx 在首屏就绪（舞台画出第三帧 / 内页 / 舞台降级 / hash 落点）时调进来 */
+        window.__introExit = function (reason) {
+          heroReady = true
+          leave(reason || 'hero')
+        }
+
+        /* 硬出口：上面所有信号都没来，白幕也必须自己退场；
+           就算 __introExit 晚了几毫秒，这里也已经把门开了 */
+        timer = setTimeout(function () {
+          timer = 0
+          exit(heroReady ? 'ready' : 'timeout')
+        }, T_MAX)
+
+        function onGesture(e) {
+          if (done) return
+          if (e.type === 'keydown' && !/^(Arrow|Page|Home|End| )/.test(e.key)) return
+          e.preventDefault()
+          e.stopPropagation()
+          if (performance.now() - t0 >= ARMED) exit('skip')
+        }
+
+        window.addEventListener('wheel', onGesture, { passive: false, capture: true })
+        window.addEventListener('touchmove', onGesture, { passive: false, capture: true })
+        window.addEventListener('keydown', onGesture, true)
+        intro.addEventListener('pointerdown', function () {
+          if (!done && performance.now() - t0 >= ARMED) exit('skip')
+        })
+      })()
+    </script>
     <script>
       setTimeout(function () {
         var b = document.getElementById('boot')

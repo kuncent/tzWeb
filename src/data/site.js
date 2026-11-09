@@ -513,7 +513,7 @@ export { CONTACT_INTENTS as contactProducts } from './vocabulary'
 export const contact = {
   phone: '400-000-0000',
   email: 'contact@sztzjy.com',
-  address: '深圳市光明区 · 金融科技大厦',
+  address: '深圳市光明区 · 科技金融大厦',
 }
 export const offices = ['深圳总部', '北京', '重庆', '郑州', '西安', '长沙']
 

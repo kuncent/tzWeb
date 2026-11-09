@@ -354,6 +354,140 @@
   animation: cbMarquee 18s linear infinite;
 }
 
+/* AI 屏五块展板的扫描带：只有「正在发言」的那一块挂 .ap-scan（同一时刻最多一块），
+   3.8s 一趟，比 1.5s 的数据节拍慢一倍多，不会读成一闪一闪。
+   行程取 CSS 变量 --ap-h（板高：主牌 178 / 卫星 122），两块尺寸共用一套关键帧 */
+@keyframes ap-scan {
+  from {
+    transform: translateY(-16px);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.65;
+  }
+  88% {
+    opacity: 0.65;
+  }
+  to {
+    transform: translateY(var(--ap-h, 178px));
+    opacity: 0;
+  }
+}
+.ap-scan {
+  animation: ap-scan 3.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  will-change: transform, opacity;
+}
+/* 发言牌第一枚窗控点的呼吸：1.9s，与扫描带不同步 */
+@keyframes ap-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ============================================================
+ * RippleHero 地标标注：钉在大厦上的 光点 → 引线 → 名牌。
+ * 进场次序：dot 0s → line .3s → chip .55s；
+ * 换图时外层 .is-out 整体 0.35s 淡出，新标注由 key 重挂载重播。
+ * ============================================================ */
+.rh-landmark {
+  position: absolute;
+  transition: opacity 0.35s ease;
+}
+.rh-landmark.is-out {
+  opacity: 0;
+}
+/* 光点：实心核 + 一圈扩散环（环 2.4s 一轮，读作「定位在闪」） */
+.rh-dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #7ec1ff;
+  box-shadow: 0 0 10px rgba(90, 160, 255, 0.9), 0 0 2px rgba(255, 255, 255, 0.8) inset;
+  animation: rh-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.rh-dot i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(126, 193, 255, 0.75);
+  animation: rh-ring 2.4s cubic-bezier(0.2, 0.6, 0.35, 1) 0.6s infinite;
+}
+@keyframes rh-pop {
+  from {
+    transform: translate(-50%, -50%) scale(0);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes rh-ring {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(3.4);
+    opacity: 0;
+  }
+}
+/* 引线：从光点向右生长，把视线引到名牌（右半屏是留白区，不与首屏文案抢位） */
+.rh-line {
+  position: absolute;
+  left: 7px;
+  top: 0;
+  width: 44px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(126, 193, 255, 0.85), rgba(126, 193, 255, 0));
+  transform-origin: left center;
+  animation: rh-grow 0.45s cubic-bezier(0.3, 0.7, 0.3, 1) 0.3s both;
+}
+@keyframes rh-grow {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+/* 名牌：暗玻璃胶囊，字距拉开读作一块铭牌 */
+.rh-chip {
+  position: absolute;
+  left: 55px;
+  top: 0;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  padding: 5px 11px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(8, 12, 20, 0.58);
+  backdrop-filter: blur(6px);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  animation: rh-chip-in 0.5s cubic-bezier(0.25, 0.8, 0.3, 1) 0.55s both;
+}
+@keyframes rh-chip-in {
+  from {
+    opacity: 0;
+    transform: translate(-8px, -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
 /* 08 标杆院校轮播：与自动切图同周期的进度条。时长与播放态由内联 style 驱动，
    悬停 / 点击锁定时靠 animation-play-state 精确停在中途，恢复时接着走。 */
 @keyframes labProg {

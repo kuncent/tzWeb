@@ -7,9 +7,12 @@ import { useEffect, useRef, useState } from 'react'
  * 波前环带内对 UV 做径向阻尼正弦位移（新旧两图反向偏移，模拟水面折射），
  * 内侧换上新生图；伴随缓慢 Ken-Burns 缩放让画面「呼吸」。纯 WebGL1，
  * 无三方依赖；拿不到 WebGL 时退化为静态首图（object-cover），保证不白屏。
- * 默认 5.2s 自动切一张；某张图加载失败只会被踢出轮换，不会卡死整个轮播；
+ * 默认 3.6s 自动切一张（过渡 1.1s），某张图加载失败只会被踢出轮换，不会卡死整个轮播；
  * 滚出视口 / 标签页隐藏 / 用户偏好减少动态 时暂停，省电。
- * 用法：<PageHero backdrop={<RippleHero images={[{src,label}]} />} … />
+ * 标注不落右下角，而是「钉」在图里的大厦上：每张图可带 at:[fx,fy]（图像
+ * 空间的比例坐标），组件按 cover 的逆映射换算到屏幕位置 —— 光点先亮起、
+ * 引线再生长、名牌最后浮现，换图时旧标注随涟漪一起退场。
+ * 用法：<PageHero backdrop={<RippleHero images={[{src,label,at}]} />} … />
  * ============================================================ */
 
 const VERT = `
@@ -91,9 +94,15 @@ function makeTex(gl) {
   return tex
 }
 
-export default function RippleHero({ images = [], interval = 5200, duration = 1600, caption }) {
+export default function RippleHero({ images = [], interval = 3600, duration = 1100 }) {
   const canvasRef = useRef(null)
   const [ok, setOk] = useState(true)
+  /* 当前在播的是第几张（图像索引）：涟漪在 WebGL 循环里跑，标注在 DOM 里画，
+     两头用「过渡开始/结束」两条边对齐 —— 过渡一开始旧标注先退，结束换新标注 */
+  const [shown, setShown] = useState(0)
+  const [leaving, setLeaving] = useState(false)
+  /* 画布宽高比：标注的 cover 逆映射要用。resize 时才变，不会拖 React 进帧循环 */
+  const [aspect, setAspect] = useState(16 / 9)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -164,6 +173,7 @@ export default function RippleHero({ images = [], interval = 5200, duration = 16
       dpr = Math.min(window.devicePixelRatio || 1, 2)
       const pw = Math.max(1, Math.round(w * dpr)), ph = Math.max(1, Math.round(h * dpr))
       if (canvas.width !== pw || canvas.height !== ph) { canvas.width = pw; canvas.height = ph; gl.viewport(0, 0, pw, ph) }
+      if (h > 0) setAspect(w / h)
     }
     resize()
     const ro = new ResizeObserver(resize)
@@ -195,12 +205,17 @@ export default function RippleHero({ images = [], interval = 5200, duration = 16
       if (pool.length < 2 || reduce) { draw(0); return }
       if (!inTrans) {
         hold += dt
-        if (hold >= interval) { inTrans = true; hold = 0 }
+        if (hold >= interval) { inTrans = true; hold = 0; setLeaving(true) }
         draw(0)
       } else {
         trans += dt
         let p = trans / duration
-        if (p >= 1) { p = 1; poolIdx = (poolIdx + 1) % pool.length; inTrans = false; trans = 0 }
+        if (p >= 1) {
+          p = 1; poolIdx = (poolIdx + 1) % pool.length; inTrans = false; trans = 0
+          /* 过渡落定：标注切换到新图，enter 动画由 key 变化重新挂载触发 */
+          setShown(pool[poolIdx] ?? 0)
+          setLeaving(false)
+        }
         draw(p)
       }
     }
@@ -218,6 +233,22 @@ export default function RippleHero({ images = [], interval = 5200, duration = 16
     }
   }, [images, interval, duration])
 
+  /* ―― 标注定位：at 是图像空间比例坐标，着色器里 coverUV 的逆映射搬回屏幕 ――
+     着色器正向：A>B 时 c.y = 0.5 + (uv.y-0.5)·(B/A)，所以 uv.y = 0.5 + (fy-0.5)·(A/B)；
+     A≤B 时对称处理 x。Ken-Burns 那 ±1.5% 的呼吸忽略 —— 标注不是测绘 */
+  const cur = images[shown]
+  let mark = null
+  if (cur?.at) {
+    const B = cur.ar || 16 / 9
+    const [fx, fy] = cur.at
+    let sx = fx, sy = fy
+    if (aspect > B) sy = 0.5 + (fy - 0.5) * (aspect / B)
+    else sx = 0.5 + (fx - 0.5) * (B / aspect)
+    if (sx > 0.03 && sx < 0.97 && sy > 0.05 && sy < 0.95) {
+      mark = { left: `${(sx * 100).toFixed(2)}%`, top: `${(sy * 100).toFixed(2)}%` }
+    }
+  }
+
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       <div className="absolute inset-0 bg-night" />
@@ -229,11 +260,14 @@ export default function RippleHero({ images = [], interval = 5200, duration = 16
       {/* 左侧 + 底部压暗，保证叠加文案可读 */}
       <div className="absolute inset-0 bg-gradient-to-r from-night/92 via-night/55 to-night/15" />
       <div className="absolute inset-0 bg-gradient-to-t from-night via-night/10 to-night/35" />
-      {caption && (
-        <span className="absolute bottom-4 right-5 hidden items-center gap-2 font-mono text-micro uppercase tracking-label text-white/45 md:inline-flex">
-          <span className="h-1 w-1 rounded-full bg-brand-400/80" />
-          {caption}
-        </span>
+      {/* 标注钉在大厦上：光点 → 引线 → 名牌依次浮现。窄屏不钉
+          （cover 裁切后定位会漂，也挤画面） */}
+      {mark && (
+        <div key={shown} className={`rh-landmark hidden md:block ${leaving ? 'is-out' : ''}`} style={mark}>
+          <span className="rh-dot"><i /></span>
+          <span className="rh-line" />
+          <span className="rh-chip">{cur.label}</span>
+        </div>
       )}
     </div>
   )

@@ -22,9 +22,14 @@ import { solutionPlans } from '../../../data/pages'
  *
  * 换算：world = cssPx × ADF / 400。改 ADF 必须同步改面板尺寸，
  * 否则 NeuralRig 那几块链路端点（按面板边线接）就对不上牌边。
+ *
+ * 可读性这一轮：这五块牌最终是按 ADF / 距离缩到屏幕上的（主牌约 1:0.9、
+ * 卫星牌约 1:0.75），板上 7px 的字落地只剩 5px —— 所以字号整体抬一档、
+ * 低对比的灰字一并提亮（0.3~0.5 那一档在 3D 背景上根本读不出），
+ * 同时把 ADF 从 2.2 抬到 2.36：牌面在屏幕上大 7%，端点会跟着重算。
  * ============================================================ */
 
-export const ADF = 2.2
+export const ADF = 2.36
 /* ―― 板面尺寸：CSS 像素。这两个数与 ADF 是一对，改一个必须改另一个 ――
    换算 world = css × ADF / 400，屏幕上又还原成 css × 5.55 / d ――
    288×178 / 208×122 是按首屏现在的空档反解的：文案列止于 x≈700，服务地图
@@ -49,12 +54,12 @@ export const HUES = ['#5C8DFF', '#46A2FF', '#2FB8F0', '#1FCBE0', '#2AD9C9']
 /* ―― 五块展板 = 五个方案：字段原样取自 pages.js ――
    app = 方案简称（标题栏），sub = 培养定位（标题栏副行，够短不折行），
    en = 英文名（CHIP 常驻位），n = 方案序号。
-   ★ 用户要求「金融科技」与「数字经济」两块内容整体对调：所以主牌位（0）现在
-   挂金融科技，它上面那块卫星（1）挂数字经济，其余三块不动。
-   ORDER 只决定「哪块方案落在哪个席位」；标题、主线、指标、课程层、色相、序号
-   全部跟着方案自己走（HUES 与 plan.n 都按新内容重排），不会出现「标题换了、
-   色系/编号还是旧的」这种图文不符。 */
-const ORDER = [1, 0, 2, 3, 4]
+   ★ 按用户要求恢复原顺序：中央主牌位（0）挂数字经济，左上卫星位（1）挂金融科技，
+   其余三席不动 —— ORDER 即 pages.js 的原顺序。
+   ORDER 只决定「哪块方案落在哪个席位」；标题、主线、指标、课程层与编号全部取自
+   方案自身（plan.n），不会出现「方案换了、编号还是旧的」这种图文不符。
+   席位通道色（HUES）按席位固定，不随方案对调。 */
+const ORDER = [0, 1, 2, 3, 4]
 const planAt = (i) => solutionPlans[ORDER[i]]
 export const APPS = ORDER.map((k) => {
   const p = solutionPlans[k]
@@ -71,7 +76,7 @@ const pad = (n) => String(n).padStart(2, '0')
 
 const cut = (px = 12) => `polygon(0 0, calc(100% - ${px}px) 0, 100% ${px}px, 100% 100%, 0 100%)`
 
-function Mono({ v, s = 9, c = 'rgba(255,255,255,0.7)', dim, right, ell = true }) {
+function Mono({ v, s = 9.5, c = 'rgba(255,255,255,0.8)', dim, right, ell = true }) {
   return (
     <span
       style={{
@@ -98,9 +103,9 @@ function Chip({ t, c, solid }) {
     <span
       style={{
         fontFamily: MONO,
-        fontSize: 7.5,
+        fontSize: 8.5,
         letterSpacing: 0.6,
-        padding: '1px 4px',
+        padding: '1px 5px',
         clipPath: cut(4),
         whiteSpace: 'nowrap',
         color: solid ? '#050910' : c,
@@ -118,13 +123,40 @@ function Chip({ t, c, solid }) {
  * ============================================================ */
 
 /** 主线链路：四段等宽，逐段点亮（点亮的段落由 beat 推着走，读作"方案在演示"） */
-function Mainline({ steps, hue, b, live, size = 7.5, compact }) {
+function Mainline({ steps, hue, b, live, size = 8.5, compact }) {
   const cur = b % steps.length
-  /* 字号按最长那一段收：卫星牌一块只有 196px 宽，四段等分后每段不到 40px，
-     「可视化呈现」这种五个字的主线原样 7px 会被省略号吃掉 —— 与其截断，
-    不如整条链路一起缩到能完整放下，五块牌的字号也就此对齐 */
+  /* 卫星牌（compact）：四段等宽的格子铺在这块 194px 宽的板上，每段只剩 40px，
+     字缩到 6px 落地约 4~5px，等于糊成一片。改成「当前段 → 下一段 + 四枚进度点」，
+     字号抬回 9.5px（屏幕上约 7px），四段的结构仍由点阵读得出，而且是活的 ——
+     比四块灰格子更像一条正在跑的主线 */
+  if (compact) {
+    const next = (cur + 1) % steps.length
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, flexShrink: 0, height: 15 }}>
+        <span style={{ fontFamily: MONO, fontSize: 7.5, color: hue, flexShrink: 0 }}>{pad(cur + 1)}</span>
+        <span style={{ fontFamily: SANS, fontSize: 9.5, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', flexShrink: 0 }}>{steps[cur]}</span>
+        <span style={{ fontFamily: MONO, fontSize: 7.5, color: 'rgba(255,255,255,0.32)', flexShrink: 0 }}>›</span>
+        <span style={{ minWidth: 0, fontFamily: SANS, fontSize: 9.5, color: 'rgba(255,255,255,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{steps[next]}</span>
+        <span style={{ marginLeft: 'auto', display: 'flex', gap: 2.5, flexShrink: 0 }}>
+          {steps.map((s, i) => (
+            <span
+              key={s}
+              style={{
+                width: i === cur ? 5 : 3.5,
+                height: i === cur ? 5 : 3.5,
+                borderRadius: 3,
+                background: i === cur ? hue : `${hue}38`,
+                boxShadow: i === cur ? `0 0 6px ${hue}` : 'none',
+                transition: `all .4s ${EASE}`,
+              }}
+            />
+          ))}
+        </span>
+      </div>
+    )
+  }
   const maxLen = Math.max(...steps.map((s) => s.length))
-  const fs = Math.min(size, Math.max(6, Math.floor((compact ? 34 : 62) / maxLen)))
+  const fs = Math.min(size, Math.max(6, Math.floor(64 / maxLen)))
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0, flexShrink: 0 }}>
       {steps.map((s, i) => {
@@ -136,13 +168,13 @@ function Mainline({ steps, hue, b, live, size = 7.5, compact }) {
                 flex: 1,
                 minWidth: 0,
                 textAlign: 'center',
-                padding: '2px 2px',
+                padding: '2px 1px',
                 borderRadius: 2,
-                border: `1px solid ${on ? `${hue}88` : 'rgba(255,255,255,0.09)'}`,
-                background: on ? `${hue}24` : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${on ? `${hue}88` : 'rgba(255,255,255,0.14)'}`,
+                background: on ? `${hue}24` : 'rgba(255,255,255,0.05)',
                 fontFamily: SANS,
                 fontSize: fs,
-                color: on ? '#fff' : 'rgba(255,255,255,0.66)',
+                color: on ? '#fff' : 'rgba(255,255,255,0.84)',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -165,14 +197,14 @@ function Mainline({ steps, hue, b, live, size = 7.5, compact }) {
 function Metric({ k, v, hue, big }) {
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ fontFamily: MONO, fontSize: big ? 16 : 10.5, fontWeight: big ? 700 : 600, lineHeight: 1.1, color: hue, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v}</div>
-      <div style={{ marginTop: 1, fontFamily: SANS, fontSize: big ? 8 : 7, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{k}</div>
+      <div style={{ fontFamily: MONO, fontSize: big ? 18 : 12, fontWeight: big ? 700 : 600, lineHeight: 1.1, color: hue, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v}</div>
+      <div style={{ marginTop: 1, fontFamily: SANS, fontSize: big ? 9 : 8, color: 'rgba(255,255,255,0.68)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{k}</div>
     </div>
   )
 }
 
 /** 课程层：四层的名字，同宽的斜角小格 —— 结构一眼能数清是四层 */
-function LayerRow({ layers, hue, size = 6.5 }) {
+function LayerRow({ layers, hue, size = 7.5 }) {
   return (
     <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
       {layers.map((t, i) => (
@@ -184,11 +216,11 @@ function LayerRow({ layers, hue, size = 6.5 }) {
             textAlign: 'center',
             padding: '2px 1px',
             clipPath: cut(4),
-            background: `linear-gradient(180deg,${hue}${i === 0 ? '24' : '17'},rgba(255,255,255,0.02))`,
-            borderBottom: `1px solid ${hue}${i === 0 ? '88' : '40'}`,
+            background: `linear-gradient(180deg,${hue}${i === 0 ? '24' : '22'},rgba(255,255,255,0.02))`,
+            borderBottom: `1px solid ${hue}${i === 0 ? '99' : '55'}`,
             fontFamily: SANS,
             fontSize: size,
-            color: 'rgba(255,255,255,0.68)',
+            color: 'rgba(255,255,255,0.82)',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -203,7 +235,7 @@ function LayerRow({ layers, hue, size = 6.5 }) {
 
 /* ―― 迷你图：每块牌一个，形状跟着方案语义走，不是同款换色 ―― */
 
-/** 1 数字经济：数据要素网络 —— 节点互联、脉冲沿链路走（要素流通的读法） */
+/** 1 金融科技：金融数据网络 —— 节点互联、脉冲沿链路走（资金与数据流通的读法） */
 function DataMotif({ hue, b, live }) {
   const nodes = [
     [8, 13], [32, 4], [56, 11], [84, 3], [112, 12], [142, 5], [170, 12], [192, 17],
@@ -292,19 +324,19 @@ function PipelineMotif({ hue, b, live }) {
 
 const MOTIFS = [null, DataMotif, DistMotif, ColumnsMotif, PipelineMotif]
 
-/* ―― 主图（金融科技，288×178=屏幕上 252×156）：链路 + 2×2 指标 + 四层课程 ――
+/* ―― 主图（数字经济，288×178=屏幕上 252×156）：链路 + 2×2 指标 + 四层课程 ――
    这块牌最近、也最大，是全场的"封面"，所以给它一张完整的方案名片 */
 function HeroBody({ plan, hue, b, live }) {
   return (
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Mainline steps={plan.mainline} hue={hue} b={b} live={live} size={9.5} />
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Mainline steps={plan.mainline} hue={hue} b={b} live={live} size={11} />
       <div style={{ height: 1, margin: '2px 0', background: `linear-gradient(90deg,${hue}00,${hue}66 22%,${hue}52 70%,${hue}00)`, flexShrink: 0 }} />
-      <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
         {plan.metrics.slice(0, 2).map((m) => (
           <Metric key={m.k} k={m.k} v={m.v} hue={hue} big />
         ))}
       </div>
-      <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
         {plan.metrics.slice(2, 4).map((m) => (
           <Metric key={m.k} k={m.k} v={m.v} hue={hue} big />
         ))}
@@ -313,9 +345,9 @@ function HeroBody({ plan, hue, b, live }) {
         {/* 这一行只留"四层课程"这一枚行标签：产品总数上面 2×2 指标里已经有一条
             「9 套支撑产品」，同一块牌上写两遍就是重复信息 */}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-          <Mono v="四层课程" s={7} c="rgba(255,255,255,0.45)" />
+          <Mono v="四层课程" s={8} c="rgba(255,255,255,0.6)" />
         </div>
-        <LayerRow layers={plan.layers.map((l) => l.name)} hue={hue} size={7.5} />
+        <LayerRow layers={plan.layers.map((l) => l.name)} hue={hue} size={8} />
       </div>
     </div>
   )
@@ -326,9 +358,9 @@ function HeroBody({ plan, hue, b, live }) {
 function SatBody({ plan, hue, b, live, index }) {
   const Motif = MOTIFS[index]
   return (
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Mainline steps={plan.mainline} hue={hue} b={b} live={live} size={8} compact />
-      <div style={{ height: 20, flexShrink: 0, opacity: live ? 1 : 0.72, transition: `opacity .5s ${EASE}` }}>
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Mainline steps={plan.mainline} hue={hue} b={b} live={live} size={8.5} compact />
+      <div style={{ height: 20, flexShrink: 0, opacity: live ? 1 : 0.82, transition: `opacity .5s ${EASE}` }}>
         <Motif hue={hue} b={b} live={live} />
       </div>
       {/* 指标单行走完：卫星牌去掉标题栏与状态行只剩 ~79px，三行指标会把
@@ -336,12 +368,12 @@ function SatBody({ plan, hue, b, live, index }) {
       <div style={{ display: 'flex', gap: 7, alignItems: 'baseline', flexShrink: 0 }}>
         {plan.metrics.slice(0, 3).map((m) => (
           <span key={m.k} style={{ minWidth: 0, display: 'flex', alignItems: 'baseline', gap: 2 }}>
-            <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, lineHeight: 1.1, color: hue, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{m.v}</span>
-            <span style={{ fontFamily: SANS, fontSize: 7, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap' }}>{m.k}</span>
+            <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, lineHeight: 1.1, color: hue, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{m.v}</span>
+            <span style={{ fontFamily: SANS, fontSize: 8, color: 'rgba(255,255,255,0.68)', whiteSpace: 'nowrap' }}>{m.k}</span>
           </span>
         ))}
       </div>
-      <LayerRow layers={plan.layers.slice(0, 3).map((l) => l.name)} hue={hue} size={6.5} />
+      <LayerRow layers={plan.layers.slice(0, 3).map((l) => l.name)} hue={hue} size={7} />
     </div>
   )
 }
@@ -404,7 +436,7 @@ export default function AgentPanel({ index, mode, beat, live, hot, yaw = 0, pitc
             `linear-gradient(0deg,${hue}3d 0%,${hue}18 7%,${hue}00 16%)`,
             'repeating-linear-gradient(0deg,rgba(255,255,255,0.022) 0 1px,transparent 1px 13px)',
             'repeating-linear-gradient(90deg,rgba(255,255,255,0.022) 0 1px,transparent 1px 13px)',
-            'linear-gradient(168deg,rgba(30,38,64,0.92) 0%,rgba(16,22,40,0.94) 52%,rgba(8,12,22,0.96) 100%)',
+            'linear-gradient(168deg,rgba(30,38,64,0.94) 0%,rgba(16,22,40,0.955) 52%,rgba(8,12,22,0.975) 100%)',
           ].join(','),
           boxShadow: [
             'inset 0 1px 0 rgba(255,255,255,0.36)',
@@ -415,7 +447,7 @@ export default function AgentPanel({ index, mode, beat, live, hot, yaw = 0, pitc
             /* 只有正在聚焦的那一块往外发光：五块一起发光就等于没有一块发光 */
             live ? `0 0 22px ${hue}33, 0 0 54px ${hue}14` : '0 0 0 rgba(0,0,0,0)',
           ].join(','),
-          opacity: live ? 1 : hot ? 0.97 : 0.93,
+          opacity: live ? 1 : hot ? 0.98 : 0.95,
           /* 这里挂过一枚 filter: saturate()/brightness() 给非聚焦牌压色 —— 摘掉了。
              <Html transform> 的牌本身就在 matrix3d 层里，CSS filter 会再给它开一个
              render surface：板面上每个字都被合成两遍（偏移 3~5px 的重影），
@@ -433,31 +465,101 @@ export default function AgentPanel({ index, mode, beat, live, hot, yaw = 0, pitc
           opacity: 0.5,
         }}
       />
+      {/* 三枚 L 形刻线（右上角是切角，不放）：一块仪表盘的「仪器感」不在花边，
+          在这几道角标 —— 零动画成本，缩放后也不会糊 */}
+      {[
+        { box: { left: 0, top: 0 }, edges: ['left', 'top'] },
+        { box: { left: 0, bottom: 0 }, edges: ['left', 'bottom'] },
+        { box: { right: 0, bottom: 0 }, edges: ['right', 'bottom'] },
+      ].map((p, i) => (
+        <span
+          key={i}
+          aria-hidden
+          style={{
+            position: 'absolute',
+            ...p.box,
+            width: 9,
+            height: 9,
+            pointerEvents: 'none',
+            opacity: 0.55,
+            borderLeft: p.edges.includes('left') ? `1.5px solid ${hue}99` : undefined,
+            borderTop: p.edges.includes('top') ? `1.5px solid ${hue}99` : undefined,
+            borderRight: p.edges.includes('right') ? `1.5px solid ${hue}99` : undefined,
+            borderBottom: p.edges.includes('bottom') ? `1.5px solid ${hue}99` : undefined,
+          }}
+        />
+      ))}
+      {/* 扫描带：只有正在发言的那一块有 —— 一条 16px 的青蓝光带自上而下扫过，
+          读作「这块界面正在出数」，而不是一块静态贴图。走 transform/opacity，
+          不碰布局；整屏同时最多只有一块在扫 */}
+      {live && (
+        <span
+          aria-hidden
+          className="ap-scan"
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 0,
+            height: 16,
+            pointerEvents: 'none',
+            background: `linear-gradient(180deg,${hue}00 0%,${hue}44 55%,${hue}bb 96%,${hue}00 100%)`,
+            '--ap-h': `${h}px`,
+          }}
+        />
+      )}
 
       {/* ―― 标题栏：三枚窗控点 + 方案简称 + 培养定位 + 编号/聚焦态 ―― */}
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 5, height: index === 0 ? 26 : 22, flexShrink: 0 }}>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 5, height: index === 0 ? 28 : 23, flexShrink: 0 }}>
         <span style={{ display: 'flex', gap: 2.5, flexShrink: 0 }}>
           {[hue, 'rgba(255,255,255,0.3)', 'rgba(255,255,255,0.16)'].map((c, i) => (
-            <span key={i} style={{ width: 4, height: 4, borderRadius: 4, background: c, boxShadow: i === 0 && live ? `0 0 6px ${hue}` : 'none' }} />
+            <span
+              key={i}
+              style={{
+                width: 4.5,
+                height: 4.5,
+                borderRadius: 4,
+                background: c,
+                boxShadow: i === 0 && live ? `0 0 6px ${hue}` : 'none',
+                /* 第一枚窗控点在发言时呼吸：一条 1.9s 的 opacity 脉冲，
+                   比常亮读得出「它在跑」 */
+                animation: i === 0 && live ? 'ap-pulse 1.9s ease-in-out infinite' : undefined,
+              }}
+            />
           ))}
         </span>
-        <span style={{ fontFamily: SANS, fontSize: index === 0 ? 12.5 : 11, fontWeight: 600, letterSpacing: 0.2, color: live ? '#fff' : 'rgba(255,255,255,0.88)', whiteSpace: 'nowrap' }}>{app}</span>
-        <span style={{ fontFamily: SANS, fontSize: 8.5, color: 'rgba(255,255,255,0.46)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{sub}</span>
+        <span style={{ fontFamily: SANS, fontSize: index === 0 ? 14.5 : 13, fontWeight: 600, letterSpacing: 0.2, color: live ? '#fff' : 'rgba(255,255,255,0.94)', whiteSpace: 'nowrap' }}>{app}</span>
+        <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(255,255,255,0.66)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{sub}</span>
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
           <Chip t={live ? 'FOCUS' : `${n}/05`} c={live ? hue : `${hue}cc`} solid={live} />
         </span>
       </div>
-      <div style={{ position: 'relative', height: 1, margin: `0 -${index === 0 ? 8 : 7}px 4px`, background: `linear-gradient(90deg,${hue}00,${hue}66 22%,${hue}52 70%,${hue}00)` }} />
+      <div style={{ position: 'relative', height: 1, margin: `0 -${index === 0 ? 8 : 7}px 3px`, background: `linear-gradient(90deg,${hue}00,${hue}66 22%,${hue}52 70%,${hue}00)` }} />
 
       {/* ―― 板心 ―― */}
       <Body index={index} plan={plan} hue={hue} b={beat} live={live || hot} hot={hot} />
 
       {/* ―― 底部状态行：一块真界面永远有一条在跑的系统信息 ―― */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5, height: 11, flexShrink: 0 }}>
-        <Mono v={live ? '● focus' : '○ standby'} s={7} c={live ? hue : 'rgba(255,255,255,0.36)'} />
-        <span style={{ flex: 1, minWidth: 0, height: 1, background: 'rgba(255,255,255,0.1)' }} />
-        <Mono v={en} s={6.5} c="rgba(255,255,255,0.34)" />
-        <Mono v={`${n}/${pad(solutionPlans.length)}`} s={7} c={`${hue}cc`} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, height: 10, flexShrink: 0 }}>
+        <Mono v={live ? '● focus' : '○ standby'} s={8} c={live ? hue : 'rgba(255,255,255,0.55)'} />
+        <span style={{ flex: 1, minWidth: 0, height: 1, background: 'rgba(255,255,255,0.14)' }} />
+        {/* 五格信号条：按 beat 逐格点亮 —— 一条在跑的系统读数，比写死的字更像活的 */}
+        <span style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+          {[0, 1, 2, 3, 4].map((k) => (
+            <span
+              key={k}
+              style={{
+                width: 3,
+                height: k === beat % 5 ? 6 : 3,
+                borderRadius: 1,
+                background: k === beat % 5 ? hue : `${hue}40`,
+                transition: `height .35s ${EASE}, background .35s ${EASE}`,
+              }}
+            />
+          ))}
+        </span>
+        <Mono v={en} s={7.5} c="rgba(255,255,255,0.52)" />
+        <Mono v={`${n}/${pad(solutionPlans.length)}`} s={8} c={`${hue}dd`} />
       </div>
       </div>
     </div>

@@ -53,7 +53,11 @@ function dismissBoot() {
   setTimeout(() => el.remove(), 700)
 }
 
-whenHeroReady(dismissBoot)
+whenHeroReady((reason) => {
+  dismissBoot()
+  /* 白幕自己判断「演够了没有」；没有 #intro 的页面（内页 / 后台）这里是空调用 */
+  window.__introExit?.(reason)
+})
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

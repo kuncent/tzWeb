@@ -119,7 +119,13 @@ function HeroIntro({ scene, still }) {
     transition: { duration: 0.62, delay, ease: EASE },
   })
   return (
-    <div className="relative max-w-[660px]">
+    /* 整块文案的宽度上限 = 标题最长一行（8 个字 ≈ 7.9 × 字号）：
+       桌面由外层列宽兜底（552/492），这一条负责窄屏堆叠版式 ——
+       标题只有 8 字宽、正文却铺满整屏会显得上小下大，也违背"内容不宽于标题" */
+    <div
+      className="relative max-w-full"
+      style={{ maxWidth: 'calc(7.9 * clamp(2.5rem, 1.5rem + 3.8vw, 4.4rem))' }}
+    >
       {/* 品牌眉标 —— 提升存在感：圆点更大、字距更紧、色更亮 */}
       <motion.div className="relative flex items-center gap-3" {...enter(0)}>
         <span className="h-2 w-2 rounded-full" style={{ background: scene.accent, boxShadow: `0 0 16px ${scene.accent}` }} />
@@ -128,18 +134,24 @@ function HeroIntro({ scene, still }) {
         </span>
       </motion.div>
 
-      {/* 公司主张 —— 使用 token 系统的 text-h1，比硬编码 px 更大气、响应式更好 */}
-      <h1 className="relative mt-5 text-h1 font-bold leading-[1.08] tracking-[-0.03em] text-white">
+      {/* 公司主张 —— 一行最多 8 个字：max-w-[8em]（8 个字号宽）+ 三行语义硬断。
+          原版「构建下一代人才培养基础设施」在 716px 的列里会排成 9 字一行，
+          现在断成 5 / 5 / 8（最长一行正好 8 字），同时把整列收窄到标题的宽度，
+          让出中间约 160px 给 3D 展示 */}
+      <h1 className="relative mt-5 max-w-[8em] text-h1 font-bold leading-[1.08] tracking-[-0.03em] text-white">
         <span className="block overflow-hidden">
           <motion.span className="block" {...rise(0.06)}>天择教育，</motion.span>
         </span>
         <span className="block overflow-hidden">
-          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.14)}>{brand.positioning}</motion.span>
+          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.14)}>构建下一代</motion.span>
+        </span>
+        <span className="block overflow-hidden">
+          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.2)}>人才培养基础设施</motion.span>
         </span>
       </h1>
 
       {/* 公司简介 —— 提升对比度到 text-white/70，字号升为 text-ui (14px) */}
-      <motion.p className="mt-6 max-w-[580px] text-ui leading-[1.85] text-white/70" {...enter(0.2)}>
+      <motion.p className="mt-6 text-ui leading-[1.85] text-white/70" {...enter(0.2)}>
         {brand.short}（{brand.en}）面向高校与职业院校，把 AI 多智能体、数字孪生与真实链路实训做成能直接开课的人才培养基础设施——六大产品体系一体交付，让前沿产业能力变成学生上手的能力。
       </motion.p>
 
@@ -150,7 +162,7 @@ function HeroIntro({ scene, still }) {
           pointer-events-auto 必须显式加：整个左文案列是 pointer-events-none
           （让 orbit 拖拽能穿到 canvas），交互子块要各自接回 auto，否则点色块
           会穿到背后的 canvas，看着像点了没反应（与下方主 CTA 同一套做法） */}
-      <motion.div className="pointer-events-auto mt-6 grid max-w-[580px] grid-cols-1 gap-2.5 sm:grid-cols-2" {...enter(0.26)}>
+      <motion.div className="pointer-events-auto mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2" {...enter(0.26)}>
         {productMatrix.map((p, i) => {
           const hue = PRODUCT_HUES[i % PRODUCT_HUES.length]
           const Icon = p.icon
@@ -481,7 +493,7 @@ export default function StoryHero() {
             className="pointer-events-none absolute inset-0"
             style={{
               backgroundImage:
-                'radial-gradient(70% 40% at 50% 100%, rgba(37,212,255,0.05), transparent 72%), linear-gradient(to top, rgba(6,8,13,0.92), rgba(6,8,13,0.42) 15%, transparent 34%), radial-gradient(120% 100% at 100% 100%, rgba(6,8,13,0.82), transparent 72%), linear-gradient(90deg, rgba(6,8,13,0.9) 0%, rgba(6,8,13,0.74) 26%, rgba(6,8,13,0.5) 37%, rgba(6,8,13,0.07) 48%, rgba(6,8,13,0.02) 62%, rgba(6,8,13,0.2) 100%)',
+                'radial-gradient(70% 40% at 50% 100%, rgba(37,212,255,0.05), transparent 72%), linear-gradient(to top, rgba(6,8,13,0.86), rgba(6,8,13,0.34) 15%, transparent 34%), radial-gradient(120% 100% at 100% 100%, rgba(6,8,13,0.74), transparent 72%), linear-gradient(90deg, rgba(6,8,13,0.9) 0%, rgba(6,8,13,0.74) 26%, rgba(6,8,13,0.5) 37%, rgba(6,8,13,0.07) 48%, rgba(6,8,13,0.02) 62%, rgba(6,8,13,0.14) 100%)',
               /* 左侧那层仍压到 0.9：白字对比度是硬约束；色相收到近黑（night），与解决方案首屏主色调互换 */
               backgroundSize: '100% 100%, 100% 260px, 50% 76%, 100% 100%',
               backgroundPosition: '50% 100%, 0 100%, 100% 100%, 0 0',
@@ -521,13 +533,14 @@ export default function StoryHero() {
                左半屏的指针事件全截走 —— 链屏那条看板线伸到 x 230 起，左边几块牌
                点不到就是这么被吃掉的（实测 elementFromPoint 在牌心返回的是文案
                那个 motion 容器）。真正要交互的只有下面那两个按钮，它们自己接回 auto */}
-            {/* 左文案列：这一轮整体收窄约 24px（660→636，宽屏 740→716）——
-                正好一个中文字宽，标题仍按原来的断行位置换行（9 + 4 字），
-                右侧让出的 24px 给 3D 展板；整块再往下沉 28px（pt 80→132 的净效果）。
-                1024–1279 再收到 560：这一档展板改成右侧竖排，需要让出 600 以外的
-                整条右边；1280–1439 用 636：这一档 h1 约 70.4px，9 字标题需约
-                613px，600 会把「人才培养」拆行，而 636 仍给横排展板留出 700 起的起点 */}
-            <div className="pointer-events-none absolute inset-y-0 left-10 flex max-w-[600px] flex-col justify-center pt-[132px] pb-[156px] lg:max-w-[560px] xl:max-w-[636px] wide:max-w-[716px]">
+            {/* 左文案列：宽度直接跟标题字号走 —— 8 个字 ≈ 7.9 倍字号，
+                这样 1024、1280、1920每一档都刚好装下 8 字一行，不会在
+                1279 这种中间宽度把「人才培养基础设施」再折一次。
+                比原来的 716px 窄了约 160px，中间 3D 展板因此宽松 */}
+            <div
+              className="pointer-events-none absolute inset-y-0 left-10 flex flex-col justify-center pt-[132px] pb-[156px]"
+              style={{ width: 'calc(7.9 * clamp(2.5rem, 1.5rem + 3.8vw, 4.4rem))' }}
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={scene.id}

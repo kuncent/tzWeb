@@ -27,11 +27,13 @@ const PANEL_MARGIN = 16
 
 /* 首屏背景：光明科技金融大厦三张 2304×1296 外观（远景天际线 / 航拍俯瞰 /
    主塔立面近景），由 RippleHero 做 react-bits 风格的水波纹自动切换。
-   三张同为 16:9、同一光比与冷调玻璃质感，避免切换时跳色。 */
+   三张同为 16:9、同一光比与冷调玻璃质感，避免切换时跳色。
+   at = 标注在图像空间的比例坐标（RippleHero 按 cover 逆映射钉回屏幕）：
+   前两张钉在主塔楼身上，第三张钉在正门入口的玻璃带上。 */
 const towerShots = [
-  { src: '/images/about/tower-01.webp', label: '光明科技金融大厦 · 凤凰城天际线' },
-  { src: '/images/about/tower-02.webp', label: '光明科技金融大厦 · 航拍俯瞰' },
-  { src: '/images/about/tower-03.webp', label: '光明科技金融大厦 · 主塔立面' },
+  { src: '/images/about/tower-01.webp', label: '光明科技金融大厦 · 凤凰城天际线', at: [0.618, 0.3] },
+  { src: '/images/about/tower-02.webp', label: '光明科技金融大厦 · 航拍俯瞰', at: [0.498, 0.32] },
+  { src: '/images/about/tower-03.webp', label: '光明科技金融大厦 · 主塔正门', at: [0.498, 0.62] },
 ]
 
 /* 悬停放大浮层：portal 到 body 的 fixed 面板，按视口空间与格子位置
@@ -180,7 +182,7 @@ export default function About() {
           { label: '联系我们', to: '#contact', primary: true },
           { label: '看解决方案', to: '/solutions' },
         ]}
-        backdrop={<RippleHero images={towerShots} caption="深圳市光明区 · 光明科技金融大厦" />}
+        backdrop={<RippleHero images={towerShots} />}
       />
 
 

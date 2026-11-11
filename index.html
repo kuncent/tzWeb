@@ -437,72 +437,44 @@
         animation: it-spin 34s linear infinite;
         transform-origin: 120px 120px;
       }
-      /* Z 字标按品牌标记（/images/brand-mark.svg）的实际字形填充绘制：
-         上横下垂一竖、下横上耸一竖、右上到左下一条粗斜笔，
-         上横与斜笔之间还有一枚封闭的白色三角孔 —— 这些都不是描边能画的，
-         所以字标本身改为实心 fill。
-         落笔动效：mask 里五支笔刷按「上横 → 斜笔 → 下横 → 左竖 → 右竖」
-         的顺序逐笔扫出（见 .it-z-brush），0.37s 起笔、1.45s 收笔。
-         上一版只用“比笔画略宽”的笔刷控制边界：上横刷比字形底边多探出 0.4、
-         下横刷比字形顶边多探出 2.15，于是左竖顶端、右竖底座会提前露出一条
-         短竖 —— 那正是“Z 上多出来一点竖笔”。这一版给上横、下横各配一把
-         剪刀（<defs> 里的 itClipTop / itClipBar），刀口正好压在横竖分界线上：
-           · 上横的刀口压在 y=89.8（上横底边），左竖从这条线以下才开始；
-           · 斜笔不裁（裁到 120.6 会多出十单位宽的台阶、裁到 133.8 会啃掉斜笔下端）；
-         b4 / b5 各自的笔顺开始（1.11s / 1.29s）才揭开（Z 全程 0.37–1.09s
-         两侧竖线不提前露出）。
-         不再给字标挂 drop-shadow：模糊光晕叠在锐利字形上就是一圈「毛边」，
-         而且它让被 mask 遮罩、每帧都在改 dashoffset 的元素整块重绘滤镜，
-         首屏同时还在编译 3D 着色器，这一层就是卡顿的主要来源（光晕由
-         舞台里的 .it-glow 提供，保持同样的观感）。 */
+      /* Z 字标＝品牌标记（/images/brand-mark.svg）的真实字形：实心 fill +
+         evenodd 挖出上横与斜笔之间那枚三角孔。
+         落笔改成「一笔描边 → 墨色漫入 → 高光扫过」三段：
+           · it-z-trace 沿字形外轮廓一笔画完（单条 dash，0.40–1.22s）；
+           · it-z 实心字形随后淡入（纯 opacity，1.14–1.45s），描边同时退场；
+           · it-z-sheen 一道白光斜扫过已落定的字形（1.30–1.92s）收笔。
+         上一版是 mask 里五支笔刷逐笔扫出：每帧都在改 dashoffset、让被遮罩的
+         复杂字形整块重新栅格化，而主线程同时在解析入口 JS / 编译着色器。
+         更要命的是中间态根本不是字 —— 起笔先冒出一枚小蓝方块，斜笔半程带
+         台阶与尖角（实拍 tmp/audit/zb-*.png）。描边没有这个问题：任何时刻
+         画面上都只是一条干净的细线，直到墨色一次漫满。
+         不挂 drop-shadow：模糊光晕叠在锐利字形上就是一圈毛边，光晕交给
+         舞台里的 .it-glow。 */
       #intro .it-mark .it-z {
         fill: url(#itg);
         fill-rule: evenodd;
+        opacity: 0;
+        animation: it-ink 0.31s cubic-bezier(0.28, 0.86, 0.32, 1) 1.14s forwards;
       }
-      /* 落笔墨刷一律用 butt 端头：起笔/收笔的截面是垂直于笔画的一条直线，
-         起点又放在字标剪影之外，所以不会像圆头刷那样用半个圆先啃出字标
-         的一角 —— 上一版 Z 起笔处的毛边就来自圆头刷与 drop-shadow 的叠加。
-         笔刷宽度只保证盖满自己那条笔画，越界的那一点由上面三把刀剪掉。
-         五笔在时间上首尾相接、每帧只有一支在动，避免一个 mask 里多条 dash
-         同时重绘。 */
-      #intro .it-mark .it-z-brush {
+      #intro .it-mark .it-z-trace {
         fill: none;
-        stroke: #fff;
-        stroke-linecap: butt;
+        stroke: url(#itg);
+        stroke-width: 1.7;
+        stroke-linejoin: round;
+        stroke-linecap: round;
         stroke-dasharray: 100;
         stroke-dashoffset: 100;
-        animation: it-draw 0.21s cubic-bezier(0.42, 0.05, 0.22, 1) 0.37s forwards;
+        animation:
+          it-draw 0.82s cubic-bezier(0.42, 0.02, 0.24, 1) 0.4s forwards,
+          it-trace-out 0.26s ease 1.2s forwards;
       }
-      /* b1 上横（y80–89.8） */
-      #intro .it-mark .it-z-brush.b1 {
-        stroke-width: 12;
-      }
-      /* b2 斜笔：右上起笔，笔尖落进下横左端（16.6：刚够盖住斜笔两侧与
-         下横左角；再宽就会越过三角孔、把左竖融合段啃出来） */
-      #intro .it-mark .it-z-brush.b2 {
-        stroke-width: 16.6;
-        animation-delay: 0.58s;
-        animation-duration: 0.33s;
-      }
-      /* b3 下横（y147.7–160） */
-      #intro .it-mark .it-z-brush.b3 {
-        stroke-width: 13;
-        animation-delay: 0.93s;
-        animation-duration: 0.16s;
-      }
-      /* b4 左竖（x101.5–111.4） */
-      #intro .it-mark .it-z-brush.b4 {
-        stroke-width: 12;
-        animation-delay: 1.11s;
-        animation-duration: 0.16s;
-      }
-      /* b5 右竖（x127.4–138.4）：比字宽多留 0.7 的两侧余量 —— mask 在
-         154px 的显示尺寸下只有 0.64px/单位，余量太小会被栅格化抹掉，
-         竖笔右缘会被削掉半像素 */
-      #intro .it-mark .it-z-brush.b5 {
-        stroke-width: 12.4;
-        animation-delay: 1.29s;
-        animation-duration: 0.16s;
+      /* 高光扫过：静态 clip 把光带锁在字形里，动的只有 rect 自己的 transform。
+         1.20–1.62s：墨色 1.45s 落定，光带正好在那一刻扫到字中央，
+         1.62s 收干净 —— 比 T_MIN(1740ms) 早 120ms，不会被收口动作切掉尾巴 */
+      #intro .it-mark .it-z-sheen {
+        opacity: 0;
+        transform-box: view-box;
+        animation: it-sheen 0.42s linear 1.2s forwards;
       }
       #intro .it-mark .it-node {
         fill: #1677ff;
@@ -745,6 +717,36 @@
           transform: scaleX(1);
         }
       }
+      @keyframes it-ink {
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes it-trace-out {
+        to {
+          opacity: 0;
+        }
+      }
+      /* 光带只走 transform + opacity；skew 让它斜着掠过字形，
+         读作一道高光而不是一个平移的白方块。
+         行程 112 是量出来的：光带 x=52 宽 42，字形横跨 89.2–150.8，
+         走到 98.8 就已经完全出字 —— 再远都是空跑，白占半条时间轴 */
+      @keyframes it-sheen {
+        0% {
+          opacity: 0;
+          transform: translateX(0) skewX(-16deg);
+        }
+        14% {
+          opacity: 0.9;
+        }
+        80% {
+          opacity: 0.9;
+        }
+        100% {
+          opacity: 0;
+          transform: translateX(112px) skewX(-16deg);
+        }
+      }
       @keyframes it-beat {
         0%,
         100% {
@@ -937,33 +939,17 @@
                 <stop offset="0.52" stop-color="#4FA9FF" />
                 <stop offset="1" stop-color="#25D4FF" />
               </linearGradient>
-              <!-- 字标的“落笔”笔刷：五支白色平头笔按书写顺序扫过 ——
-                   上横、斜笔、下横、左竖、右竖。起笔点都在字标剪影之外，
-                   笔画进入字形时截面已是干净的直线，不会啃出圆弧毛边。
-                   坐标按 240×240 viewBox 里的字形轮廓量出来：
-                   上横 y84.9、下横 y153.85、左竖 x106.45、右竖 x132.9。
-                   两把刀只裁 Z 的上横和下横（斜笔不裁），把不属于它们的竖笔区域剪掉；
-                   左竖、右竖两笔不裁（它们的笔刷本来就只覆盖自己那一列）。 -->
-              <clipPath id="itClipTop" clipPathUnits="userSpaceOnUse">
-                <!-- 刀口压在上横底边 y=89.8：以下属于左竖，等 b4 揭开 -->
-                <rect x="87.4" y="0" width="65.4" height="89.8" />
+              <!-- 落笔用的两样东西：字形外轮廓（描边走它、高光裁在它里面）
+                   与一条透明→白→透明的光带渐变。轮廓与下面 .it-z 的外环
+                   逐点一致，所以描边收笔时墨色正好漫满同一枚剪影。 -->
+              <clipPath id="itZClip" clipPathUnits="userSpaceOnUse">
+                <path d="M89.2 80 H150.8 V93.5 L103.4 147.7 H127.4 V132.3 L138.4 120 V147.7 H150.8 V160 H89.2 V147.7 L101.5 132.9 V89.8 H89.2 Z" />
               </clipPath>
-              <clipPath id="itClipBar" clipPathUnits="userSpaceOnUse">
-                <!-- 刀口压在下横顶边 y=147.7：以上属于右竖底座，等 b5 揭开 -->
-                <rect x="0" y="147.7" width="240" height="92.3" />
-              </clipPath>
-              <mask id="itZBrush" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="240">
-                <rect x="0" y="0" width="240" height="240" fill="#000" />
-                <g clip-path="url(#itClipTop)">
-                  <path class="it-z-brush b1" pathLength="100" d="M87.8 84.9 H152.2" />
-                </g>
-                <path class="it-z-brush b2" pathLength="100" d="M155.6 78 L88.6 153.85" />
-                <g clip-path="url(#itClipBar)">
-                  <path class="it-z-brush b3" pathLength="100" d="M87.8 153.85 H152.2" />
-                </g>
-                <path class="it-z-brush b4" pathLength="100" d="M106.45 88.5 V134" />
-                <path class="it-z-brush b5" pathLength="100" d="M132.9 119.9 V148.6" />
-              </mask>
+              <linearGradient id="itSheen" x1="0" y1="0" x2="1" y2="0">
+                <stop stop-color="#fff" stop-opacity="0" />
+                <stop offset="0.5" stop-color="#fff" stop-opacity="0.92" />
+                <stop offset="1" stop-color="#fff" stop-opacity="0" />
+              </linearGradient>
             </defs>
             <g class="it-spokes">
               <line x1="120" y1="120" x2="120" y2="58" />
@@ -986,12 +972,20 @@
             />
             <!-- Z 字标＝品牌标记的真实字形（public/images/brand-mark.svg）：
                  外轮廓 15 点 + 上横与斜笔之间那枚封闭三角孔，
-                 整体按 logo 的 100×130 比例缩放后居中放进六边形。 -->
+                 整体按 logo 的 100×130 比例缩放后居中放进六边形。
+                 先描边（it-z-trace，与外环逐点一致），再让实心字形淡入。 -->
+            <path
+              class="it-z-trace"
+              pathLength="100"
+              d="M89.2 80 H150.8 V93.5 L103.4 147.7 H127.4 V132.3 L138.4 120 V147.7 H150.8 V160 H89.2 V147.7 L101.5 132.9 V89.8 H89.2 Z"
+            />
             <path
               class="it-z"
-              mask="url(#itZBrush)"
               d="M89.2 80 H150.8 V93.5 L103.4 147.7 H127.4 V132.3 L138.4 120 V147.7 H150.8 V160 H89.2 V147.7 L101.5 132.9 V89.8 H89.2 Z M111.4 89.8 H137.2 L111.4 120.6 Z"
             />
+            <g clip-path="url(#itZClip)">
+              <rect class="it-z-sheen" x="52" y="66" width="42" height="112" fill="url(#itSheen)" />
+            </g>
             <circle class="it-node" cx="120" cy="58" r="3.2" style="animation-delay: 0.44s" />
             <circle class="it-node" cx="173.7" cy="89" r="3.2" style="animation-delay: 0.5s" />
             <circle class="it-node cyan" cx="173.7" cy="151" r="3.2" style="animation-delay: 0.56s" />
@@ -1014,8 +1008,8 @@
     <script>
       /* ―― 开屏遮挡页的收口控制 ――
          时间轴改成“跟着画面走”，不再自己掐表：
-         1) Z 最后一笔落完（b5 的 animationend，约 1.45s）→ 派发 tz:draw-end，
-            StoryHero 收到后才开始取 3D；
+         1) Z 的墨色漫入落定（.it-z 的 it-ink animationend，约 1.45s）→ 派发
+            tz:draw-end，StoryHero 收到后才开始取 3D；
          2) 遮罩保持完整，等舞台的“真就绪”信号（首帧已画 + 全部 GL program
             链接成功 + 主线程空闲一拍，见 HeroStage 的 StageReady）；
          3) 等待期间进度条走满后切到不定量柔光扫描（.it-wait），不新增文案；
@@ -1144,13 +1138,14 @@
         }, HARD_MS)
 
         /* ―― 落笔结束 → 通知 StoryHero 挂 3D ――
-           b5 是 Z 的最后一笔（1.29s 起笔 + 0.16s）。用 animationend 而不是
-           再写一个 1450ms：动画的时长/延迟改了，3D 的启动点会自己跟上。
+           墨色漫入（.it-z 的 it-ink，1.14s 起 + 0.31s）是字标落定的那一刻。
+           用 animationend 而不是再写一个 1450ms：动画的时长/延迟改了，
+           3D 的启动点会自己跟上。
            __tzDrawEnd 同时置真，防止模块脚本比动画晚到、错过这一次事件。 */
-        var brush = intro.querySelector('.it-z-brush.b5')
+        var ink = intro.querySelector('.it-z')
         function drawDone(e) {
-          if (e && e.animationName !== 'it-draw') return
-          brush.removeEventListener('animationend', drawDone)
+          if (e && e.animationName !== 'it-ink') return
+          ink.removeEventListener('animationend', drawDone)
           T.drawEnd = at()
           window.__tzDrawEnd = true
           var ev
@@ -1162,7 +1157,7 @@
           }
           window.dispatchEvent(ev)
         }
-        if (brush) brush.addEventListener('animationend', drawDone)
+        if (ink) ink.addEventListener('animationend', drawDone)
 
         /* 进度条走满而遮罩还没收：切到不定量扫描，别让等待看起来像冻住 */
         var bar = intro.querySelector('.it-track i')

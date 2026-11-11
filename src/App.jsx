@@ -18,6 +18,7 @@ import useTracker from './hooks/useTracker'
    落地页零额外往返。（Navbar/Footer 仍静态：它们是全站骨架，不该闪。 ） */
 const Solutions = lazy(() => import('./pages/Solutions'))
 const Products = lazy(() => import('./pages/Products'))
+const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 const Devices = lazy(() => import('./pages/Devices'))
 const Cases = lazy(() => import('./pages/Cases'))
 const SchoolEnterprise = lazy(() => import('./pages/SchoolEnterprise'))
@@ -88,6 +89,7 @@ function SiteShell() {
               {/* 技术方案页已清空并入产品体系：旧 /technology 深链重定向过去，不断链 */}
               <Route path="/technology" element={<Navigate to="/products" replace />} />
               <Route path="/products" element={<Products />} />
+              <Route path="/products/:slug" element={<ProductDetail />} />
               <Route path="/devices" element={<Devices />} />
               {/* 智能产品页已合并进教学设备页（内嵌具身机器人 3D 实机屏）：
                   旧 /smart-products 深链重定向到 /devices，不断链 */}

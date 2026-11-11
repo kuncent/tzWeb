@@ -1,5 +1,5 @@
 /* ============================================================
- * 天择教育 需求智能分析引擎（真实可运行的纯前端功能）
+ * 天择科技 需求智能分析引擎（真实可运行的纯前端功能）
  * 老师描述需求 → 解析学科/场景/规模 → 生成解决方案 → 就方案联系我们
  * 无需后端，所有结果均由输入实时计算
  * ============================================================ */
@@ -8,11 +8,11 @@ import { PRODUCT_NAMES } from '../data/vocabulary'
 
 /* 意向方向一律取自商品词表，保证预填值能逐字命中联系表单的选项 */
 const SUBJECT_RULES = [
-  { key: 'ai', label: '人工智能', product: PRODUCT_NAMES.class, match: [/人工智能|机器学习|深度学习|神经网络|transformer|大模型|llm|ai\b/i] },
+  { key: 'ai', label: '人工智能', product: PRODUCT_NAMES['digital-economy'], match: [/人工智能|机器学习|深度学习|神经网络|transformer|大模型|llm|ai\b/i] },
   { key: 'blockchain', label: '区块链', product: PRODUCT_NAMES.blockchain, match: [/区块链|web3|智能合约|solidity|链上|比特币|以太坊|共识/i] },
-  { key: 'robotics', label: '具身智能 / 机器人', product: PRODUCT_NAMES.embodied, match: [/机器人|具身|运动学|机械臂|伺服|pid|控制|robot/i] },
+  { key: 'robotics', label: '具身智能 / 机器人', product: PRODUCT_NAMES['smart-products'], match: [/机器人|具身|运动学|机械臂|伺服|pid|控制|robot/i] },
   { key: 'data', label: '数据工程', product: PRODUCT_NAMES['digital-economy'], match: [/大数据|数据分析|sql|pandas|统计|可视化|数仓/i] },
-  { key: 'engineering', label: '工程实训', product: PRODUCT_NAMES.embodied, match: [/工程|制造|数控|电气|自动化|实训中心|金工/i] },
+  { key: 'engineering', label: '工程实训', product: PRODUCT_NAMES['smart-products'], match: [/工程|制造|数控|电气|自动化|实训中心|金工/i] },
 ]
 const DEFAULT_SUBJECT = { key: 'general', label: '前沿科技', product: '其他合作' }
 
@@ -67,7 +67,7 @@ const SCENE_PAINS = {
 const CASE_BY_SUBJECT = {
   ai: { school: '北京理工大学', note: 'AI 多智能体课堂 · 300+ 课程 · 5,000 学生' },
   robotics: { school: '北京理工大学', note: '具身智能 · 机器人实验室 · 虚实结合实训' },
-  blockchain: { school: '深圳职业技术大学', note: '区块链 · 可信账本与量化实训' },
+  blockchain: { school: '深圳职业技术大学', note: '区块链 · 联盟链与链上应用实训' },
   data: { school: '哈尔滨工业大学（深圳）', note: '数字经济 · 大数据与 AI 实训体系' },
   engineering: { school: '北京理工大学', note: '工商科一体化平台 · 产线实训' },
   general: { school: '华南理工大学', note: 'AI 通识课堂与学情分析试点' },

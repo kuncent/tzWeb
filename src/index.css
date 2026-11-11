@@ -211,6 +211,25 @@
     opacity: 0;
   }
 }
+/* 产品缩略图条的「点击切换」提示：一道扫光每隔几秒掠过，静止时也抓得住眼睛。
+   供 ImageRail 的 animate-[hintShine_...] 使用（减弱动效下不挂这个类）。 */
+@keyframes hintShine {
+  0% {
+    transform: translateX(-140%) skewX(-18deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  58% {
+    transform: translateX(420%) skewX(-18deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(420%) skewX(-18deg);
+    opacity: 0;
+  }
+}
 /* 08 地图「建设中」图标：锤子抬手敲两下，读作现场正在施工。
    以锤柄末端为轴（组件里 origin 设在右下），抬起蓄势 → 快速下击 → 回弹补一记。
    供 ChinaMap 的 animate-[hammer_...] 使用（减弱动效下组件不挂这个类）。 */

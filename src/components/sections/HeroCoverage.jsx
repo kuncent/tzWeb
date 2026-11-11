@@ -156,7 +156,7 @@ function buildOption(reduced, compact) {
     geo: {
       map: 'china',
       roam: false,
-      zoom: 1.06,
+      zoom: 1.12,
       center: [104.0, 35.5],
       silent: true,
       label: { show: false },

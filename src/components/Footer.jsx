@@ -110,7 +110,7 @@ export default function Footer() {
           <div>
             <BrandLockup tone="dark" />
             <p className="mt-5 max-w-xs text-[12.5px] leading-[1.9] text-white/62">
-              {brand.positioning}。为高校提供{PRODUCTS.map((p) => p.short).join('、')}六大产品体系，全栈私有化交付。
+              {brand.positioning}。为高校提供{PRODUCTS.map((p) => p.short).join('、')}产品体系，全栈私有化交付。
             </p>
             {/* 社交位不装样：只有这三条是真的能拨出去 / 发出去 / 落到联系屏 */}
             <div className="mt-6 flex items-center gap-3">

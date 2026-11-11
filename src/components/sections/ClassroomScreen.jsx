@@ -498,7 +498,7 @@ export default function ClassroomScreen({ p, i, withIndex }) {
 <style>body{max-width:820px;margin:48px auto;padding:0 20px;font:15px/1.8 system-ui,-apple-system,"Microsoft YaHei",sans-serif;color:#111}
 h1{font-size:24px;margin-bottom:4px}h3{margin:26px 0 6px;font-size:16px}p.x{color:#555;font-size:13px}p.b{font-family:ui-monospace,monospace;background:#f5f7fa;padding:8px 10px;border-left:3px solid #1677ff}
 ul,ol{padding-left:20px}.meta{color:#777;font-size:12.5px}</style>
-<h1>${lesson.title}</h1><p class="meta">${lesson.subtitle || ''}<br>来源：${lesson.source === 'qwen' ? `Qwen(${lesson.model || '未知模型'}) 实时生成` : '离线演示 · 内置教案'} · 天择教育 AI 课堂</p>
+<h1>${lesson.title}</h1><p class="meta">${lesson.subtitle || ''}<br>来源：${lesson.source === 'qwen' ? `Qwen(${lesson.model || '未知模型'}) 实时生成` : '离线演示 · 内置教案'} · 天择科技 AI 课堂</p>
 <p class="meta">大纲：${(lesson.outline || []).join(' / ')}</p><hr>${rows}`
     const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }))
     const a = document.createElement('a')

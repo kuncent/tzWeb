@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Users, BookOpenCheck, Microscope, GraduationCap, Award, Newspaper } from 'lucide-react'
+import { Users, BookOpenCheck, Microscope, GraduationCap, Award } from 'lucide-react'
 import { Reveal } from '../components/ui'
 import { scrollToId } from '../hooks/useLenis'
 
@@ -71,50 +71,7 @@ const partnershipBlocks = [
   },
 ]
 
-const SECTIONS = [
-  ...partnershipBlocks.map((b) => ({ id: `pe-${b.id}`, label: b.zh.split(' · ')[0], n: b.n })),
-  { id: 'pe-news', label: '合作动态', n: '06' },
-]
-
-/* 合作动态：真实校企合作新闻，全部来自各校官网公开报道与百度百科
-   （词条引用源即天择教育科技公众号）。新增/删除只改这份数组；
-   url 给官网原文，拿不到原文的引百科。按日期倒序排。 */
-const BAIKE_URL = 'https://baike.baidu.com/item/%E6%B7%B1%E5%9C%B3%E5%B8%82%E5%A4%A9%E6%8B%A9%E6%95%99%E8%82%B2%E7%A7%91%E6%8A%80%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8/22226176'
-const partnershipNews = [
-  { date: '2025-06-25', org: '培华学院经济金融学院', title: '校政企携手，共筑《国际金融》课程建设新篇章',
-    desc: '公司西北区负责人走进校园，与院校师生（含留学生）同上一堂校企共建的《国际金融》课。',
-    src: { name: '培华学院官网', url: 'https://www.peihua.cn/phkjjrxy/info/1106/7981.htm' } },
-  { date: '2025-06-18', org: '广州工商学院金融与贸易学院', title: '组织学生参访公司、国信证券投教基地与深圳证券交易所',
-    desc: '金融科技认知实践课搬进企业一线，学生实地参访产业平台与交易所。',
-    src: { name: '百度百科（引公众号）', url: BAIKE_URL } },
-  { date: '2025-05-08', org: '广州华立学院数字金融学院', title: '金融科技系师生走访，落实专业实习岗位',
-    desc: '系主任带队走访公司，公司计划为金融科技专业学生提供实习岗位。',
-    src: { name: '广州华立学院官网', url: 'https://www.gzhs.edu.cn/info/1010/3672.htm' } },
-  { date: '2025-04-16', org: '郑州科技学院财经学院', title: '走访公司，达成多项合作共识',
-    desc: '围绕金融科技教育生态建设、专业课程优化、实训基地共建展开洽谈。',
-    src: { name: '百度百科（引公众号）', url: BAIKE_URL } },
-  { date: '2025-03-14', org: '贵州农业职业学院经济管理学院', title: '共建「AI+数字经管人才实习就业服务基地」',
-    desc: '院长王亚新一行来访，就基地共建、人才培养、学科与专业建设展开深入探讨。',
-    src: { name: '贵州农业职业学院官网', url: 'http://www.gzasc.edu.cn/jgxy/info/1496/3689.htm' } },
-  { date: '2024-12-15', org: '广东省高等教育学会新商科实验教学专委会', title: '2024 学术年会 · 「天择奖」颁发',
-    desc: '总经理曹阜兴围绕「AI 背景下新商科实验教学资源创新」主题发言，董事长曹胜利为获奖教师颁奖。',
-    src: { name: '百度百科（引公众号）', url: BAIKE_URL } },
-  { date: '2024-04-26', org: '贵州商学院', title: 'AI 金融与数字经济实践课程 · 师资研修沙龙',
-    desc: '行业专家进校授课，覆盖金融大数据教学经验与 AI 大模型应用教学，学院教师全员参训。',
-    src: { name: '贵州商学院官网', url: 'https://bs.gznc.edu.cn/info/1008/7541.htm' } },
-  { date: '2024-03-20', org: '湖南人文科技学院金融学院', title: '校企合作交流',
-    desc: '公司湖南总经理一行到访，金融工程教研室与教师代表参加，交流实训与就业合作。',
-    src: { name: '湖南人文科技学院官网', url: 'https://www.huhst.edu.cn/sxx/info/1004/10998.htm' } },
-  { date: '2024-01-02', org: '广州工商学院投资学教研室', title: '校外实践基地师生走访',
-    desc: '投资学专业师生走进公司，了解行业用人需求与金融科技岗位实践。',
-    src: { name: '广州工商学院官网', url: 'https://www.gzgs.edu.cn/sxy/info/1180/4168.htm' } },
-  { date: '2023-04-10', org: '广东第二师范学院数学学院', title: '企业进校访问交流',
-    desc: '公司到访学院，围绕校企协同育人与实践教学展开交流。',
-    src: { name: '广东第二师范学院官网', url: 'https://www.gdei.edu.cn/2023/0412/c1325a81683/page.htm' } },
-  { date: '2019-12-20', org: '南方科技大学数学系', title: '金融科技实践教学暨金融机构调研参访研讨会',
-    desc: '南科大主办、天择教育科技承办，清华 SIGS、平安科技等机构共议金融科技实践教学。',
-    src: { name: '南方科技大学数学系', url: 'https://math.sustech.edu.cn/news/11717.html?lang=zh' } },
-]
+const SECTIONS = partnershipBlocks.map((b) => ({ id: `pe-${b.id}`, label: b.zh.split(' · ')[0], n: b.n }))
 
 /* 左侧竖直悬浮二级导航：sticky 在左栏，随滚动高亮当前板块，点击滚到对应位置。
    规则与顶部 InnerNav 一致（取顶部已越过基准线的最后一段）；窄屏没有左侧留白则隐藏，
@@ -203,48 +160,6 @@ function BlockFigure({ b }) {
   )
 }
 
-/* 合作动态时间线：左侧竖线 + 节点，一条新闻一张卡；原文外链新窗口打开。 */
-function PartnershipNews() {
-  return (
-    <section id="pe-news" className="scroll-mt-24 border-t border-ink-900/[0.07] py-12 md:py-14">
-      <Reveal>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-ink-900 text-white shadow-glow">
-            <Newspaper className="h-[22px] w-[22px]" strokeWidth={1.8} />
-          </span>
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400">06 · PARTNERSHIP NEWS</p>
-            <h2 className="text-2xl font-bold tracking-tight text-ink-900 md:text-[30px]">合作动态</h2>
-          </div>
-        </div>
-        <p className="mt-5 max-w-3xl text-[15px] leading-[1.9] text-ink-500">
-          校企合作的真实脚步：来访交流、课程共建、实习就业基地、产教融合论坛 —— 以下内容均来自各校官网公开报道与公司公众号，点击可查原文。
-        </p>
-      </Reveal>
-      <ol className="relative mt-9 max-w-3xl border-l border-ink-900/[0.10] pl-6">
-        {partnershipNews.map((news, i) => (
-          <li key={`${news.date}-${news.org}`} className={`group relative ${i === partnershipNews.length - 1 ? '' : 'pb-8'}`}>
-            <span className="absolute -left-[31px] top-[5px] h-2.5 w-2.5 rounded-full border-2 border-brand bg-white transition-colors group-hover:bg-brand" />
-            <p className="font-mono text-[12px] tabular-nums text-ink-400">{news.date}</p>
-            <h3 className="mt-1.5 text-[17px] font-semibold leading-snug tracking-tight text-ink-900">{news.title}</h3>
-            <p className="mt-1 text-ui-sm font-medium text-brand">{news.org}</p>
-            <p className="mt-2 text-[14px] leading-relaxed text-ink-500">{news.desc}</p>
-            <a
-              href={news.src.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2.5 inline-flex items-center gap-1.5 text-ui-sm text-ink-400 underline-offset-4 transition-colors hover:text-brand hover:underline"
-            >
-              来源 · {news.src.name}
-              <span aria-hidden className="text-[11px]">↗</span>
-            </a>
-          </li>
-        ))}
-      </ol>
-    </section>
-  )
-}
-
 export default function SchoolEnterprise() {
   return (
     <>
@@ -306,7 +221,6 @@ export default function SchoolEnterprise() {
                   </section>
                 )
               })}
-              <PartnershipNews />
             </div>
           </div>
         </div>

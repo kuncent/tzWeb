@@ -12,7 +12,7 @@ import { hasWebGL } from '../../lib/capability'
 /* ============================================================
  * 首屏：企业型单屏（AI 3D 作背景）
  * ------------------------------------------------------------
- * 左栏 = 公司简介 + 六大产品体系入口色块；右栏 = 服务网络地图
+ * 左栏 = 公司简介 + 八大产品体系入口色块；右栏 = 服务网络地图
  * （HeroCoverage：六服务枢纽向全国辐射的暗色中国地图航线）；身后保留 AI 3D 舞台。
  * 桌面端 sticky 钉屏，移动 / 平板纵向堆叠、不挂 WebGL。
  *
@@ -54,9 +54,9 @@ const LAST = N - 1
 const STEP_VH = 76
 const EASE = [0.22, 1, 0.36, 1]
 
-/* 六大产品入口色块：蓝→青等距阶梯，明度逐档对齐，读作一条刻意的光谱而非随机蓝；
+/* 八大产品入口色块：蓝→青等距阶梯，明度逐档对齐，读作一条刻意的光谱而非随机蓝；
    与 3D 展板的 HUES 同族、各自一套（这一套略深，适合贴在近黑首屏上的小色块） */
-const PRODUCT_HUES = ['#4C7DFF', '#3D93FF', '#2BA9F5', '#1FBEDF', '#25CFC6', '#1DE8B7']
+const PRODUCT_HUES = ['#4C7DFF', '#3D93FF', '#2BA9F5', '#1FBEDF', '#25CFC6', '#1DE8B7', '#4ade80', '#a3e635']
 /* 色块用简称：取 title 「·」前的第一段，够短也够认 */
 const shortName = (t) => (t.includes('·') ? t.split('·')[0] : t).trim()
 
@@ -106,7 +106,7 @@ function Scrim({ accent, still = false }) {
   )
 }
 
-/** 左侧：公司简介 + 六大产品体系入口色块（替代原业务文案层） */
+/** 左侧：公司简介 + 八大产品体系入口色块（替代原业务文案层） */
 function HeroIntro({ scene, still }) {
   const enter = (delay) => ({
     initial: still ? false : { opacity: 0, y: 22 },
@@ -119,12 +119,15 @@ function HeroIntro({ scene, still }) {
     transition: { duration: 0.62, delay, ease: EASE },
   })
   return (
-    /* 整块文案的宽度上限 = 标题最长一行（8 个字 ≈ 7.9 × 字号）：
-       桌面由外层列宽兜底（552/492），这一条负责窄屏堆叠版式 ——
-       标题只有 8 字宽、正文却铺满整屏会显得上小下大，也违背"内容不宽于标题" */
+    /* 整块文案的宽度上限 = 标题最长一行（5 个字 ≈ 4.85 × 字号）：
+       桌面由外层列宽兜底，这一条负责窄屏堆叠版式 ——
+       标题最宽那一行只有 5 字，正文/色块却铺满整屏会显得上小下大，
+       也违背"下方内容不宽于标题"。
+       窄屏的标题字号单独放大到 16.7vw（上限仍是 4.4rem）：5 字标题在 390 上
+       约 316px 宽，正好占满手机的内容宽度，不会变成一条细窄的竖条 */
     <div
       className="relative max-w-full"
-      style={{ maxWidth: 'calc(7.9 * clamp(2.5rem, 1.5rem + 3.8vw, 4.4rem))' }}
+      style={{ maxWidth: 'calc(4.85 * clamp(2.5rem, 16.7vw, 4.4rem))' }}
     >
       {/* 品牌眉标 —— 提升存在感：圆点更大、字距更紧、色更亮 */}
       <motion.div className="relative flex items-center gap-3" {...enter(0)}>
@@ -134,35 +137,42 @@ function HeroIntro({ scene, still }) {
         </span>
       </motion.div>
 
-      {/* 公司主张 —— 一行最多 8 个字：max-w-[8em]（8 个字号宽）+ 三行语义硬断。
-          原版「构建下一代人才培养基础设施」在 716px 的列里会排成 9 字一行，
-          现在断成 5 / 5 / 8（最长一行正好 8 字），同时把整列收窄到标题的宽度，
-          让出中间约 160px 给 3D 展示 */}
-      <h1 className="relative mt-5 max-w-[8em] text-h1 font-bold leading-[1.08] tracking-[-0.03em] text-white">
+      {/* 公司主张 —— 每行最多 6 字（本轮由 7 字收紧到 6），断点写死（不靠自动换行）：
+          天择科技 (4) / 构建下一代 (5) / 人才培养 (4) / 基础设施 (4)。
+          现有断行本来就每行 ≤ 6，所以这一轮文字与断点都没有变 —— 不是漏改。
+          也试过把它们排成更满的 6 字行：第二行要凑到 6 字只能写成「构建下一代人」，
+          会把「人才培养」拦腰截断（而「构建下一代人才」已经是 7 字，超限）；
+          把「基础设施」拆成「人才培养基础 / 设施」则会留下 2 字尾行。两种都属于拆词，
+          所以维持 4/5/4/4。最长一行 5 字 × (1 − 0.03 字距) = 4.85 倍字号，
+          外层左栏与下方内容都按这个宽度收，标题不会溢出、下方也不会宽过它 */}
+      <h1 className="relative mt-4 max-w-full whitespace-nowrap text-[clamp(2.5rem,16.7vw,4.4rem)] font-bold leading-[1.02] tracking-[-0.03em] text-white lg:text-h1">
         <span className="block overflow-hidden">
-          <motion.span className="block" {...rise(0.06)}>天择教育，</motion.span>
+          <motion.span className="block" {...rise(0.06)}>天择科技</motion.span>
         </span>
         <span className="block overflow-hidden">
-          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.14)}>构建下一代</motion.span>
+          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.12)}>构建下一代</motion.span>
         </span>
         <span className="block overflow-hidden">
-          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.2)}>人才培养基础设施</motion.span>
+          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.18)}>人才培养</motion.span>
+        </span>
+        <span className="block overflow-hidden">
+          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.24)}>基础设施</motion.span>
         </span>
       </h1>
 
       {/* 公司简介 —— 提升对比度到 text-white/70，字号升为 text-ui (14px) */}
-      <motion.p className="mt-6 text-ui leading-[1.85] text-white/70" {...enter(0.2)}>
-        {brand.short}（{brand.en}）面向高校与职业院校，把 AI 多智能体、数字孪生与真实链路实训做成能直接开课的人才培养基础设施——六大产品体系一体交付，让前沿产业能力变成学生上手的能力。
+      <motion.p className="mt-4 text-ui leading-[1.7] text-white/70" {...enter(0.2)}>
+        {brand.short}（{brand.en}）面向高校与职业院校，把 AI 多智能体、数字孪生与真实链路实训做成能直接开课的人才培养基础设施——产品体系一体交付，让前沿产业能力变成学生上手的能力。
       </motion.p>
 
-      {/* 六大产品体系入口色块 —— 按用户要求收一档：字号/图标/内边距/间距整体缩小，
-          但 py-2.5 + 9 号图标仍保证整块 ≥ 44px 的可点高度。
-          这一轮再收长度：色块栅格限宽 580px（原随文案列 660px），单块 285px 宽 ——
-          比上一版窄约 32px，但 285 仍装得下 6 字中文 + 9px 英文名，不折行
+      {/* 八大产品体系入口色块 —— 文案列跟着 5 字标题收到 4.85em 之后，单块只有
+          约 165px：内边距 px-2.5 / 8 号图标 / 12.5px 中文名，6 个字仍在 1440 上
+          完整显示（1024 上「新商科大数据」会 ellipsis，英文名本来就截断）。
+          py-2 + 32px 图标仍保住约 48px 的可点高度。
           pointer-events-auto 必须显式加：整个左文案列是 pointer-events-none
           （让 orbit 拖拽能穿到 canvas），交互子块要各自接回 auto，否则点色块
           会穿到背后的 canvas，看着像点了没反应（与下方主 CTA 同一套做法） */}
-      <motion.div className="pointer-events-auto mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2" {...enter(0.26)}>
+      <motion.div className="pointer-events-auto mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2" {...enter(0.26)}>
         {productMatrix.map((p, i) => {
           const hue = PRODUCT_HUES[i % PRODUCT_HUES.length]
           const Icon = p.icon
@@ -171,24 +181,24 @@ function HeroIntro({ scene, still }) {
               key={p.id}
               to="/products"
               onClick={() => requestMatrixIndex(i)}
-              className="group flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-12px_rgba(22,119,255,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              className="group flex items-center gap-2.5 rounded-lg border px-2.5 py-2 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-12px_rgba(22,119,255,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
               style={{ borderColor: `${hue}50`, background: `${hue}18` }}
             >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md" style={{ background: `${hue}28`, color: hue, boxShadow: `0 0 12px ${hue}20` }}>
-                <Icon className="h-[18px] w-[18px]" />
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md" style={{ background: `${hue}28`, color: hue, boxShadow: `0 0 12px ${hue}20` }}>
+                <Icon className="h-4 w-4" />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-[13px] font-semibold text-white">{shortName(p.title)}</span>
-                <span className="block truncate font-mono text-[9px] uppercase tracking-[0.12em] text-white/45">{p.en}</span>
+                <span className="block truncate text-[12.5px] font-semibold text-white">{shortName(p.title)}</span>
+                <span className="block truncate font-mono text-[8.5px] uppercase tracking-[0.12em] text-white/45">{p.en}</span>
               </span>
-              <ArrowUpRight className="ml-auto h-3.5 w-3.5 shrink-0 text-white/40 transition-all duration-300 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <ArrowUpRight className="ml-auto h-3 w-3 shrink-0 text-white/40 transition-all duration-300 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
           )
         })}
       </motion.div>
 
       {/* 主 CTA */}
-      <motion.div className="pointer-events-auto mt-7 flex flex-wrap items-center gap-3.5" {...enter(0.32)}>
+      <motion.div className="pointer-events-auto mt-5 flex flex-wrap items-center gap-3.5" {...enter(0.32)}>
         <a
           href="/about#contact"
           className="group inline-flex items-center gap-2.5 rounded-full px-6 py-3 text-[14px] font-semibold text-night transition-all duration-300 hover:-translate-y-0.5"
@@ -198,7 +208,7 @@ function HeroIntro({ scene, still }) {
           <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </a>
         <a href="/about" className="inline-flex items-center gap-2 rounded-full border border-white/25 px-5 py-3 text-[13.5px] font-medium text-white/90 transition-all duration-300 hover:border-white/55 hover:bg-white/[0.08]">
-          了解天择教育
+          了解天择科技
         </a>
       </motion.div>
     </div>
@@ -290,25 +300,37 @@ export default function StoryHero() {
     }
   }, [])
 
-  /* 舞台延迟挂载：先让文案与看板落地，再取 three.js。
-     ―― 160ms 定时器改成“等浏览器空闲”：实测（tmp/boot-perf.mjs）入口那
-     301KB gzip 的解析+首次渲染是一整块 1201ms 的长任务，而旧写法的 160ms
-     正好砸在它尾巴上 —— three 的 1MB chunk 下载、编译、着色器编译全叠在
-     用户读标题的那两秒里，手感受到的是“页面在拽”。总之就是把这堆编译忙乱
-     推给 idle：timeout 保证最迟 1.6s 一定挂（不能无限等，那就不叫延迟而
-     叫丢了）；没有 requestIdleCallback 的浏览器退回一个拍定的 700ms */
+  /* 舞台延迟挂载：先让开屏的笔画落完，再取 three.js。
+     ―― 实测（真 Chrome 153 / Intel UHD 770 / prod build，performance trace）：
+     开屏那 2.3s 里被丢掉的全部帧，来自 3D 首帧的三次同步 GL 程序链接
+     （最长 307ms，火焰图上全是 gl.getProgramParameter/getProgramInfoLog 在等
+     linkProgram）。遮罩的动画全是主线程驱动的，所以它们一冻就是整段白幕。
+     同一段开屏在关掉 WebGL 后是 57–58fps、p95 18ms、零长任务 —— 也就是说
+     遮罩自身的成本几乎为零，问题只在「什么时候启动 3D」。
+     Z 的落笔是 0.37–1.45s（压缩后），把启动整体推到 1.45s 之后再开闸：
+     笔画期间主线程干净，长任务落在收口前那段只剩合成动画的尾巴上。
+     idle 仍然保留（不抢别的活），timeout 兜底保证一定挂上。 */
   const [stageOn, setStageOn] = useState(false)
   useEffect(() => {
-    if (!env.gl || env.reduced || !env.desktop) {
+    if (!env.gl || !env.desktop) {
       /* 这台设备根本不挂 3D：遮罩没有可等的东西，文案落地就收。
-         （env 初值是“全都能”，窄屏会在下一个 effect 里读到真实值再走到这儿） */
+         （env 初值是“全都能”，窄屏会在下一个 effect 里读到真实值再走到这儿）
+         reduced-motion 不再走这一支：轮播降级成静态构图，要留一块中央展板可看，
+         所以照样挂载，只把 still 传下去冻结所有自动运动 */
       markHeroReady('nostage')
       return
     }
     const go = () => setStageOn(true)
     const ric = window.requestIdleCallback
-    const id = ric ? requestIdleCallback(go, { timeout: 1600 }) : setTimeout(go, 700)
-    return () => (ric ? cancelIdleCallback(id) : clearTimeout(id))
+    let id
+    const arm = setTimeout(() => {
+      id = ric ? requestIdleCallback(go, { timeout: 900 }) : setTimeout(go, 0)
+    }, 1450)
+    return () => {
+      clearTimeout(arm)
+      if (ric) cancelIdleCallback(id)
+      else clearTimeout(id)
+    }
   }, [env.gl, env.reduced, env.desktop])
 
   /* ―― 滚动即跳过片头（用户：动画时间还是太长了，用户看不完就开始滚动）――
@@ -453,8 +475,13 @@ export default function StoryHero() {
           {(!scrimGone || stageDead || stageLost) && <Scrim accent={scene.accent} still={still || (stageOn && !stageLost)} />}
 
           {stageOn && (
+            /* 3D 舞台整体右移 40px（20 → 30 → 40 是同一个位移量，逐次替换、不是叠加）：
+               只动位置，不改尺寸、不改相机。外层 sticky 容器是 overflow-hidden，
+               多出来的 40px 被右侧裁掉，页面不会因此出现横向滚动
+               （左侧让出的 40px 露出的就是同一档近黑底）。
+               相机、构图、机位曲线全部未动 —— 屏幕上的画面只是整块平移了 40px */
             <motion.div
-              className="absolute inset-0"
+              className="absolute inset-0 translate-x-[40px]"
               initial={{ opacity: 0 }}
               animate={{ opacity: stageLost ? 0 : 1 }}
               transition={{ duration: stageLost ? 0.2 : 1.4, ease: 'easeOut' }}
@@ -471,6 +498,7 @@ export default function StoryHero() {
                     idx={idx}
                     cmd={cmd}
                     panelLayout={env.desktop && !env.loose ? (env.wide ? 'wide' : 'narrow') : false}
+                    still={still}
                     onContextLost={() => setStageLost(true)}
                     onContextRestored={() => setStageLost(false)}
                     onPainted={() => setStagePainted(true)}
@@ -533,13 +561,12 @@ export default function StoryHero() {
                左半屏的指针事件全截走 —— 链屏那条看板线伸到 x 230 起，左边几块牌
                点不到就是这么被吃掉的（实测 elementFromPoint 在牌心返回的是文案
                那个 motion 容器）。真正要交互的只有下面那两个按钮，它们自己接回 auto */}
-            {/* 左文案列：宽度直接跟标题字号走 —— 8 个字 ≈ 7.9 倍字号，
-                这样 1024、1280、1920每一档都刚好装下 8 字一行，不会在
-                1279 这种中间宽度把「人才培养基础设施」再折一次。
-                比原来的 716px 窄了约 160px，中间 3D 展板因此宽松 */}
+            {/* 左文案列：宽度直接跟标题字号走 —— 标题最长一行 5 个字、字距 -0.03em，
+                5 × (1 − 0.03) = 4.85 倍字号。列宽按这个值定死，标题那一行就
+                恰好占满整列：标题不会溢出，下方副文案 / 产品栅格也天然不会宽过它 */}
             <div
               className="pointer-events-none absolute inset-y-0 left-10 flex flex-col justify-center pt-[132px] pb-[156px]"
-              style={{ width: 'calc(7.9 * clamp(2.5rem, 1.5rem + 3.8vw, 4.4rem))' }}
+              style={{ width: 'calc(4.85 * clamp(2.5rem, 1.5rem + 3.8vw, 4.4rem))' }}
             >
               <AnimatePresence mode="wait">
                 <motion.div
@@ -562,8 +589,15 @@ export default function StoryHero() {
                 位置在这一轮又上移了 20px（bottom-0 → bottom-[20px]），与首屏底沿拉开
                 一点呼吸，也给低位的商务数据分析展板让出下沿 */}
             {/* 1024–1279 用紧凑版：280px 窄面板 + 更矮的地图 + 精简标签，只保住
-                「6 枢纽 / 52 城」这组背书，不再挤占文案列；≥1280 恢复完整尺寸 */}
-            <div className="pointer-events-none absolute bottom-[20px] right-10 hidden w-[280px] lg:block xl:right-0 xl:w-[clamp(340px,30vw,460px)]" data-lenis-prevent>
+                「6 枢纽 / 52 城」这组背书，不再挤占文案列；≥1280 恢复完整尺寸。
+                完整档这一轮再收一档：24vw/380 上限 → 22vw/350（1440 上 346 → 317），
+                右边缘与底边仍钉在原来的位置（right-0 / bottom-20），只把左边缘往右收。
+                地图容器同步降到 25vh（1440×900 上 252 → 225），框形不被拉长；
+                同时把 ECharts 的 geo.zoom 从 1.06 提到 1.12，地图图形与框之间那圈
+                约 20px 的空隙收到 8px 上下（实测见报告）。
+                紧凑档（1024）面板矮、地图被 1.15 顶到贴底，所以取 1.12 —— 两档共用这一个值。
+                数据、标签、交互（枢纽悬停、航线流光）一个没动，只改外框与取景 */}
+            <div className="pointer-events-none absolute bottom-[20px] right-10 hidden w-[280px] lg:block xl:right-0 xl:w-[clamp(280px,22vw,350px)]" data-lenis-prevent>
               <motion.div
                 className="pointer-events-auto relative overflow-hidden rounded-2xl border border-white/12 p-3 shadow-[0_16px_48px_-18px_rgba(0,0,0,0.55)] xl:p-4"
                 initial={still ? false : { opacity: 0, y: 34 }}
@@ -589,7 +623,7 @@ export default function StoryHero() {
                       live
                     </div>
                   </div>
-                  <div className="relative mt-3 h-[190px] overflow-hidden rounded-xl border border-white/[0.06] bg-[rgba(10,17,31,0.22)] xl:h-[clamp(240px,32vh,340px)]">
+                  <div className="relative mt-3 h-[190px] overflow-hidden rounded-xl border border-white/[0.06] bg-[rgba(10,17,31,0.22)] xl:h-[clamp(200px,25vh,280px)]">
                     {/* 地图背后的冷光晕：陆地描边外再垫一层柔光，避免面板里出现一块硬边 */}
                     <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(62% 56% at 50% 46%, rgba(47,123,255,0.14), transparent 72%)' }} aria-hidden />
                     <Suspense fallback={null}>

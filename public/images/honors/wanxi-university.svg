@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1600 1200" width="1600" height="1200" role="img" aria-label="皖西学院 · 产学研合作基地">
+<defs>
+      <linearGradient id="steelBase" x1="0" y1="0" x2="1" y2=".18">
+        <stop offset="0" stop-color="#f8fafb"/>
+        <stop offset=".13" stop-color="#d3dbe0"/>
+        <stop offset=".26" stop-color="#ffffff"/>
+        <stop offset=".42" stop-color="#c1cad1"/>
+        <stop offset=".58" stop-color="#eef2f4"/>
+        <stop offset=".72" stop-color="#ccd5db"/>
+        <stop offset=".87" stop-color="#f9fbfc"/>
+        <stop offset="1" stop-color="#b7c1c8"/>
+      </linearGradient>
+      <pattern id="steelGrain" width="7" height="7" patternUnits="userSpaceOnUse">
+        <rect width="7" height="7" fill="none"/>
+        <rect x="0" width="2" height="7" fill="#ffffff" opacity=".28"/>
+        <rect x="4" width="1" height="7" fill="#5b6770" opacity=".07"/>
+      </pattern>
+      <linearGradient id="steelRim" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#8d979f"/><stop offset="1" stop-color="#e8eef2"/>
+      </linearGradient>
+      <radialGradient id="steelVig" cx=".5" cy=".42" r=".8">
+        <stop offset=".55" stop-color="#33414b" stop-opacity="0"/><stop offset="1" stop-color="#33414b" stop-opacity=".18"/>
+      </radialGradient>
+      
+  <linearGradient id="steelSheen" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".14" stop-color="#fff" stop-opacity="0.33"/>
+    <stop offset=".23" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".45" stop-color="#fff" stop-opacity="0.198"/>
+    <stop offset=".55" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".74" stop-color="#fff" stop-opacity="0.264"/>
+    <stop offset=".84" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient></defs>
+
+      <rect width="1600" height="1200" fill="url(#steelBase)"/>
+      <rect width="1600" height="1200" fill="url(#steelGrain)" opacity=".6"/>
+      <rect width="1600" height="1200" fill="url(#steelSheen)"/>
+      <rect width="1600" height="1200" fill="url(#steelVig)"/>
+      <rect x="7" y="7" width="1586" height="1186" fill="none" stroke="url(#steelRim)" stroke-width="14"/>
+      <rect x="24" y="24" width="1552" height="1152" fill="none" stroke="#7d8890" stroke-opacity=".5" stroke-width="2"/>
+      <rect x="33" y="33" width="1534" height="1134" fill="none" stroke="#ffffff" stroke-opacity=".5" stroke-width="1"/>
+
+  <g>
+    <circle cx="430" cy="300" r="104" fill="rgba(255,255,255,0.10)" stroke="#1b4f93" stroke-width="5"/>
+    <circle cx="430" cy="300" r="74" fill="none" stroke="#1b4f93" stroke-width="2" opacity=".55"/>
+    <path id="em" d="M 342 300 A 88 88 0 0 1 518 300" fill="none"/>
+    <text font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="14" font-weight="600" fill="#1b4f93" letter-spacing="1.12">
+      <textPath href="#em" xlink:href="#em" startOffset="50%" text-anchor="middle">WEST ANHUI UNIVERSITY</textPath>
+    </text>
+    <text x="430" y="317.28" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="48" font-weight="700" fill="#1b4f93" text-anchor="middle" letter-spacing="2">皖院</text>
+    <circle cx="430" cy="391" r="4" fill="#1b4f93" opacity=".6"/>
+  </g><text x="430" y="490" font-family="'Kaiti SC','STKaiti','KaiTi','Noto Serif SC',serif" font-size="80" font-weight="700" fill="#15181c" text-anchor="middle" letter-spacing="0" opacity="1">皖西学院</text><text x="430" y="528" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="24" font-weight="600" fill="#15181c" text-anchor="middle" letter-spacing="1.4" opacity="0.85">WEST ANHUI UNIVERSITY</text>
+  <g>
+    <defs>
+      <radialGradient id="tzg" cx=".34" cy=".28" r=".9">
+        <stop offset="0" stop-color="#4b9bff"/><stop offset=".6" stop-color="#1677ff"/><stop offset="1" stop-color="#0b4ab0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="1170" cy="300" r="96" fill="url(#tzg)"/>
+    <circle cx="1170" cy="300" r="93" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="2"/>
+    <text x="1170" y="338.4" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="94.08" font-weight="700" fill="#ffffff" text-anchor="middle">Z</text>
+  </g><text x="1170" y="490" font-family="'PingFang SC','HarmonyOS Sans SC','Noto Sans SC','Microsoft YaHei',sans-serif" font-size="58" font-weight="700" fill="#1f6fd0" text-anchor="middle" letter-spacing="0" opacity="1">天择教育科技</text><text x="1170" y="528" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="18" font-weight="600" fill="#1f6fd0" text-anchor="middle" letter-spacing="1.4" opacity="1">TIANZE EDUCATION TECHNOLOGY</text><text x="800" y="800" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="116" font-weight="700" fill="#15181c" text-anchor="middle" letter-spacing="0" opacity="1">产学研合作基地</text><text x="800" y="900" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="34" font-weight="600" fill="#b3121b" text-anchor="middle" letter-spacing="0" opacity="1">Industry-University-Research Cooperation Base</text>
+</svg>

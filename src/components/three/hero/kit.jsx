@@ -47,15 +47,22 @@ export const hdr = (hex, mul = 2.6) => new THREE.Color(hex).multiplyScalar(mul)
  */
 const TRAVEL = 2.2
 const HOLD = 0.12
-export function useAppear(active, speed = 3.2, baseY = 0) {
+export function useAppear(active, speed = 3.2, baseY = 0, instant = false) {
   const root = useRef(null)
-  const prog = useRef(0)
+  const prog = useRef(instant && active ? 1 : 0)
   const hold = useRef(0)
   const prev = useRef(active)
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.05)
     const g = root.current
     if (!g) return
+    /* 降级动效：不演升起，直接落到最终位置（静态构图里没有过场） */
+    if (instant) {
+      prog.current = active ? 1 : 0
+      g.visible = Boolean(active)
+      g.position.y = baseY
+      return
+    }
     if (prev.current !== active) {
       prev.current = active
       if (active) hold.current = HOLD // 只在「刚翻成当前屏」那一下等，首帧载入不算 prev 变化
@@ -206,7 +213,7 @@ export function ContactShade({ radius = 0.4, opacity = 0.55, y = 0.004 }) {
   )
 }
 
-/* ---------- 地面品牌字标：把「天择教育」漆在三间房的地板上 ----------
+/* ---------- 地面品牌字标：把「天择科技」漆在三间房的地板上 ----------
    为什么漆在地上而不是叠在 DOM 上：首屏原本只在顶栏提过一次公司名，而这一屏
    最大的一块闲置权重就是脚下那片地板。先试过在排版层加一枚描边巨字 TIANZE，
    实测不成立：链屏与 AI 屏的上半屏本来就压着六块 DOM 牌与五块智能体界面，
@@ -265,7 +272,7 @@ function brandTex() {
   /* 冷白偏蓝、半透：与地面区域字标同一家族。不取近白 —— Bloom 阈值 1.8 虽然
      吃不到它，但 AGX 会把近白往中性灰里抽，反而脏在辉光地板上 */
   g.fillStyle = 'rgba(203,224,250,0.62)'
-  g.fillText('天择教育', c.width / 2, c.height / 2)
+  g.fillText('天择科技', c.width / 2, c.height / 2)
   _brandTex = new THREE.CanvasTexture(c)
   _brandTex.colorSpace = THREE.SRGBColorSpace
   _brandTex.anisotropy = 8 // 掠射角下各向异性就是远处那半个字的命

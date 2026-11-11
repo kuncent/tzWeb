@@ -103,7 +103,7 @@ export default function Shell() {
           </nav>
           <div className="mt-auto space-y-1 px-3 pt-6 text-[11px] leading-relaxed text-ink-400">
             <p>共 {itemCount} 个模块・按角色可见</p>
-            <p className="text-ink-300">v{import.meta.env.PKG_VERSION}・天择未来教育</p>
+            <p className="text-ink-300">v{import.meta.env.PKG_VERSION}・天择科技</p>
           </div>
         </aside>
 

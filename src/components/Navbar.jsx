@@ -28,15 +28,15 @@ const CLOUD_URL = 'https://zycloud.sztzjy.com/Login'
    描述过长就单行省略 —— 下拉是导航，不承担介绍页的信息量。 */
 const FLYOUTS = {
   '/solutions': {
-    head: '五大解决方案',
+    head: '解决方案',
     en: 'SOLUTIONS',
     all: { label: '全部解决方案', desc: '查看完整方案与交付清单', to: '/solutions' },
     items: solutionPlans.map((p) => ({ label: p.short, icon: p.icon, to: `/solutions#plan-${p.id}`, desc: p.tagline })),
   },
   '/products': {
-    head: '六大产品体系',
+    head: '产品体系',
     en: 'PRODUCT MATRIX',
-    all: { label: '进入产品矩阵', desc: '按实验室类型浏览六套产品体系', to: '/products' },
+    all: { label: '进入产品矩阵', desc: '按实验室类型浏览产品体系', to: '/products' },
     items: productMatrix.map((p, i) => ({ label: p.title, icon: p.icon, index: i, desc: p.tagline })),
   },
   /* 教学设备：把设备页页内的子导航（智能装备 + 7 类设备）提取到顶栏悬停下拉。

@@ -29,7 +29,7 @@ export default function LogoDriftWall() {
       <div className="flex items-center gap-3">
         <span className="h-px w-8 bg-gradient-to-r from-brand/60 to-transparent" />
         <h3 className="text-[13.5px] font-semibold uppercase tracking-[0.16em] text-ink-700">合作院校 · 校徽墙</h3>
-        <span className="ml-auto text-[12px] font-medium text-brand">{items.length} 所</span>
+        <span className="ml-auto text-[12px] font-medium text-brand">800 多所高校</span>
       </div>
 
       {/* 漂移墙：横向多行校徽卡平面漂移（无倾斜、无卡片框）；入视口才挂载，占位保持布局高度 */}

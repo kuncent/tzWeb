@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1600 1200" width="1600" height="1200" role="img" aria-label="深圳国际商学院 · 校企合作单位">
+<defs>
+      <linearGradient id="brassBase" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f9f0cd"/>
+        <stop offset=".16" stop-color="#e8d196"/>
+        <stop offset=".32" stop-color="#fcf6d6"/>
+        <stop offset=".5" stop-color="#dfc17b"/>
+        <stop offset=".68" stop-color="#f6e9bb"/>
+        <stop offset=".84" stop-color="#d2b169"/>
+        <stop offset="1" stop-color="#eedaa4"/>
+      </linearGradient>
+      <linearGradient id="brassRim" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#c9a75f"/><stop offset=".45" stop-color="#8a692c"/><stop offset="1" stop-color="#d8ba78"/>
+      </linearGradient>
+      <radialGradient id="brassVig" cx=".5" cy=".42" r=".78">
+        <stop offset=".5" stop-color="#5b3f10" stop-opacity="0"/><stop offset="1" stop-color="#4a3208" stop-opacity=".26"/>
+      </radialGradient>
+      
+  <linearGradient id="brassSheen" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".14" stop-color="#fff" stop-opacity="0.345"/>
+    <stop offset=".23" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".45" stop-color="#fff" stop-opacity="0.207"/>
+    <stop offset=".55" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".74" stop-color="#fff" stop-opacity="0.27599999999999997"/>
+    <stop offset=".84" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient></defs>
+
+      <rect width="1600" height="1200" fill="url(#brassBase)"/>
+      <rect width="1600" height="1200" fill="url(#brassSheen)"/>
+      <rect width="1600" height="1200" fill="url(#brassVig)"/>
+      <rect x="7" y="7" width="1586" height="1186" fill="none" stroke="url(#brassRim)" stroke-width="14"/>
+      <rect x="24" y="24" width="1552" height="1152" fill="none" stroke="#6b4d18" stroke-opacity=".36" stroke-width="2"/>
+<path id="arc1" d="M -100 1300 A 900 900 0 0 1 1700 1300" fill="none"/><text font-family="'Kaiti SC','STKaiti','KaiTi','Noto Serif SC',serif" font-size="96" font-weight="700" fill="#1b2a4e" letter-spacing="10"><textPath href="#arc1" xlink:href="#arc1" startOffset="50%" text-anchor="middle">深圳国际商学院</textPath></text>
+  <g>
+    <circle cx="800" cy="660" r="92" fill="rgba(255,255,255,0.10)" stroke="#8a1b14" stroke-width="5"/>
+    <circle cx="800" cy="660" r="62" fill="none" stroke="#8a1b14" stroke-width="2" opacity=".55"/>
+    <path id="em" d="M 724 660 A 76 76 0 0 1 876 660" fill="none"/>
+    <text font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="12" font-weight="600" fill="#8a1b14" letter-spacing="1">
+      <textPath href="#em" xlink:href="#em" startOffset="50%" text-anchor="middle">SIBS · SHENZHEN</textPath>
+    </text>
+    <text x="800" y="675.12" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="42" font-weight="700" fill="#8a1b14" text-anchor="middle" letter-spacing="2">深商</text>
+    <circle cx="800" cy="739" r="4" fill="#8a1b14" opacity=".6"/>
+  </g><text x="800" y="850" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="122" font-weight="700" fill="#a11c14" text-anchor="middle" letter-spacing="10" opacity="1">校企合作单位</text>
+</svg>

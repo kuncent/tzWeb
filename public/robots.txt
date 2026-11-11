@@ -1,4 +1,4 @@
-# ===== 天择未来教育 · robots.txt =====
+# ===== 天择科技 · robots.txt =====
 # 允许全站抓取；显式放行主流 AI 爬虫（GEO：让 ChatGPT/Perplexity/Claude 能在回答里引到原话）。
 
 User-agent: *

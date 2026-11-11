@@ -14,7 +14,7 @@ import { Sparkles, MessagesSquare, Filter, Library } from 'lucide-react'
 export const heroMeta = {
   eyebrow: 'TIANZE EDU INFRASTRUCTURE',
   /** 首屏走马灯上方的品牌行 */
-  brand: '天择教育 · 未来教育基础设施',
+  brand: '天择科技 · 未来教育基础设施',
 }
 
 export const heroScenes = [

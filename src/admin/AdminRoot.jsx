@@ -76,7 +76,7 @@ export default function AdminRoot() {
      避免切回营销站时残留。 */
   useEffect(() => {
     const prev = document.title
-    document.title = '天择教育·管理后台'
+    document.title = '天择科技·管理后台'
     return () => { document.title = prev }
   }, [])
   return (

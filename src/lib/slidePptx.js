@@ -178,7 +178,7 @@ export async function exportDeckPptx(deck) {
   const pptx = new PptxGenJS()
   pptx.defineLayout({ name: 'W16x9', width: 13.333, height: 7.5 })
   pptx.layout = 'W16x9'
-  pptx.author = '天择教育 · 智能备课系统'
+  pptx.author = '天择科技 · 智能备课系统'
   pptx.title = deck?.title || '讲课课件'
 
   let elements = 0

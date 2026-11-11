@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1600 1200" width="1600" height="1200" role="img" aria-label="西南财经大学 · 国家级大学生校外实践教育基地">
+<defs>
+      <linearGradient id="brassBase" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f9f0cd"/>
+        <stop offset=".16" stop-color="#e8d196"/>
+        <stop offset=".32" stop-color="#fcf6d6"/>
+        <stop offset=".5" stop-color="#dfc17b"/>
+        <stop offset=".68" stop-color="#f6e9bb"/>
+        <stop offset=".84" stop-color="#d2b169"/>
+        <stop offset="1" stop-color="#eedaa4"/>
+      </linearGradient>
+      <linearGradient id="brassRim" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#c9a75f"/><stop offset=".45" stop-color="#8a692c"/><stop offset="1" stop-color="#d8ba78"/>
+      </linearGradient>
+      <radialGradient id="brassVig" cx=".5" cy=".42" r=".78">
+        <stop offset=".5" stop-color="#5b3f10" stop-opacity="0"/><stop offset="1" stop-color="#4a3208" stop-opacity=".26"/>
+      </radialGradient>
+      
+  <linearGradient id="brassSheen" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".14" stop-color="#fff" stop-opacity="0.345"/>
+    <stop offset=".23" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".45" stop-color="#fff" stop-opacity="0.207"/>
+    <stop offset=".55" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".74" stop-color="#fff" stop-opacity="0.27599999999999997"/>
+    <stop offset=".84" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient></defs>
+
+      <rect width="1600" height="1200" fill="url(#brassBase)"/>
+      <rect width="1600" height="1200" fill="url(#brassSheen)"/>
+      <rect width="1600" height="1200" fill="url(#brassVig)"/>
+      <rect x="7" y="7" width="1586" height="1186" fill="none" stroke="url(#brassRim)" stroke-width="14"/>
+      <rect x="24" y="24" width="1552" height="1152" fill="none" stroke="#6b4d18" stroke-opacity=".36" stroke-width="2"/>
+<path id="arc1" d="M -100 1280 A 900 900 0 0 1 1700 1280" fill="none"/><text font-family="'Kaiti SC','STKaiti','KaiTi','Noto Serif SC',serif" font-size="112" font-weight="700" fill="#1b2a4e" letter-spacing="10"><textPath href="#arc1" xlink:href="#arc1" startOffset="50%" text-anchor="middle">西南财经大学</textPath></text><text x="800" y="500" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="26" font-weight="600" fill="#1b2a4e" text-anchor="middle" letter-spacing="4" opacity="1">SOUTHWESTERN UNIVERSITY OF FINANCE AND ECONOMICS</text><text x="800" y="700" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="104" font-weight="700" fill="#1b2a4e" text-anchor="middle" letter-spacing="0" opacity="1">国家级大学生校外</text><text x="800" y="820" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="112" font-weight="700" fill="#1b2a4e" text-anchor="middle" letter-spacing="0" opacity="1">实践教育基地</text><text x="1450" y="1072" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="38" font-weight="400" fill="#1b2a4e" text-anchor="end" letter-spacing="0" opacity="0.9">二零一八年十月</text>
+</svg>

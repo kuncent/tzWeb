@@ -1,70 +1,48 @@
 import { solutionPlans } from '../../../data/pages'
 
 /* ============================================================
- * AI 屏空中那五块方案展板 —— 板面是 DOM，不是 canvas 纹理
+ * AI 屏空中那块展板 —— 板面是 DOM，不是 canvas 纹理
  * ------------------------------------------------------------
- * 上一版这五块画的是「五位智能体的运行界面」（课堂 / 推理链 / 校验 / 圆桌 / 学情）。
- * 现在改成五大解决方案的展示面板：数字经济 · 金融科技 · 应用统计 ·
- * 商务数据分析 · 工商科一体化平台。
+ * 板面内容 = 五大解决方案里的第一套（数字经济），字段全部直接读
+ * solutionPlans（src/data/pages.js）：标题、主线、指标、课程层、编号
+ * 都不在这里另造说法 —— 首屏与 /solutions 说两套话，是 B 端官网
+ * 最容易被客户当场抓住的事故。
  *
- * 文案纪律：标题、主线、指标、课程层、产品数量全部直接读 solutionPlans
- * （src/data/pages.js），不在这里另造一套说法 —— 首屏与 /solutions 说两套话，
- * 是 B 端官网最容易被客户当场抓住的事故。
+ * 轮播后场上有五块牌，但它们是同一块牌的复制品：内容、尺寸、强调色
+ * 完全一致（见下面的 BOARD / BOARD_HUE）。区分五块只靠位置、缩放、
+ * 亮度 —— 用户明确要求「不改内容、不改摆放，只加轮播」。
  *
  * 为什么走 DOM 不是纹理：字过 canvas 纹理要吃三道折损（烤进纹理、按 dpr 0.8
  * 贴出、被 Bloom 阈值糊一层）。drei 的 <Html transform> 把真 DOM 按相机透视
  * 摆进场景，三道都不吃，1px 的线就是 1px 的线，颜色也不受泛光与 AGX 影响。
  *
- * 版式硬约束：卫星牌在屏幕上 169~218×99~128（去掉标题栏与状态行只剩 ~79px）。
- * 每块只做三件事：一条主线链路 + 一张迷你图 + 一行指标；其余不做。
- * 五块共用同一套版式语言（切角窗、等宽读数、同一组蓝青色阶），
- * 差异只放在「迷你图」与强调色上 —— 一家人穿同款制服，各戴各的工牌。
- *
  * 换算：world = cssPx × ADF / 400。改 ADF 必须同步改面板尺寸，
  * 否则 NeuralRig 那几块链路端点（按面板边线接）就对不上牌边。
  *
- * 可读性这一轮：这五块牌最终是按 ADF / 距离缩到屏幕上的（主牌约 1:0.9、
- * 卫星牌约 1:0.75），板上 7px 的字落地只剩 5px —— 所以字号整体抬一档、
- * 低对比的灰字一并提亮（0.3~0.5 那一档在 3D 背景上根本读不出），
- * 同时把 ADF 从 2.2 抬到 2.36：牌面在屏幕上大 7%，端点会跟着重算。
+ * 可读性：牌面按 ADF / 距离缩到屏幕上，7px 的字落地只剩 5px —— 所以字号
+ * 整体抬一档、低对比的灰字一并提亮，同时把 ADF 从 2.2 抬到 2.36。
  * ============================================================ */
 
 export const ADF = 2.36
 /* ―― 板面尺寸：CSS 像素。这两个数与 ADF 是一对，改一个必须改另一个 ――
    换算 world = css × ADF / 400，屏幕上又还原成 css × 5.55 / d ――
-   288×178 / 208×122 是按首屏现在的空档反解的：文案列止于 x≈700，服务地图
-   占 x≥997 且上移到 y≈359，所以五块牌只能落在「文案列右侧、地图左上」这块
-   区域里 —— 尺寸给到「主牌 253×156、卫星 180~228」正好排满且都留 20px 缝 */
+   轮播后五块牌都会轮到中央，所以五块统一用主牌版式（288×178）：
+   中央那一块要能读全，侧牌退回背景后再靠 3D 缩放与亮度压低存在感。
+   世界尺寸（米）给链路的端点用：HERO_W / HERO_H × 该槽位缩放 */
 export const HERO = { w: 288, h: 178 }
-export const SAT = { w: 208, h: 122 }
-export const isHero = (i) => i === 0
-export const panelCss = (i) => (isHero(i) ? HERO : SAT)
-/** 面板的世界尺寸（米）：链路的端点要接在牌边上，靠的就是这两个数 */
-export const panelWorld = (i) => {
-  const s = panelCss(i)
-  return { w: (s.w * ADF) / 400, h: (s.h * ADF) / 400 }
-}
+export const HERO_W = (HERO.w * ADF) / 400
+export const HERO_H = (HERO.h * ADF) / 400
 
 /* ―― 五支通道色（蓝 → 青等距阶梯）――
-   五块牌要在一屏里彼此认得出，又不能像随机蓝。这一版沿蓝→青把色相等距排开、
-   明度逐档对齐，读作一条刻意的光谱；比产品按钮那套更亮一档，好在 3D 场景里
-   压过暗底发出来。与 StoryHero 的 PRODUCT_HUES 同族、各自一套。 */
+   板面的强调色仍然只取第一支（BOARD_HUE）：轮播的五块牌是同一块牌的复制品，
+   内容、材质、尺寸都必须一模一样，否则就成了「换图轮播」而不是「同一块牌在走位」。 */
 export const HUES = ['#5C8DFF', '#46A2FF', '#2FB8F0', '#1FCBE0', '#2AD9C9']
+export const BOARD_HUE = HUES[0]
 
-/* ―― 五块展板 = 五个方案：字段原样取自 pages.js ――
-   app = 方案简称（标题栏），sub = 培养定位（标题栏副行，够短不折行），
-   en = 英文名（CHIP 常驻位），n = 方案序号。
-   ★ 按用户要求恢复原顺序：中央主牌位（0）挂数字经济，左上卫星位（1）挂金融科技，
-   其余三席不动 —— ORDER 即 pages.js 的原顺序。
-   ORDER 只决定「哪块方案落在哪个席位」；标题、主线、指标、课程层与编号全部取自
-   方案自身（plan.n），不会出现「方案换了、编号还是旧的」这种图文不符。
-   席位通道色（HUES）按席位固定，不随方案对调。 */
-const ORDER = [0, 1, 2, 3, 4]
-const planAt = (i) => solutionPlans[ORDER[i]]
-export const APPS = ORDER.map((k) => {
-  const p = solutionPlans[k]
-  return { app: p.short, en: p.en, n: p.n, sub: p.positioning }
-})
+/* ―― 板面内容：固定取第一套方案（原主牌那一块）――
+   轮播不改内容 —— 五块牌渲染的是同一份 plan，谁走到中央都是它。
+   标题、主线、指标、课程层、编号全部原样读 solutionPlans，不另造说法。 */
+const BOARD = solutionPlans[0]
 
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace'
 const SANS = '"PingFang SC", "Microsoft YaHei", system-ui, sans-serif'
@@ -233,98 +211,7 @@ function LayerRow({ layers, hue, size = 7.5 }) {
   )
 }
 
-/* ―― 迷你图：每块牌一个，形状跟着方案语义走，不是同款换色 ―― */
-
-/** 1 金融科技：金融数据网络 —— 节点互联、脉冲沿链路走（资金与数据流通的读法） */
-function DataMotif({ hue, b, live }) {
-  const nodes = [
-    [8, 13], [32, 4], [56, 11], [84, 3], [112, 12], [142, 5], [170, 12], [192, 17],
-  ]
-  const links = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [1, 4], [2, 5]]
-  const hi = live ? b % nodes.length : -1
-  return (
-    <svg viewBox="0 0 200 20" preserveAspectRatio="none" style={{ width: '100%', height: 20, display: 'block' }}>
-      {links.map(([a, c], i) => (
-        <line key={i} x1={nodes[a][0]} y1={nodes[a][1]} x2={nodes[c][0]} y2={nodes[c][1]} stroke={hue} strokeWidth="0.9" opacity="0.3" />
-      ))}
-      {nodes.map(([x, y], i) => {
-        const on = i === hi
-        return (
-          <g key={i}>
-            <circle cx={x} cy={y} r={on ? 2.6 : 1.7} fill={on ? '#fff' : hue} opacity={on ? 1 : 0.8} />
-            {on && <circle cx={x} cy={y} r={4.8} fill="none" stroke={hue} strokeWidth="0.9" opacity="0.55" />}
-          </g>
-        )
-      })}
-    </svg>
-  )
-}
-
-/** 2 应用统计：分布柱 —— 中间高两边低，统计的默认形状 */
-function DistMotif({ hue, b, live }) {
-  const n = 16
-  const bars = Array.from({ length: n }, (_, i) => {
-    const x = (i - (n - 1) / 2) / ((n - 1) / 2)
-    return Math.max(0.12, Math.exp(-(x * x) * 2.1) * 0.95)
-  })
-  const hi = Math.min(n - 1, Math.round(((b % n) / (n - 1)) * (n - 1)))
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height: 20 }}>
-      {bars.map((v, i) => {
-        const on = live && i === hi
-        return (
-          <span key={i} style={{ flex: 1, minWidth: 0, height: `${Math.min(100, v * 100)}%`, borderRadius: 1, background: on ? hue : `${hue}${i % 2 ? '4d' : '66'}`, boxShadow: on ? `0 0 6px ${hue}` : 'none', transition: `background .5s ${EASE}, box-shadow .5s ${EASE}` }} />
-        )
-      })}
-    </div>
-  )
-}
-
-/** 3 商务数据分析：四条业务线各一根柱子，从低到高 —— 经营分析的读法 */
-function ColumnsMotif({ hue, b, live }) {
-  const hs = [0.34, 0.52, 0.68, 0.86]
-  const hi = b % hs.length
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 20 }}>
-      {hs.map((v, i) => {
-        const on = live && i === hi
-        return (
-          <div key={i} style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 2 }}>
-            <span style={{ height: `${v * 100}%`, borderRadius: 1.5, background: on ? hue : `${hue}55`, border: `1px solid ${on ? `${hue}cc` : 'rgba(255,255,255,0.06)'}`, boxShadow: on ? `0 0 8px ${hue}66` : 'none', transition: `all .5s ${EASE}` }} />
-            <span style={{ height: 1, background: 'rgba(255,255,255,0.12)' }} />
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-/** 4 工商科一体化：三段产线节点 + 连线，流转点在跑 —— 工业闭环的读法 */
-function PipelineMotif({ hue, b, live }) {
-  const nodes = ['采', '治', '决']
-  const at = live ? b % (nodes.length + 1) : 0
-  return (
-    <div style={{ position: 'relative', height: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
-      {/* 连线：从第一枚节点直到最后一枚，中间跑一颗流光点 */}
-      <span aria-hidden style={{ position: 'absolute', left: 10, right: 10, top: '50%', height: 1, background: `linear-gradient(90deg,${hue}55,${hue}22)`, transform: 'translateY(-50%)' }} />
-      {nodes.map((t, i) => {
-        const on = at === i
-        return (
-          <div key={t} style={{ position: 'relative', zIndex: 1, flex: 1, minWidth: 0, height: 14, display: 'grid', placeItems: 'center', borderRadius: 3, border: `1px solid ${on ? `${hue}99` : 'rgba(255,255,255,0.1)'}`, background: on ? `linear-gradient(160deg,${hue}30,rgba(255,255,255,0.03))` : 'rgba(255,255,255,0.035)', boxShadow: on ? `0 0 10px ${hue}33` : 'none', transition: `all .5s ${EASE}` }}>
-            <span style={{ fontFamily: SANS, fontSize: 8, color: on ? '#fff' : 'rgba(255,255,255,0.45)' }}>{t}</span>
-          </div>
-        )
-      })}
-      {at === nodes.length && (
-        <span style={{ position: 'absolute', right: 8, top: '50%', width: 4, height: 4, borderRadius: 4, background: '#fff', boxShadow: `0 0 8px ${hue}`, transform: 'translateY(-50%)' }} />
-      )}
-    </div>
-  )
-}
-
-const MOTIFS = [null, DataMotif, DistMotif, ColumnsMotif, PipelineMotif]
-
-/* ―― 主图（数字经济，288×178=屏幕上 252×156）：链路 + 2×2 指标 + 四层课程 ――
+/* ―― 主图（288×178=屏幕上 252×156）：链路 + 2×2 指标 + 四层课程 ――
    这块牌最近、也最大，是全场的"封面"，所以给它一张完整的方案名片 */
 function HeroBody({ plan, hue, b, live }) {
   return (
@@ -353,31 +240,6 @@ function HeroBody({ plan, hue, b, live }) {
   )
 }
 
-/* ―― 卫星牌（208×122，屏幕上 169~218×99~128）：主线 + 迷你图 + 一行指标 + 两层结构 ――
-   去掉标题栏与状态行只剩 ~79px，所以只放四行，字号不再往下压 */
-function SatBody({ plan, hue, b, live, index }) {
-  const Motif = MOTIFS[index]
-  return (
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Mainline steps={plan.mainline} hue={hue} b={b} live={live} size={8.5} compact />
-      <div style={{ height: 20, flexShrink: 0, opacity: live ? 1 : 0.82, transition: `opacity .5s ${EASE}` }}>
-        <Motif hue={hue} b={b} live={live} />
-      </div>
-      {/* 指标单行走完：卫星牌去掉标题栏与状态行只剩 ~79px，三行指标会把
-          底下的课程层挤出板外；三个数并排一行，读起来反而更像仪表 */}
-      <div style={{ display: 'flex', gap: 7, alignItems: 'baseline', flexShrink: 0 }}>
-        {plan.metrics.slice(0, 3).map((m) => (
-          <span key={m.k} style={{ minWidth: 0, display: 'flex', alignItems: 'baseline', gap: 2 }}>
-            <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, lineHeight: 1.1, color: hue, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{m.v}</span>
-            <span style={{ fontFamily: SANS, fontSize: 8, color: 'rgba(255,255,255,0.68)', whiteSpace: 'nowrap' }}>{m.k}</span>
-          </span>
-        ))}
-      </div>
-      <LayerRow layers={plan.layers.slice(0, 3).map((l) => l.name)} hue={hue} size={7} />
-    </div>
-  )
-}
-
 /* ============================================================
  * 公共外壳：一块飘在场景里的应用窗口
  * ------------------------------------------------------------
@@ -392,13 +254,16 @@ function SatBody({ plan, hue, b, live, index }) {
 /* 板厚（CSS px）：与 ChainPanels 那个 THK 同一个值 —— 两块牌在同一个机房里，
    不可能是两种厚度 */
 const THK = 26
+export { THK }
 
-export default function AgentPanel({ index, mode, beat, live, hot, yaw = 0, pitch = 0 }) {
-  const hue = HUES[index]
-  const plan = planAt(index)
-  const { app, en, n, sub } = APPS[index]
-  const { w, h } = panelCss(index)
-  const Body = index === 0 ? HeroBody : SatBody
+export default function AgentPanel({ index, beat, live, yaw = 0, pitch = 0 }) {
+  const hue = BOARD_HUE
+  const plan = BOARD
+  const app = BOARD.short
+  const en = BOARD.en
+  const n = BOARD.n
+  const sub = BOARD.positioning
+  const { w, h } = HERO
   /* 板厚与溢出量：与 ChainPanels 那层同一个算法（溢出 = t·sin(转角)，t=26px ≈ 10cm）。
      量在 data-plate 那层之外，所以 tmp/ai-flow.mjs 量到的牌 rect 不跟着长 */
   const tx = -Math.sin(yaw) * THK
@@ -411,8 +276,8 @@ export default function AgentPanel({ index, mode, beat, live, hot, yaw = 0, pitc
         style={{
           position: 'absolute',
           inset: 0,
-          transform: `translate(${tx.toFixed(2)}px, ${ty.toFixed(2)}px)`,
-          clipPath: cut(index === 0 ? 14 : 10),
+          transform: `translate(var(--ptx, ${tx.toFixed(2)}px), var(--pty, ${ty.toFixed(2)}px))`,
+          clipPath: cut(14),
           background: 'linear-gradient(168deg,rgba(17,22,42,0.96) 0%,rgba(7,11,21,0.97) 46%,rgba(2,5,11,0.98) 100%)',
           boxShadow: `0 16px 32px -16px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 0 18px ${hue}14`,
         }}
@@ -424,8 +289,8 @@ export default function AgentPanel({ index, mode, beat, live, hot, yaw = 0, pitc
           boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
-          padding: `0 ${index === 0 ? 8 : 7}px ${index === 0 ? 7 : 5}px`,
-          clipPath: cut(index === 0 ? 14 : 10),
+          padding: '0 8px 7px',
+          clipPath: cut(14),
           overflow: 'hidden',
           color: '#fff',
           userSelect: 'none',
@@ -447,7 +312,7 @@ export default function AgentPanel({ index, mode, beat, live, hot, yaw = 0, pitc
             /* 只有正在聚焦的那一块往外发光：五块一起发光就等于没有一块发光 */
             live ? `0 0 22px ${hue}33, 0 0 54px ${hue}14` : '0 0 0 rgba(0,0,0,0)',
           ].join(','),
-          opacity: live ? 1 : hot ? 0.98 : 0.95,
+          opacity: live ? 1 : 0.95,
           /* 这里挂过一枚 filter: saturate()/brightness() 给非聚焦牌压色 —— 摘掉了。
              <Html transform> 的牌本身就在 matrix3d 层里，CSS filter 会再给它开一个
              render surface：板面上每个字都被合成两遍（偏移 3~5px 的重影），
@@ -510,7 +375,7 @@ export default function AgentPanel({ index, mode, beat, live, hot, yaw = 0, pitc
       )}
 
       {/* ―― 标题栏：三枚窗控点 + 方案简称 + 培养定位 + 编号/聚焦态 ―― */}
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 5, height: index === 0 ? 28 : 23, flexShrink: 0 }}>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 5, height: 28, flexShrink: 0 }}>
         <span style={{ display: 'flex', gap: 2.5, flexShrink: 0 }}>
           {[hue, 'rgba(255,255,255,0.3)', 'rgba(255,255,255,0.16)'].map((c, i) => (
             <span
@@ -528,16 +393,16 @@ export default function AgentPanel({ index, mode, beat, live, hot, yaw = 0, pitc
             />
           ))}
         </span>
-        <span style={{ fontFamily: SANS, fontSize: index === 0 ? 14.5 : 13, fontWeight: 600, letterSpacing: 0.2, color: live ? '#fff' : 'rgba(255,255,255,0.94)', whiteSpace: 'nowrap' }}>{app}</span>
+        <span style={{ fontFamily: SANS, fontSize: 14.5, fontWeight: 600, letterSpacing: 0.2, color: live ? '#fff' : 'rgba(255,255,255,0.94)', whiteSpace: 'nowrap' }}>{app}</span>
         <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(255,255,255,0.66)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{sub}</span>
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
           <Chip t={live ? 'FOCUS' : `${n}/05`} c={live ? hue : `${hue}cc`} solid={live} />
         </span>
       </div>
-      <div style={{ position: 'relative', height: 1, margin: `0 -${index === 0 ? 8 : 7}px 3px`, background: `linear-gradient(90deg,${hue}00,${hue}66 22%,${hue}52 70%,${hue}00)` }} />
+      <div style={{ position: 'relative', height: 1, margin: '0 -8px 3px', background: `linear-gradient(90deg,${hue}00,${hue}66 22%,${hue}52 70%,${hue}00)` }} />
 
-      {/* ―― 板心 ―― */}
-      <Body index={index} plan={plan} hue={hue} b={beat} live={live || hot} hot={hot} />
+      {/* ―― 板心：五块统一用主牌完整版式，谁轮到中央谁就读全 ―― */}
+      <HeroBody plan={plan} hue={hue} b={beat} live={live} />
 
       {/* ―― 底部状态行：一块真界面永远有一条在跑的系统信息 ―― */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, height: 10, flexShrink: 0 }}>

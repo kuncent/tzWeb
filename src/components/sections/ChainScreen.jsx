@@ -274,7 +274,7 @@ function Surface({ clip, product, live, playing, t, dur, at, chapters, index, th
   )
 }
 
-function FilmStage({ clip, product, live, playing, setPlaying }) {
+export function FilmStage({ clip, product, live, playing, setPlaying }) {
   const smallRef = useRef(null)
   const bigRef = useRef(null)
   const [t, setT] = useState(0)

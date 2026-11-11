@@ -84,7 +84,7 @@ export default function Solutions() {
           { k: '实验教学方案', v: '5 类' },
           { k: '在跑实训系统', v: '37 套' },
           { k: '适用专业', v: '25 个' },
-          { k: '合作高校', v: '180+' },
+          { k: '合作高校', v: '800+' },
         ]}
         cta={[
           { label: '预约方案沟通', to: '/about#contact', primary: true },

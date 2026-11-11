@@ -21,5 +21,5 @@ export const THEME = {
    明度/冷暖只在这一族里拉，不引入杂色 */
 export const PANEL_HUES = [THEME.ice, THEME.cyan, THEME.sky, THEME.primary, '#5c7cff', '#3dddc4']
 
-/* 首屏六大产品入口色块：与展板同源，冰蓝/青在前，蓝作辅助 */
-export const PRODUCT_HUES = [THEME.ice, THEME.cyan, THEME.sky, '#9cc0ff', THEME.primary, '#1de8b7']
+/* 首屏八大产品入口色块：与展板同源，冰蓝/青在前，蓝作辅助 */
+export const PRODUCT_HUES = [THEME.ice, THEME.cyan, THEME.sky, '#9cc0ff', THEME.primary, '#1de8b7', '#4ade80', '#a3e635']

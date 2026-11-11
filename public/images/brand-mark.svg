@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 212 212" width="212" height="212" role="img" aria-label="天择科技">
+  <title>天择科技</title>
+  <!-- 品牌标记（只用蓝色圆盘 + 白色 Z）：
+       由 public/images/brand-logo.png 逐像素量出后重画：
+       圆盘 r=106，品牌蓝取自原图实色 #3A9CF3；
+       Z 的轮廓（上横 / 左竖 / 粗斜笔 / 右竖 / 下横 / 两处斜切 / 三角字怀）
+       按原图 1:1 复刻，字形外接框 101×130，正中于圆盘。
+       原图外圈的细环、环形中文「天择教育科技」与英文「TIAN ZE EDUCATION TECHNOLOGY」
+       全部剔除；底色透明，无外环无文字。 -->
+  <circle cx="106" cy="106" r="106" fill="#3A9CF3" />
+  <path
+    fill="#FFFFFF"
+    fill-rule="evenodd"
+    d="M55.5 41H156.5V62L79.5 150L80.5 153H117.5V125L136.5 104V153H156.5V171H55.5V150L75.5 128V59H55.5Z
+       M93.5 59H131.5L93.5 102Z"
+  />
+</svg>

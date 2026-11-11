@@ -1,7 +1,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, Lightformer } from '@react-three/drei'
-import { Bloom, DepthOfField, EffectComposer, Noise, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing'
+import { Bloom, EffectComposer, Noise, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
 import * as THREE from 'three'
 import { heroScenes } from '../../data/heroScenes'
@@ -24,10 +24,12 @@ import NeuralRig from './hero/NeuralRig'
  * 观感是"画质在呼吸"，比一直卡着更糟。
  * ============================================================ */
 
-/* tier 2 = 全开；1 = 关 DoF、降 SMAA 采样；0 = 只留 Bloom + ToneMapping。
-   cap = 每秒最多推几帧。这一项比前两项目加起来还管用：拆屏实测（真机 prod 包）
-   只留 3D 是 14fps、只留 DOM 是 20fps —— 不是某一个东西贵，是两半加起来超了。
-   与其让它在 13fps 上抽接，不如限帧到 24fps 跑稳：限帧同时砍掉一半 GPU 和一半 JS。
+/* tier 2 = 全开（Bloom 七级 + SMAA + Noise）；1 = Bloom 六级 + SMAA + Noise；
+   0 = 只留 Bloom + AGX + Vignette。DoF 已不在任何一档里（理由见下面 TIERS 的注释）。
+   cap = 每秒最多推几帧，它只是上限、不决定画质：早期用 24/30 的限帧想把跑不稳的
+   机器压成 30fps 跑稳，但实测这台机器 tier1 本来就能跑 56fps —— 那条 30 的线反而
+   成了唯一的卡顿来源（每两帧丢一帧，60Hz 屏上读作 30fps 的抽格）。现在 60/60/30：
+   跑得满就画满，跑不满的交给下面的自适应降档。
 
    bloom 的 intensity/radius 在这一版一起往下拧：radius 是泛光能摊开多远。
    真机截图上那层“整屏青绿雾 / 紫雾”不是地板 shader 画的，是 mipmapBlur 把
@@ -46,18 +48,35 @@ import NeuralRig from './hero/NeuralRig'
    就是画面里同时有十几个东西在各自闪。要“活着”的感觉交给链的脉冲与智能体节拍。 */
 /* particles 这一档随 AI 屏的粒子云一起拆掉了：那 700~2000 个 additive 点在屏幕上
    是一团白噪（四种拓扑一个也读不出来），画质档再去为它分预算已经没有意义 */
+/* ―― 三档画质：这一版的数值是逐档消融量出来的，不是按核数猜的 ――
+   实测环境：真 Chrome / Intel UHD 770 / 1440×900 / 关掉限帧后逐档对比
+   （?tier=N&cap=1000&dpr=X 在 dev 包里跑，见下面的体检开关）：
+     dpr 1.5（2160×1350）全链 ......... 55ms/帧（18fps）
+     dpr 1.0 全链（含 DoF）............ 26~33ms/帧
+     dpr 1.0 去掉 DoF ................. 17.2ms/帧（56fps）
+     dpr 1.0 再去掉 SMAA + Noise ...... 17.0ms/帧（59fps）
+   三行合起来说明两件事：① 像素量是大头（1.5→1.0 砍掉 55% 像素，帧时掉一半以上）；
+   ② DoF 一项就吃掉 ~20ms，而它只把背景糊得更深一点 —— 收益与代价完全不成比例。
+   所以这一版把 dpr 收到「不超过设备像素」（见下面的 dprOf），并删掉 DoF 这一 pass。
+   cap 同时从 24/30 抬到 30/60：原来 tier1 那条 30 的线正是「3D 看着卡」的直接原因 ——
+   实测这台机器在 tier1 上能跑 56fps，却被限帧器锁在 30，每两帧丢一帧。
+   cap 只是上限，不会逼弱机多画；真正的保护交给下面的自适应降档。 */
 const TIERS = [
-  { dpr: 0.9, cap: 24, dof: false, smaa: false, bloom: 0.2, bloomRadius: 0.2, bloomLevels: 5, sparkles: false },
-  { dpr: 1.1, cap: 30, dof: false, smaa: true, bloom: 0.28, bloomRadius: 0.24, bloomLevels: 6, sparkles: false },
-  { dpr: 1.5, cap: 60, dof: true, smaa: true, bloom: 0.32, bloomRadius: 0.26, bloomLevels: 7, sparkles: false },
+  { dpr: 0.85, cap: 30, smaa: false, bloom: 0.2, bloomRadius: 0.2, bloomLevels: 5, sparkles: false },
+  { dpr: 1, cap: 60, smaa: true, bloom: 0.28, bloomRadius: 0.24, bloomLevels: 6, sparkles: false },
+  { dpr: 1.25, cap: 60, smaa: true, bloom: 0.32, bloomRadius: 0.26, bloomLevels: 7, sparkles: false },
 ]
-/* cap 会被 FrameDriver 往下取整到 vsync 步数（step = floor(1000/cap/16.67)），
-   所以 60Hz 屏上只有 20 / 30 / 60 三档可达：cap=24 与 cap=30 完全等价（都是 step 2）。
-   写 24 不是笔误，是预算语义 —— budgetOf 跟着它走。而实测帧时只能落在
-   16.7 / 33.4 / 50.1 三个格子上，预算线必须落在两个格子之间才有意义：
-   tier2 拿 tier1 的 cap 算出 45ms（在 33.4 与 50.1 之间）—— 跑不住 30fps 就降档；
-   tier1 拿 tier0 的 24 算出 56ms（在 50.1 与 66.8 之间）—— 要跌破 18fps 才降到底。
-   量化在这里是帮忙的，不是捣乱的。 */
+/* 像素比不再是一个写死的倍数：dpr 1.5 在 1440×900 上是 2160×1350（2.25 倍像素），
+   而显示器的物理像素只有 1440×900 —— 多出来的那 1.25 倍纯属白烧，全部花在填充率上。
+   这里把「档位想要的倍数」与「设备真实像素比」取小：1x 屏最多按 1x 画（tier2 的 1.25
+   在 1x 屏上自动退成 1.0，不超采样），2x 屏拿 1.25 仍然比 CSS 像素清晰。
+   低档 0.85 保留：那是给弱机的降分辨率，不是超采样。 */
+const dprOf = (tier) => {
+  if (Q_DPR && Q_DPR > 0) return Q_DPR
+  const t = TIERS[tier].dpr
+  const dev = typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1
+  return t > 1 ? Math.min(t, Math.max(1, dev)) : t
+}
 /* 预算拿下一档的 cap 算（见 onWindow）：拿当前档算的话，限到 24fps 再以 26ms 当线，
    量化后的真实帧时 33.4ms 永远超线，会一路降到底 */
 const budgetOf = (cap) => (1000 / cap) * 1.35
@@ -124,18 +143,29 @@ function guessStartTier() {
     于是“限到 24fps”实际是 20fps —— 而拆掉限帧后 GPU 自己能跑 25.8fps（实测
     tmp/hero-ablate.mjs：38.7ms/帧）。限帧器把首屏锁在了比它自己上限更低的帧率上。
     改成 floor 到 vsync 步数：宁可多画一帧，也不少画一帧。 */
-function FrameDriver({ cap }) {
+function FrameDriver({ cap, active = true }) {
   const invalidate = useThree((s) => s.invalidate)
+  /* active 用 ref 读：它变化时不该重启这条循环（重启会把 last 归零，
+     帧率会抖一下），而且 ref 让下面的 effect 只依赖 cap */
+  const live = useRef(active)
+  live.current = active
   useEffect(() => {
     let raf = 0
     let last = 0
+    /* 遮罩还在上面时只画开头三帧：three 的程序链接与后处理合成都发生在
+       前几帧（实测首个 getProgramInfoLog 在挂载后 ~300ms），这三帧足够让
+       它编完；再多画的全是遮罩下面的死像素，还会跟开屏收口抢主线程。
+       等 #intro 移除（active=true）才恢复正常节拍。 */
+    let warm = 0
     const VSYNC = 1000 / 60
     const step = Math.max(1, Math.floor(1000 / cap / VSYNC))
     const min = step * VSYNC - 2
     const loop = (now) => {
       raf = requestAnimationFrame(loop)
+      if (!live.current && warm >= 3) return
       if (now - last < min) return
       last = now
+      if (!live.current) warm += 1
       invalidate()
     }
     raf = requestAnimationFrame(loop)
@@ -234,7 +264,7 @@ const DEV_CAMS = {
 const smooth = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x))
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v)
 
-function CameraRig({ idx, cmd }) {
+function CameraRig({ idx, cmd, still = false }) {
   const { camera, gl } = useThree()
   const look = useRef(new THREE.Vector3(...heroScenes[0].cam.look))
   const punch = useRef(0)
@@ -318,6 +348,20 @@ function CameraRig({ idx, cmd }) {
     const dt = Math.min(delta, 0.05)
     const s = heroScenes[idx]
     const t = state.clock.elapsedTime
+    /* 降级动效：机位钉在业务机位，不推轨、不漂移、不做 FOV 呼吸 ——
+       静态构图里镜头也不该自己动 */
+    if (still) {
+      _look.set(...s.cam.look)
+      _want.set(...s.cam.pos)
+      camera.position.copy(_want)
+      camera.lookAt(_look)
+      const f = s.cam.fov || 42
+      if (Math.abs(camera.fov - f) > 0.01) {
+        camera.fov = f
+        camera.updateProjectionMatrix()
+      }
+      return
+    }
     punch.current = damp(punch.current, 0, 3.4, dt)
     /* 入场推轨：切屏后 2.4s 内机位从 12% 远处收进来 ——
        切屏该是“一次镜头运动”，不是两张静帧互溶 */
@@ -495,7 +539,7 @@ function KeyLight({ accent }) {
   return <pointLight ref={ref} position={[2.4, 3.2, 3.4]} intensity={16} distance={16} decay={1.8} color={accent} />
 }
 
-function Scene({ idx, cmd, tier, panelLayout }) {
+function Scene({ idx, cmd, tier, panelLayout, still }) {
   const accent = heroScenes[idx].accent
   const q = TIERS[tier]
   return (
@@ -525,7 +569,7 @@ function Scene({ idx, cmd, tier, panelLayout }) {
       {(AB ? AB.lab : true) && <LabEnvironment variant={heroScenes[idx].id} lite={tier === 0} />}
 
       {showRig('neural') && (
-        <NeuralRig active cmd={cmd} accent={heroScenes[idx].accent} panelLayout={panelLayout} />
+        <NeuralRig active cmd={cmd} accent={heroScenes[idx].accent} panelLayout={panelLayout} still={still} />
       )}
 
       {/* 环境贴图：机械臂与人形的白壳/金属靠它，没这张图 PBR 就是死灰 */}
@@ -536,7 +580,7 @@ function Scene({ idx, cmd, tier, panelLayout }) {
         <Lightformer form="rect" intensity={0.95} color="#e8f2ff" position={[0, 2.4, -6]} scale={[10, 3, 1]} />
       </Environment>
 
-      <CameraRig idx={idx} cmd={cmd} />
+      <CameraRig idx={idx} cmd={cmd} still={still} />
 
       {(AB ? AB.fx : true) && (
         <EffectComposer multisampling={0}>
@@ -545,7 +589,9 @@ function Scene({ idx, cmd, tier, panelLayout }) {
               mipmapBlur 把它们摊成一层幕 —— “没有质感”的第一成因。
               只让真正的 LED、内核、数据包过阈值：泛光要落在点上，不是落在面上。 */}
           <Bloom intensity={q.bloom} luminanceThreshold={1.8} luminanceSmoothing={0.1} mipmapBlur radius={q.bloomRadius} levels={q.bloomLevels} />
-          {q.dof && <DepthOfField worldFocusDistance={4.6} worldFocusRange={6.2} bokehScale={0.7} resolutionScale={0.3} />}
+          {/* 这里原来挂着一层 DepthOfField。逐档消融量出来它是整条后处理链里最贵的一项：
+              1440×900 下 ~20ms/帧（全链 17ms → 37ms），而画面得到的只是背景再糊一点。
+              背景本身已经被 Bloom 与环境雾柔化，DoF 的边际收益读不出来，所以整条摘掉。 */}
           {/* AGX 必须在泛光之后、收尾效果之前：EffectComposer 会把渲染器的 toneMapping
               强制成 NoToneMapping，不显式挂这个效果，线性值 >1 就直接削成死白 ——
               真 Chrome 实测：白壳机械臂糊成一团、AI 内核炸成一个大白球。 */}
@@ -562,10 +608,21 @@ function Scene({ idx, cmd, tier, panelLayout }) {
   )
 }
 
-export default function HeroStage({ idx, cmd, panelLayout = false, onContextLost, onContextRestored, onPainted }) {
+export default function HeroStage({ idx, cmd, panelLayout = false, still = false, onContextLost, onContextRestored, onPainted }) {
   /* 屏外停帧：首屏滚走以后不该再吃 GPU */
   const { ref, visible } = useCanvasVisibility('-140px')
   const [tier, setTier] = useState(Q_TIER !== null && Number.isFinite(Q_TIER) ? Q_TIER : guessStartTier)
+  /* 开屏遮罩还在时先不跑循环（只留 FrameDriver 的开头三帧，见那里的注释）：
+     #intro 被移除就是遮罩演完了。120ms 轮询比 MutationObserver 便宜 ——
+     只在开屏这三秒里跑，且每次只查一个 id */
+  const [introGone, setIntroGone] = useState(() => typeof document === 'undefined' || !document.getElementById('intro'))
+  useEffect(() => {
+    if (introGone) return
+    const iv = setInterval(() => {
+      if (!document.getElementById('intro')) setIntroGone(true)
+    }, 120)
+    return () => clearInterval(iv)
+  }, [introGone])
   const lock = useRef(Q_TIER !== null && Number.isFinite(Q_TIER) ? 2 : 0)
   const bad = useRef(0)
   const bootAt = useRef(typeof performance !== 'undefined' ? performance.now() : 0)
@@ -598,6 +655,11 @@ export default function HeroStage({ idx, cmd, panelLayout = false, onContextLost
     [tier, idx],
   )
 
+  useEffect(() => {
+    if (!DBG) return
+    window.__heroState = { visible, introGone, tier, cap: TIERS[tier].cap }
+  }, [visible, introGone, tier])
+
   /* 体检开关：现场遇到「卡」要能不改代码就把帧率/纹理/调用数读出来，
      所以 prod 也留一个入口令（?dbg=1）—— tmp/hero-audit.mjs 量 prod 靠的就是它 */
   useEffect(() => {
@@ -610,7 +672,7 @@ export default function HeroStage({ idx, cmd, panelLayout = false, onContextLost
     <Canvas
       ref={ref}
       frameloop={visible ? 'demand' : 'never'}
-      dpr={Q_DPR && Q_DPR > 0 ? Q_DPR : TIERS[tier].dpr}
+      dpr={dprOf(tier)}
       camera={{ position: heroScenes[0].cam.pos, fov: heroScenes[0].cam.fov || 40 }}
       gl={{ antialias: false, powerPreference: 'high-performance', toneMappingExposure: 1.12 }}
       /* 点空白（射线没打中任何拾取靶）= 解锁回全景：聚焦态需要一个不藏菜单的退出口。
@@ -626,14 +688,14 @@ export default function HeroStage({ idx, cmd, panelLayout = false, onContextLost
       }}
     >
       <Suspense fallback={null}>
-        <Scene idx={idx} cmd={cmd} tier={tier} panelLayout={panelLayout} />
+        <Scene idx={idx} cmd={cmd} tier={tier} panelLayout={panelLayout} still={still} />
       </Suspense>
       {/* 故意放在 Suspense 外面：挡在里面会跟着 GLB 一起被挂起，那“第三帧”
          就变成“模型到位那一帧”，比用户选的那条界晚了一整跳网络 */}
       <StageReady onPainted={onPainted} />
       <ContextGuard onLost={onContextLost} onRestored={onContextRestored} />
       <DevBridge onWindow={onWindow} tier={tier} />
-      <FrameDriver cap={Q_CAP && Q_CAP > 0 ? Q_CAP : TIERS[tier].cap} />
+      <FrameDriver cap={Q_CAP && Q_CAP > 0 ? Q_CAP : TIERS[tier].cap} active={introGone} />
     </Canvas>
   )
 }
@@ -667,7 +729,27 @@ function DevBridge({ onWindow, tier }) {
        送回 CDP —— 主线程一满就两分钟不应答。现在量的是“真的画了几帧”，
        而且外部只需一次廉价读。 */
     const w = win.current
-    const now = state.clock.elapsedTime
+    /* 窗口计时用 performance.now()，不拿 state.clock.elapsedTime：R3F 每次切
+       frameloop（滚出视口 → 'never' → 滚回来 → 'demand'）都会把 clock 归零，
+       用它算 span 会直接变成负数，窗口永远不结算 —— 实测滚一次回来，读数就死在
+       旧值上，自适应也跟着失灵。帧间隔仍取 useFrame 的 delta（真帧时）。 */
+    const now = performance.now() / 1000
+    /* 暂停之后的第一帧，delta 是整段暂停的时长（切标签页、滚出视口、开屏遮罩）。
+       这种间隔不能进窗口：一帧 2s 会立刻把中位数与 p95 顶穿预算，连续两窗就白降一档
+       —— 实测切一次后台回来，tier 就从 2 掉到 1。
+       两道闸：useFrame 的 delta 在 frameloop 切换后会被 R3F 的 clock 归零（不可信），
+       所以再拿墙上时间补一刀 —— 距上一帧超过 250ms 就当作“重新开始”，只重置窗口，
+       不记这一帧。 */
+    const gap = now - (w.wall || now)
+    w.wall = now
+    if (delta > 0.25 || gap > 0.25) {
+      w.t0 = now
+      w.n = 0
+      w.s = []
+      prev.current = { calls: i.render.calls, tris: i.render.triangles }
+      d.tier = tier
+      return
+    }
     if (!w.t0) w.t0 = now
     w.n += 1
     w.s.push(delta)

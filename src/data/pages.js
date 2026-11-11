@@ -89,7 +89,7 @@ const stat = (id, k) => {
    导航、页脚与搜索统一使用下面的 5 套学科方案（solutionPlans），
    这里不再保留第二套场景名。 */
 
-/* ---------------- 五大实验教学方案（源自公司《天择教育科技·实验教学解决方案》）----------------
+/* ---------------- 五大实验教学方案（源自公司《天择科技·实验教学解决方案》）----------------
    按专业方向整页组织，是解决方案页的唯一主线；方案名与简称统一取自 vocabulary.js。
    每个方案五段式，全部照文档原样录入、不做数字加工：
      · tagline 方案总览口号 + goal 建设目标与定位 + mainline 四位一体主线
@@ -354,7 +354,7 @@ export const disciplineGroups = [
     en: 'AI & INFORMATION',
     icon: BrainCircuit,
     majors: ['人工智能', '软件工程', '数据科学与大数据技术', '物联网工程', '网络空间安全'],
-    use: [PRODUCT_NAMES.class, PRODUCT_NAMES['digital-economy'], PRODUCT_NAMES.blockchain],
+    use: ['AI 多智能体课堂', PRODUCT_NAMES['digital-economy'], PRODUCT_NAMES.blockchain],
     courses: '机器学习、AIGC 与大模型、大数据 ETL、分布式账本',
   },
   {
@@ -372,7 +372,7 @@ export const disciplineGroups = [
     en: 'ROBOTICS & MANUFACTURING',
     icon: Bot,
     majors: ['机器人工程', '自动化', '机械设计制造及其自动化', '智能制造工程'],
-    use: [solutionFullName('biz-tech-integration'), PRODUCT_NAMES.embodied, '多机协同实验'],
+    use: [solutionFullName('biz-tech-integration'), PRODUCT_NAMES['smart-products'], '多机协同实验'],
     courses: '机器人学、运动控制、SLAM 导航、产线虚拟调试',
   },
   {
@@ -399,7 +399,7 @@ export const disciplineGroups = [
     en: 'LIBERAL ARTS & DESIGN',
     icon: Palette,
     majors: ['新闻传播学', '数字媒体艺术', '外语', '公共管理'],
-    use: ['03 AI 多智能体课堂', 'AIGC 内容生成实验', '课件与作品导出'],
+    use: ['AI 多智能体课堂', 'AIGC 内容生成实验', '课件与作品导出'],
     courses: '数字内容生产、智能传播、虚拟展厅、AI 辅助设计',
   },
   {
@@ -408,7 +408,7 @@ export const disciplineGroups = [
     en: 'MEDICINE & LIFE SCIENCE',
     icon: Stethoscope,
     majors: ['生物医学工程', '药学', '护理学', '临床医学'],
-    use: [PRODUCT_NAMES['digital-economy'], PRODUCT_NAMES.class, '医学大数据实训'],
+    use: [PRODUCT_NAMES['digital-economy'], 'AI 多智能体课堂', '医学大数据实训'],
     courses: '医学影像处理、生理信号分析、虚拟解剖与操作',
   },
 ]
@@ -426,8 +426,8 @@ export const techDetail = [
     thesis: 'AI 不该只是一个聊天框。我们把课堂拆成四种角色，用状态机编排它们的发言与节奏，让「互动」是可设计的，而不是碰运气。',
     specs: [
       { k: '课堂角色', v: '4 类' },
-      { k: '生成一堂课', v: stat('class', '生成一堂课') },
-      { k: '课堂组件', v: stat('class', '课堂组件') },
+      { k: '生成一堂课', v: '≤ 40s' },
+      { k: '课堂组件', v: '4 类' },
     ],
     parts: [
       { t: '导演智能体', d: '基于状态机决定谁在什么时候说话，协调多智能体丝滑衔接' },
@@ -840,7 +840,7 @@ export const buildForms = [
     cycle: '12–20 周',
     scale: '整层 / 整栋 · 全校开放',
     line: '面向全校的公共入口：AI 素养通识、跨学科工坊、成果展陈与竞赛训练共处一馆，私有化算力与数据底座支撑。',
-    parts: ['六大产品体系按需接入', '校级学情与设备驾驶舱', '全栈私有化部署', '竞赛与证书出口共建'],
+    parts: ['产品体系按需接入', '校级学情与设备驾驶舱', '全栈私有化部署', '竞赛与证书出口共建'],
     fitFor: '双一流与职业本科的校级平台、产教融合项目',
   },
 ]
@@ -856,7 +856,7 @@ export const aboutBeliefs = [
 export const aboutProof = [
   { icon: BookOpenCheck, k: '发明专利', v: '4 项', note: '多智能体编排、代码沙箱、数字孪生引擎方向' },
   { icon: FileSearch, k: '软件著作权', v: '60+', note: '覆盖平台各子系统与实验模块' },
-  { icon: Network, k: '合作高校', v: '180+', note: '覆盖 26 个省市与 30+ 学科' },
+  { icon: Network, k: '合作高校', v: '800+', note: '覆盖 26 个省市与 30+ 学科' },
   { icon: Boxes, k: '在跑实训系统', v: '37 套', note: '自旧平台迁移并持续使用，含 492 条实验项目' },
 ]
 

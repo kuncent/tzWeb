@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1600 1200" width="1600" height="1200" role="img" aria-label="深圳市中小企业服务局 · 专精特新中小企业">
+<defs>
+      <linearGradient id="brassBase" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f9f0cd"/>
+        <stop offset=".16" stop-color="#e8d196"/>
+        <stop offset=".32" stop-color="#fcf6d6"/>
+        <stop offset=".5" stop-color="#dfc17b"/>
+        <stop offset=".68" stop-color="#f6e9bb"/>
+        <stop offset=".84" stop-color="#d2b169"/>
+        <stop offset="1" stop-color="#eedaa4"/>
+      </linearGradient>
+      <linearGradient id="brassRim" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#c9a75f"/><stop offset=".45" stop-color="#8a692c"/><stop offset="1" stop-color="#d8ba78"/>
+      </linearGradient>
+      <radialGradient id="brassVig" cx=".5" cy=".42" r=".78">
+        <stop offset=".5" stop-color="#5b3f10" stop-opacity="0"/><stop offset="1" stop-color="#4a3208" stop-opacity=".26"/>
+      </radialGradient>
+      
+  <linearGradient id="brassSheen" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".14" stop-color="#fff" stop-opacity="0.345"/>
+    <stop offset=".23" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".45" stop-color="#fff" stop-opacity="0.207"/>
+    <stop offset=".55" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".74" stop-color="#fff" stop-opacity="0.27599999999999997"/>
+    <stop offset=".84" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient>
+      <linearGradient id="brassBase" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f9f0cd"/>
+        <stop offset=".16" stop-color="#e8d196"/>
+        <stop offset=".32" stop-color="#fcf6d6"/>
+        <stop offset=".5" stop-color="#dfc17b"/>
+        <stop offset=".68" stop-color="#f6e9bb"/>
+        <stop offset=".84" stop-color="#d2b169"/>
+        <stop offset="1" stop-color="#eedaa4"/>
+      </linearGradient>
+      <linearGradient id="brassRim" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#c9a75f"/><stop offset=".45" stop-color="#8a692c"/><stop offset="1" stop-color="#d8ba78"/>
+      </linearGradient>
+      <radialGradient id="brassVig" cx=".5" cy=".42" r=".78">
+        <stop offset=".5" stop-color="#5b3f10" stop-opacity="0"/><stop offset="1" stop-color="#4a3208" stop-opacity=".26"/>
+      </radialGradient>
+      
+  <linearGradient id="brassSheen" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".14" stop-color="#fff" stop-opacity="0.345"/>
+    <stop offset=".23" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".45" stop-color="#fff" stop-opacity="0.207"/>
+    <stop offset=".55" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".74" stop-color="#fff" stop-opacity="0.27599999999999997"/>
+    <stop offset=".84" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient></defs>
+
+      <rect width="1600" height="1200" fill="url(#brassBase)"/>
+      <rect width="1600" height="1200" fill="url(#brassSheen)"/>
+      <rect width="1600" height="1200" fill="url(#brassVig)"/>
+      <rect x="7" y="7" width="1586" height="1186" fill="none" stroke="url(#brassRim)" stroke-width="14"/>
+      <rect x="24" y="24" width="1552" height="1152" fill="none" stroke="#6b4d18" stroke-opacity=".36" stroke-width="2"/>
+
+      
+      <rect width="1600" height="1200" fill="url(#brassBase)"/>
+      <rect width="1600" height="1200" fill="url(#brassSheen)"/>
+      <rect width="1600" height="1200" fill="url(#brassVig)"/>
+      <rect x="7" y="7" width="1586" height="1186" fill="none" stroke="url(#brassRim)" stroke-width="14"/>
+      <rect x="24" y="24" width="1552" height="1152" fill="none" stroke="#6b4d18" stroke-opacity=".36" stroke-width="2"/>
+      <rect width="1600" height="1200" fill="#c79a3f" opacity=".14"/>
+      
+    <rect x="78" y="78" width="1444" height="1044" fill="none" stroke="#8a6722" stroke-width="3.2" opacity=".9"/>
+    <rect x="96" y="96" width="1408" height="1008" fill="none" stroke="#8a6722" stroke-width="1.6" opacity=".55"/>
+    <g transform="translate(78 78) scale(1 1)" fill="none" stroke="#8a6722" stroke-linecap="square">
+    <path d="M0 150 V0 H150" stroke-width="3.2" opacity=".9"/>
+    <path d="M0 108 V42 H108 V108" stroke-width="2.6" opacity=".8"/>
+    <path d="M42 108 V76 H74 V108" stroke-width="2.2" opacity=".7"/>
+    <path d="M108 42 H74 V74" stroke-width="2.2" opacity=".7"/>
+  </g>
+    <g transform="translate(1522 78) scale(-1 1)" fill="none" stroke="#8a6722" stroke-linecap="square">
+    <path d="M0 150 V0 H150" stroke-width="3.2" opacity=".9"/>
+    <path d="M0 108 V42 H108 V108" stroke-width="2.6" opacity=".8"/>
+    <path d="M42 108 V76 H74 V108" stroke-width="2.2" opacity=".7"/>
+    <path d="M108 42 H74 V74" stroke-width="2.2" opacity=".7"/>
+  </g>
+    <g transform="translate(78 1122) scale(1 -1)" fill="none" stroke="#8a6722" stroke-linecap="square">
+    <path d="M0 150 V0 H150" stroke-width="3.2" opacity=".9"/>
+    <path d="M0 108 V42 H108 V108" stroke-width="2.6" opacity=".8"/>
+    <path d="M42 108 V76 H74 V108" stroke-width="2.2" opacity=".7"/>
+    <path d="M108 42 H74 V74" stroke-width="2.2" opacity=".7"/>
+  </g>
+    <g transform="translate(1522 1122) scale(-1 -1)" fill="none" stroke="#8a6722" stroke-linecap="square">
+    <path d="M0 150 V0 H150" stroke-width="3.2" opacity=".9"/>
+    <path d="M0 108 V42 H108 V108" stroke-width="2.6" opacity=".8"/>
+    <path d="M42 108 V76 H74 V108" stroke-width="2.2" opacity=".7"/>
+    <path d="M108 42 H74 V74" stroke-width="2.2" opacity=".7"/>
+  </g>
+      <text x="178" y="306" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="74" font-weight="700" fill="#c0272d" text-anchor="start" letter-spacing="6" opacity="1">专精特新中小企业</text>
+      <text x="800" y="604" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="96" font-weight="700" fill="#141414" text-anchor="middle" letter-spacing="2" opacity="1">深圳市天择教育科技有限公司</text>
+      <text x="800" y="800" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="64" font-weight="600" fill="#1b1b1b" text-anchor="middle" letter-spacing="2" opacity="1">深圳市中小企业服务局</text>
+      
+  <g>
+    <rect x="150.16" y="762.16" width="211.68" height="211.68" fill="#ffffff"/>
+    <g fill="#141414"><rect x="212.9" y="770.0" width="7.84" height="7.84"/><rect x="220.7" y="770.0" width="7.84" height="7.84"/><rect x="228.6" y="770.0" width="7.84" height="7.84"/><rect x="252.1" y="770.0" width="7.84" height="7.84"/><rect x="283.4" y="770.0" width="7.84" height="7.84"/><rect x="259.9" y="777.8" width="7.84" height="7.84"/><rect x="283.4" y="777.8" width="7.84" height="7.84"/><rect x="291.3" y="777.8" width="7.84" height="7.84"/><rect x="212.9" y="785.7" width="7.84" height="7.84"/><rect x="220.7" y="785.7" width="7.84" height="7.84"/><rect x="236.4" y="785.7" width="7.84" height="7.84"/><rect x="267.8" y="785.7" width="7.84" height="7.84"/><rect x="291.3" y="785.7" width="7.84" height="7.84"/><rect x="236.4" y="793.5" width="7.84" height="7.84"/><rect x="275.6" y="793.5" width="7.84" height="7.84"/><rect x="212.9" y="801.4" width="7.84" height="7.84"/><rect x="220.7" y="801.4" width="7.84" height="7.84"/><rect x="228.6" y="801.4" width="7.84" height="7.84"/><rect x="236.4" y="801.4" width="7.84" height="7.84"/><rect x="244.2" y="801.4" width="7.84" height="7.84"/><rect x="252.1" y="801.4" width="7.84" height="7.84"/><rect x="283.4" y="801.4" width="7.84" height="7.84"/><rect x="291.3" y="801.4" width="7.84" height="7.84"/><rect x="220.7" y="809.2" width="7.84" height="7.84"/><rect x="236.4" y="809.2" width="7.84" height="7.84"/><rect x="244.2" y="809.2" width="7.84" height="7.84"/><rect x="252.1" y="809.2" width="7.84" height="7.84"/><rect x="259.9" y="809.2" width="7.84" height="7.84"/><rect x="267.8" y="809.2" width="7.84" height="7.84"/><rect x="283.4" y="809.2" width="7.84" height="7.84"/><rect x="212.9" y="817.0" width="7.84" height="7.84"/><rect x="228.6" y="817.0" width="7.84" height="7.84"/><rect x="236.4" y="817.0" width="7.84" height="7.84"/><rect x="244.2" y="817.0" width="7.84" height="7.84"/><rect x="259.9" y="817.0" width="7.84" height="7.84"/><rect x="275.6" y="817.0" width="7.84" height="7.84"/><rect x="283.4" y="817.0" width="7.84" height="7.84"/><rect x="181.5" y="824.9" width="7.84" height="7.84"/><rect x="197.2" y="824.9" width="7.84" height="7.84"/><rect x="205.0" y="824.9" width="7.84" height="7.84"/><rect x="291.3" y="824.9" width="7.84" height="7.84"/><rect x="307.0" y="824.9" width="7.84" height="7.84"/><rect x="314.8" y="824.9" width="7.84" height="7.84"/><rect x="330.5" y="824.9" width="7.84" height="7.84"/><rect x="338.3" y="824.9" width="7.84" height="7.84"/><rect x="346.2" y="824.9" width="7.84" height="7.84"/><rect x="158.0" y="832.7" width="7.84" height="7.84"/><rect x="181.5" y="832.7" width="7.84" height="7.84"/><rect x="189.4" y="832.7" width="7.84" height="7.84"/><rect x="205.0" y="832.7" width="7.84" height="7.84"/><rect x="220.7" y="832.7" width="7.84" height="7.84"/><rect x="228.6" y="832.7" width="7.84" height="7.84"/><rect x="236.4" y="832.7" width="7.84" height="7.84"/><rect x="244.2" y="832.7" width="7.84" height="7.84"/><rect x="283.4" y="832.7" width="7.84" height="7.84"/><rect x="291.3" y="832.7" width="7.84" height="7.84"/><rect x="299.1" y="832.7" width="7.84" height="7.84"/><rect x="307.0" y="832.7" width="7.84" height="7.84"/><rect x="314.8" y="832.7" width="7.84" height="7.84"/><rect x="338.3" y="832.7" width="7.84" height="7.84"/><rect x="346.2" y="832.7" width="7.84" height="7.84"/><rect x="165.8" y="840.6" width="7.84" height="7.84"/><rect x="189.4" y="840.6" width="7.84" height="7.84"/><rect x="197.2" y="840.6" width="7.84" height="7.84"/><rect x="205.0" y="840.6" width="7.84" height="7.84"/><rect x="212.9" y="840.6" width="7.84" height="7.84"/><rect x="228.6" y="840.6" width="7.84" height="7.84"/><rect x="236.4" y="840.6" width="7.84" height="7.84"/><rect x="259.9" y="840.6" width="7.84" height="7.84"/><rect x="299.1" y="840.6" width="7.84" height="7.84"/><rect x="322.6" y="840.6" width="7.84" height="7.84"/><rect x="158.0" y="848.4" width="7.84" height="7.84"/><rect x="173.7" y="848.4" width="7.84" height="7.84"/><rect x="197.2" y="848.4" width="7.84" height="7.84"/><rect x="212.9" y="848.4" width="7.84" height="7.84"/><rect x="228.6" y="848.4" width="7.84" height="7.84"/><rect x="236.4" y="848.4" width="7.84" height="7.84"/><rect x="252.1" y="848.4" width="7.84" height="7.84"/><rect x="259.9" y="848.4" width="7.84" height="7.84"/><rect x="283.4" y="848.4" width="7.84" height="7.84"/><rect x="291.3" y="848.4" width="7.84" height="7.84"/><rect x="299.1" y="848.4" width="7.84" height="7.84"/><rect x="322.6" y="848.4" width="7.84" height="7.84"/><rect x="338.3" y="848.4" width="7.84" height="7.84"/><rect x="173.7" y="856.2" width="7.84" height="7.84"/><rect x="228.6" y="856.2" width="7.84" height="7.84"/><rect x="259.9" y="856.2" width="7.84" height="7.84"/><rect x="291.3" y="856.2" width="7.84" height="7.84"/><rect x="307.0" y="856.2" width="7.84" height="7.84"/><rect x="322.6" y="856.2" width="7.84" height="7.84"/><rect x="330.5" y="856.2" width="7.84" height="7.84"/><rect x="346.2" y="856.2" width="7.84" height="7.84"/><rect x="165.8" y="864.1" width="7.84" height="7.84"/><rect x="173.7" y="864.1" width="7.84" height="7.84"/><rect x="189.4" y="864.1" width="7.84" height="7.84"/><rect x="212.9" y="864.1" width="7.84" height="7.84"/><rect x="220.7" y="864.1" width="7.84" height="7.84"/><rect x="236.4" y="864.1" width="7.84" height="7.84"/><rect x="244.2" y="864.1" width="7.84" height="7.84"/><rect x="252.1" y="864.1" width="7.84" height="7.84"/><rect x="275.6" y="864.1" width="7.84" height="7.84"/><rect x="291.3" y="864.1" width="7.84" height="7.84"/><rect x="338.3" y="864.1" width="7.84" height="7.84"/><rect x="158.0" y="871.9" width="7.84" height="7.84"/><rect x="165.8" y="871.9" width="7.84" height="7.84"/><rect x="189.4" y="871.9" width="7.84" height="7.84"/><rect x="197.2" y="871.9" width="7.84" height="7.84"/><rect x="205.0" y="871.9" width="7.84" height="7.84"/><rect x="228.6" y="871.9" width="7.84" height="7.84"/><rect x="259.9" y="871.9" width="7.84" height="7.84"/><rect x="267.8" y="871.9" width="7.84" height="7.84"/><rect x="275.6" y="871.9" width="7.84" height="7.84"/><rect x="283.4" y="871.9" width="7.84" height="7.84"/><rect x="291.3" y="871.9" width="7.84" height="7.84"/><rect x="314.8" y="871.9" width="7.84" height="7.84"/><rect x="338.3" y="871.9" width="7.84" height="7.84"/><rect x="346.2" y="871.9" width="7.84" height="7.84"/><rect x="165.8" y="879.8" width="7.84" height="7.84"/><rect x="197.2" y="879.8" width="7.84" height="7.84"/><rect x="205.0" y="879.8" width="7.84" height="7.84"/><rect x="228.6" y="879.8" width="7.84" height="7.84"/><rect x="244.2" y="879.8" width="7.84" height="7.84"/><rect x="275.6" y="879.8" width="7.84" height="7.84"/><rect x="291.3" y="879.8" width="7.84" height="7.84"/><rect x="307.0" y="879.8" width="7.84" height="7.84"/><rect x="338.3" y="879.8" width="7.84" height="7.84"/><rect x="346.2" y="879.8" width="7.84" height="7.84"/><rect x="165.8" y="887.6" width="7.84" height="7.84"/><rect x="173.7" y="887.6" width="7.84" height="7.84"/><rect x="189.4" y="887.6" width="7.84" height="7.84"/><rect x="205.0" y="887.6" width="7.84" height="7.84"/><rect x="212.9" y="887.6" width="7.84" height="7.84"/><rect x="244.2" y="887.6" width="7.84" height="7.84"/><rect x="259.9" y="887.6" width="7.84" height="7.84"/><rect x="275.6" y="887.6" width="7.84" height="7.84"/><rect x="330.5" y="887.6" width="7.84" height="7.84"/><rect x="338.3" y="887.6" width="7.84" height="7.84"/><rect x="346.2" y="887.6" width="7.84" height="7.84"/><rect x="173.7" y="895.4" width="7.84" height="7.84"/><rect x="212.9" y="895.4" width="7.84" height="7.84"/><rect x="252.1" y="895.4" width="7.84" height="7.84"/><rect x="267.8" y="895.4" width="7.84" height="7.84"/><rect x="291.3" y="895.4" width="7.84" height="7.84"/><rect x="299.1" y="895.4" width="7.84" height="7.84"/><rect x="307.0" y="895.4" width="7.84" height="7.84"/><rect x="322.6" y="895.4" width="7.84" height="7.84"/><rect x="346.2" y="895.4" width="7.84" height="7.84"/><rect x="165.8" y="903.3" width="7.84" height="7.84"/><rect x="189.4" y="903.3" width="7.84" height="7.84"/><rect x="212.9" y="903.3" width="7.84" height="7.84"/><rect x="220.7" y="903.3" width="7.84" height="7.84"/><rect x="228.6" y="903.3" width="7.84" height="7.84"/><rect x="252.1" y="903.3" width="7.84" height="7.84"/><rect x="275.6" y="903.3" width="7.84" height="7.84"/><rect x="307.0" y="903.3" width="7.84" height="7.84"/><rect x="330.5" y="903.3" width="7.84" height="7.84"/><rect x="338.3" y="903.3" width="7.84" height="7.84"/><rect x="212.9" y="911.1" width="7.84" height="7.84"/><rect x="228.6" y="911.1" width="7.84" height="7.84"/><rect x="236.4" y="911.1" width="7.84" height="7.84"/><rect x="259.9" y="911.1" width="7.84" height="7.84"/><rect x="291.3" y="911.1" width="7.84" height="7.84"/><rect x="299.1" y="911.1" width="7.84" height="7.84"/><rect x="330.5" y="911.1" width="7.84" height="7.84"/><rect x="338.3" y="911.1" width="7.84" height="7.84"/><rect x="346.2" y="911.1" width="7.84" height="7.84"/><rect x="228.6" y="919.0" width="7.84" height="7.84"/><rect x="236.4" y="919.0" width="7.84" height="7.84"/><rect x="259.9" y="919.0" width="7.84" height="7.84"/><rect x="283.4" y="919.0" width="7.84" height="7.84"/><rect x="307.0" y="919.0" width="7.84" height="7.84"/><rect x="322.6" y="919.0" width="7.84" height="7.84"/><rect x="338.3" y="919.0" width="7.84" height="7.84"/><rect x="212.9" y="926.8" width="7.84" height="7.84"/><rect x="220.7" y="926.8" width="7.84" height="7.84"/><rect x="228.6" y="926.8" width="7.84" height="7.84"/><rect x="252.1" y="926.8" width="7.84" height="7.84"/><rect x="259.9" y="926.8" width="7.84" height="7.84"/><rect x="275.6" y="926.8" width="7.84" height="7.84"/><rect x="283.4" y="926.8" width="7.84" height="7.84"/><rect x="299.1" y="926.8" width="7.84" height="7.84"/><rect x="322.6" y="926.8" width="7.84" height="7.84"/><rect x="330.5" y="926.8" width="7.84" height="7.84"/><rect x="338.3" y="926.8" width="7.84" height="7.84"/><rect x="346.2" y="926.8" width="7.84" height="7.84"/><rect x="220.7" y="934.6" width="7.84" height="7.84"/><rect x="252.1" y="934.6" width="7.84" height="7.84"/><rect x="259.9" y="934.6" width="7.84" height="7.84"/><rect x="267.8" y="934.6" width="7.84" height="7.84"/><rect x="299.1" y="934.6" width="7.84" height="7.84"/><rect x="307.0" y="934.6" width="7.84" height="7.84"/><rect x="322.6" y="934.6" width="7.84" height="7.84"/><rect x="330.5" y="934.6" width="7.84" height="7.84"/><rect x="338.3" y="934.6" width="7.84" height="7.84"/><rect x="212.9" y="942.5" width="7.84" height="7.84"/><rect x="244.2" y="942.5" width="7.84" height="7.84"/><rect x="252.1" y="942.5" width="7.84" height="7.84"/><rect x="267.8" y="942.5" width="7.84" height="7.84"/><rect x="275.6" y="942.5" width="7.84" height="7.84"/><rect x="299.1" y="942.5" width="7.84" height="7.84"/><rect x="307.0" y="942.5" width="7.84" height="7.84"/><rect x="322.6" y="942.5" width="7.84" height="7.84"/><rect x="338.3" y="942.5" width="7.84" height="7.84"/><rect x="212.9" y="950.3" width="7.84" height="7.84"/><rect x="220.7" y="950.3" width="7.84" height="7.84"/><rect x="228.6" y="950.3" width="7.84" height="7.84"/><rect x="236.4" y="950.3" width="7.84" height="7.84"/><rect x="244.2" y="950.3" width="7.84" height="7.84"/><rect x="252.1" y="950.3" width="7.84" height="7.84"/><rect x="275.6" y="950.3" width="7.84" height="7.84"/><rect x="283.4" y="950.3" width="7.84" height="7.84"/><rect x="291.3" y="950.3" width="7.84" height="7.84"/><rect x="338.3" y="950.3" width="7.84" height="7.84"/><rect x="236.4" y="958.2" width="7.84" height="7.84"/><rect x="244.2" y="958.2" width="7.84" height="7.84"/><rect x="267.8" y="958.2" width="7.84" height="7.84"/><rect x="291.3" y="958.2" width="7.84" height="7.84"/><rect x="299.1" y="958.2" width="7.84" height="7.84"/><rect x="307.0" y="958.2" width="7.84" height="7.84"/><rect x="322.6" y="958.2" width="7.84" height="7.84"/><rect x="330.5" y="958.2" width="7.84" height="7.84"/><rect x="338.3" y="958.2" width="7.84" height="7.84"/><rect x="346.2" y="958.2" width="7.84" height="7.84"/></g>
+    
+    <rect x="158" y="770" width="54.879999999999995" height="54.879999999999995" fill="none" stroke="#141414" stroke-width="7.84"/>
+    <rect x="173.68" y="785.68" width="23.52" height="23.52" fill="#141414"/>
+    <rect x="299.12" y="770" width="54.879999999999995" height="54.879999999999995" fill="none" stroke="#141414" stroke-width="7.84"/>
+    <rect x="314.8" y="785.68" width="23.52" height="23.52" fill="#141414"/>
+    <rect x="158" y="911.12" width="54.879999999999995" height="54.879999999999995" fill="none" stroke="#141414" stroke-width="7.84"/>
+    <rect x="173.68" y="926.8" width="23.52" height="23.52" fill="#141414"/>
+  </g>
+      <text x="408" y="936" font-family="'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif" font-size="44" font-weight="400" fill="#1f1f1f" text-anchor="start" letter-spacing="0" opacity="1">有效期：2023年12月31日-2026年12月30日</text>
+</svg>

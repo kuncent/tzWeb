@@ -230,7 +230,11 @@ export default function LabShowcase() {
                     exit={reduced ? { opacity: 0 } : { opacity: 0 }}
                     transition={{ opacity: { duration: 0.7, ease: EASE }, scale: { duration: IMG_MS / 1000 + 0.6, ease: 'linear' } }}
                     className="absolute inset-0 h-full w-full object-cover"
-                    loading="lazy"
+                    /* /cases 没有 PageHero，这张照片就是首屏 LCP 元素：首张必须
+                       eager + 高优先级，lazy 会让它等布局算完才发请求（实测 LCP 4.3s）。
+                       后续轮播到的照片仍走 lazy，不跟首屏抢带宽。 */
+                    loading={pos.school === 0 && pos.img === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={pos.school === 0 && pos.img === 0 ? 'high' : 'auto'}
                     decoding="async"
                     draggable={false}
                   />

@@ -10,7 +10,7 @@
  * ============================================================ */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { RefreshCw, Sparkles } from 'lucide-react'
-import * as echarts from 'echarts'
+import echarts from '../lib/echarts-admin'
 import * as api from '../lib/adminApi'
 import { Card, Banner, Btn, Spinner, AuditList, PageFade, toBaseMs } from './ui'
 

@@ -720,7 +720,10 @@ function Scene({ active, hi }) {
 
 /** 机器人产品：3D 环形展台，active 决定哪个产品走到镜头前 */
 export default function ProductShowcase({ active }) {
-  const { ref, frameloop } = useCanvasVisibility()
+  /* 与 EmbodiedScreen 的挂载门控同一边距：挂载提前一屏、第一帧也提前一屏。
+     只提前挂载不够 —— 着色器编译与 Environment 烘焙都发生在第一帧，
+     那边距若仍是默认 200px，钱还是付在用户滚到位的那一刻。 */
+  const { ref, frameloop } = useCanvasVisibility('900px')
   /* 弱性能设备（双核及以下）退化：去掉镜面反射，保留材质与灯光 */
   const hi = typeof navigator === 'undefined' ? true : (navigator.hardwareConcurrency || 4) >= 4
   /* ―― 分辨率上限：保持原样（1.2），不拿帧率换清晰度 ――
@@ -745,7 +748,13 @@ export default function ProductShowcase({ active }) {
   )
 }
 
-useGLTF.preload('/models/t800-min.glb')
-useGLTF.preload('/models/z1-min.glb')
-useGLTF.preload('/models/go2-official.glb')
-useGLTF.preload('/models/turtlebot3-min.glb')
+/* 四个机型 GLB 共 1.1 MB。原来在模块顶层直接 preload：这个模块被 ProductViewer
+   静态引用，于是 /devices 与 /products 一进来就抢带宽 —— 而 3D 展台在几屏之下，
+   首屏自己的图片和视频反而排在后面（实测 /products FCP 1520ms）。
+   改成 idle 预热：仍然提前于用户滚到位，但让首屏资源先走完。 */
+const MODELS = ['/models/t800-min.glb', '/models/z1-min.glb', '/models/go2-official.glb', '/models/turtlebot3-min.glb']
+if (typeof window !== 'undefined') {
+  const warm = () => MODELS.forEach((m) => useGLTF.preload(m))
+  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(warm, { timeout: 3000 })
+  else setTimeout(warm, 1200)
+}

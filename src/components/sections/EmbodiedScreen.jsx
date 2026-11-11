@@ -26,8 +26,11 @@ export default function EmbodiedScreen({ p, i, withIndex }) {
   /* once:false：滚离即卸掉 ProductShowcase、释放它的 WebGL 上下文
      （R3F 卸载会 forceContextLoss）——否则进过一次就常驻，与首屏/其它画布叠到
      浏览器上限就会把最旧的首屏顶掉（黑屏诱因）。机型 GLB 已由 useGLTF 缓存，
-     回来时重建的主要是上下文与 GPU 资源，不是重新下载 */
-  const live = useInView(stageRef, { once: false, margin: '160px' })
+     回来时重建的主要是上下文与 GPU 资源，不是重新下载。
+     margin 900px（约一屏）而不是贴边：建上下文 + 烘环境贴图 + 编译后处理链
+     是一笔挡帧的同步开销，提前一屏做掉，用户滚到位时转台已经在跑，
+     不会在「刚好看到这一屏」的那帧卡住。 */
+  const live = useInView(stageRef, { once: false, margin: '900px' })
   const cur = embodiedProducts[active]
 
   return (

@@ -58,12 +58,14 @@ function BootHandoff() {
 
 /* 内页 chunk 尚未到位时的占位：底色跟随各自外壳，避免切页时先闪一块反色。
    营销内页首屏都是暗 hero → 暗底（bg-night）；后台是亮色壳 → 亮底（tone="mist"）。
-   高度先撑住 min-h 以免页脚跳；减弱动效下呼吸点降级为静点。 */
+   高度必须撑满整屏：占位只有 60vh 时页脚会落进首屏，内页 chunk 一到就把页脚
+   往下顶出视口 —— 实测 /about 与 /devices 各吃一次 CLS 0.40（全站最大的一笔）。
+   撑满一屏后页脚始终在折叠线以下，路由切换不再产生任何位移。 */
 function RouteFallback({ tone = 'night' }) {
   const dark = tone !== 'mist'
   return (
     <div
-      className={`flex min-h-[60vh] items-center justify-center ${dark ? 'bg-night' : 'bg-mist-100'}`}
+      className={`flex min-h-screen items-center justify-center ${dark ? 'bg-night' : 'bg-mist-100'}`}
       role="status"
       aria-live="polite"
     >

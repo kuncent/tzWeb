@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'motion/react'
+import { motion, useInView, useReducedMotion } from 'motion/react'
 import { ArrowUpRight } from 'lucide-react'
 import { PageHero, PageSection, HeroFrame } from '../components/PageShell'
 import { Reveal } from '../components/ui'
@@ -204,6 +204,14 @@ function SmartGearSection() {
   const reduced = useReducedMotion()
   const [idx, setIdx] = useState(0)
   const p = embodiedProducts[idx]
+  /* 这一段紧跟首屏，1440×900 下本来就在预热门距内；门控真正生效的是矮屏与窄屏
+     （机型列表竖排后舞台被推到一屏之外），以及「滚过去之后」——once:false 让
+     12000px 长页的后半程不再常驻一个 WebGL 上下文与整棵场景。
+     门控必须放在这层常驻外框上，不能放进 ProductViewer 内部：它自己的 IO 要等
+     Canvas 首帧挂上 ref 才接线，条件挂载会让 ref 恒为 null、frameloop 永远停在
+     never（见 ProductViewer 注释）。 */
+  const stageRef = useRef(null)
+  const live = useInView(stageRef, { once: false, margin: '900px' })
 
   return (
     <PageSection
@@ -225,13 +233,19 @@ function SmartGearSection() {
         {/* 右：展示 + 介绍 */}
         <div className="order-1 grid min-w-0 grid-cols-1 gap-5 lg:order-2 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
           {/* 3D 舞台 */}
-          <div className="relative min-w-0 overflow-hidden rounded-2xl border border-ink-900/[0.07] bg-mist-200 shadow-card">
-            <ProductViewer
-              productIndex={idx}
-              reduced={!!reduced}
-              light
-              className="h-[360px] w-full sm:h-[440px] xl:h-[520px]"
-            />
+          <div ref={stageRef} className="relative min-w-0 overflow-hidden rounded-2xl border border-ink-900/[0.07] bg-mist-200 shadow-card">
+            {live ? (
+              <ProductViewer
+                productIndex={idx}
+                reduced={!!reduced}
+                light
+                className="h-[360px] w-full sm:h-[440px] xl:h-[520px]"
+              />
+            ) : (
+              <div className="grid h-[360px] w-full place-items-center sm:h-[440px] xl:h-[520px]">
+                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">LOADING 3D VIEWER…</span>
+              </div>
+            )}
             {/* HUD 角标 */}
             {['left-3 top-3 border-l border-t', 'right-3 top-3 border-r border-t', 'left-3 bottom-3 border-b border-l', 'right-3 bottom-3 border-b border-r'].map((pos) => (
               <span key={pos} className={`pointer-events-none absolute h-4 w-4 border-brand/40 ${pos}`} />

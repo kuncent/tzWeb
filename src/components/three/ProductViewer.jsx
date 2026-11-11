@@ -175,10 +175,13 @@ function Scene({ productIndex, ctrl, still, hi, light }) {
 export default function ProductViewer({ productIndex = 0, reduced = false, light = false, className = '' }) {
   /* 可见性只由 useCanvasVisibility 一处门控 frameloop：进视口画、出视口停帧。
      这里不再叠加第二个「挂载级」门控：旧版用 useInView 条件挂载 Canvas，但
-     useCanvasVisibility 的 IntersectionObserver 只在首帧 ref 已挂上时才接线，条件
-     挂载下首帧 Canvas 还没渲染、ref 为 null → IO 永不接管 → frameloop 恒为 never
-     → 画布空白。本页只有一台查看器，常驻挂载成本可接受。 */
-  const { ref, frameloop } = useCanvasVisibility()
+     useCanvasVisibility 的 IO 只在首帧 ref 已挂上时才接线，条件挂载下首帧 ref
+     为 null → IO 永不接管 → frameloop 恒为 never → 画布空白。
+     （挂载级门控放在调用方的常驻外框上，见 pages/Devices.jsx 的 SmartGearSection。）
+     rootMargin 900px：真正贵的是「第一帧」——整场景着色器编译 + Environment
+     烘焙都在那一刻同步做完（实测挡帧 1.1s）。提前一屏开画，把这笔钱付在
+     用户还在上一屏时，滚到位就是已经在转的实机，而不是卡一下再出现。 */
+  const { ref, frameloop } = useCanvasVisibility('900px')
   const hi = typeof navigator === 'undefined' ? true : (navigator.hardwareConcurrency || 4) >= 4
   /* 高清优先：把 dpr 上限放到 2（高分屏按设备像素渲染，不再把模型“磨砂”地放大）。
      旧版上限 1.1、降级到 0.8 —— 在 2x 屏上等于把画面拉伸一倍，看着发雾不高清。 */

@@ -183,17 +183,20 @@ export default function CopyrightGrid() {
     }
   }, [reduced, measure, settle])
 
-  /* 自动轮播：慢速逐张，拖动与键盘聚焦时暂停；悬停不打断，reduced-motion 下不自动走 */
+  /* 自动轮播：慢速逐张，拖动与键盘聚焦时暂停；悬停不打断，reduced-motion 下不自动走。
+     整段离屏时也停：这条带子有 141 张卡，每次步进都要给全部卡写一遍 transform，
+     滚到页面别处后那笔开销全是白付的。 */
   useEffect(() => {
     if (!AUTOPLAY) return
     const rail = railRef.current
     if (!rail) return
     let focused = false
+    let onScreen = true
     let timer = 0
     const stop = () => window.clearTimeout(timer)
     const arm = () => {
       stop()
-      if (reducedRef.current || focused) return
+      if (reducedRef.current || focused || !onScreen) return
       timer = window.setTimeout(() => {
         if (!reducedRef.current && !dragRef.current.down) stepBy(1)
         arm()
@@ -211,6 +214,11 @@ export default function CopyrightGrid() {
       focused = false
       arm()
     }
+    const io = new IntersectionObserver(([e]) => {
+      onScreen = e.isIntersecting
+      arm()
+    })
+    io.observe(rail)
     rail.addEventListener('pointerdown', onDown)
     rail.addEventListener('pointerup', onUp)
     rail.addEventListener('pointercancel', onUp)
@@ -219,6 +227,7 @@ export default function CopyrightGrid() {
     arm()
     return () => {
       stop()
+      io.disconnect()
       rail.removeEventListener('pointerdown', onDown)
       rail.removeEventListener('pointerup', onUp)
       rail.removeEventListener('pointercancel', onUp)

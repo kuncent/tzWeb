@@ -6,7 +6,7 @@
  * 后面 KPI 卡想加趋势线只是多传一条 daily 数组。
  * ============================================================ */
 import { useEffect, useMemo, useRef } from 'react'
-import * as echarts from 'echarts'
+import echarts from '../lib/echarts-admin'
 import chinaJson from '../data/china.json'
 
 let chinaRegistered = false

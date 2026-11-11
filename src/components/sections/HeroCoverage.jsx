@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import * as echarts from 'echarts'
+import echarts from '../../lib/echarts'
 import chinaJson from '../../data/china.json'
 import { SERVICE_HUBS, SERVICE_COVERAGE } from '../../data/mapCities'
 
@@ -303,7 +303,14 @@ export default function HeroCoverage({ reduced, compact = false }) {
       chart = echarts.init(el, null, { renderer: 'canvas' })
       chart.setOption(buildOption(reduced, compact))
     }
-    start()
+
+    /* 首帧让路：34 块陆地各带 shadowBlur 16，再叠 58 条航线的影线/光带，
+       第一次 setOption 是一笔 ~1s 的主线程长任务，正好压在 3D 舞台首帧编译上。
+       挪到 idle 里做，容器高度是写死的，晚一帧出现不会顶动任何布局。
+       timeout 兜底：主线程一直忙也必须建起来，不能留一块空面板。 */
+    const ric = typeof window.requestIdleCallback === 'function' ? window.requestIdleCallback : null
+    const cic = typeof window.cancelIdleCallback === 'function' ? window.cancelIdleCallback : null
+    const idleId = ric ? ric(start, { timeout: 1200 }) : setTimeout(start, 0)
 
     const ro = new ResizeObserver(() => {
       if (!chart) { start(); return }
@@ -312,6 +319,8 @@ export default function HeroCoverage({ reduced, compact = false }) {
     ro.observe(el)
 
     return () => {
+      if (ric) cic(idleId)
+      else clearTimeout(idleId)
       ro.disconnect()
       if (chart) { chart.dispose(); chart = null }
     }

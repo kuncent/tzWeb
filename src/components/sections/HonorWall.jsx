@@ -305,10 +305,13 @@ function HonorShelf() {
 export default function HonorWall() {
   return (
     <section id="honors" className="sec-y relative isolate scroll-mt-24 overflow-hidden bg-mist-100">
-      {/* 背景：顶部一道冷灰分界 + 极淡的品牌蓝光晕；中间一层白光把牌匾从纸面托起来 */}
+      {/* 背景：与上一屏同一张纸 —— 不画分界线，也不在接缝处铺蓝光晕。
+          顶部 160px 由纯白渐到 mist-100，让 专业共建框架 的白底在本屏首行仍是白，
+          接缝两侧同色；再靠中间一层白光把牌匾从纸面托起来。
+          蓝光晕原本圆心压在顶边之上、峰值正好落在接缝上，是那条横带的来源，已去掉；
+          屏底的蓝洗离接缝很远，保留。 */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-ink-900/10 to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(75%_55%_at_50%_-8%,rgba(22,119,255,0.07),transparent_68%)]" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-[linear-gradient(to_bottom,#ffffff,rgba(255,255,255,0))]" />
         <div className="absolute inset-x-0 top-16 h-[440px] bg-[radial-gradient(45%_70%_at_50%_20%,rgba(255,255,255,0.95),transparent_74%)]" />
         <div className="absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(55%_100%_at_50%_100%,rgba(22,119,255,0.05),transparent_72%)]" />
       </div>

@@ -407,6 +407,24 @@
   }
 }
 
+/* 中央展板终端的「正在敲」：与终端底同色的盖板向右滑走，文字本身不动 ——
+   transform 在合成层里跑，不触发重排、不逐帧改字。
+   侧牌不挂这个类，直接看完整输出；reduced-motion 时全局规则把它一步落到终点 */
+@keyframes ap-type {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(101%);
+  }
+}
+.ap-type-cover {
+  /* 2.4s：这块牌从换位中点翻成 focus，到下一次换位只有约 3.9s，
+     盖板必须在那之前走完 —— 否则中央那块永远差最后几行没敲出来 */
+  animation: ap-type 2.4s steps(30, end) both;
+  will-change: transform;
+}
+
 /* ============================================================
  * RippleHero 地标标注：钉在大厦上的 光点 → 引线 → 名牌。
  * 进场次序：dot 0s → line .3s → chip .55s；

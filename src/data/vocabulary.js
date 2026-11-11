@@ -29,7 +29,7 @@ export const solutionFullName = (id) => `${SOLUTION_NAMES[id]}实验教学方案
 export const PRODUCTS = [
   { id: 'blockchain', name: '区块链', short: '区块链' },
   { id: 'digital-finance', name: '数字金融', short: '数字金融' },
-  { id: 'traditional-finance', name: '传统金融', short: '传统金融' },
+  { id: 'innovation-finance', name: '创新金融', short: '创新金融' },
   { id: 'digital-economy', name: '数字经济', short: '数字经济' },
   { id: 'new-business-data', name: '新商科大数据', short: '新商科大数据' },
   { id: 'ecommerce', name: '电子商务', short: '电子商务' },

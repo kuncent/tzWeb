@@ -400,18 +400,53 @@ export function glowTex() {
 }
 const PK_GEO = new THREE.PlaneGeometry(1, 1)
 const _pk = new THREE.Vector3()
+const _arcD = new THREE.Vector3()
+const _arcP = new THREE.Vector3()
+
+/* ―― 管面顶点就地重写 ――
+   换位时链路端点要跟着牌走，每帧 new 一根 TubeGeometry 会持续丢 buffer；
+   这里按 three 的同一条算法只改 position（uv 只由 (i,j) 决定，端点移动不用重算），
+   normals 也不动 —— 这条弧的 shader 只读 uv 与 position。 */
+const TUBE_SEG = 30
+const TUBE_RAD = 4
+const _tp = new THREE.Vector3()
+function retube(geo, curve, radius) {
+  const frames = curve.computeFrenetFrames(TUBE_SEG, false)
+  const arr = geo.attributes.position.array
+  let k = 0
+  for (let i = 0; i <= TUBE_SEG; i++) {
+    curve.getPointAt(i / TUBE_SEG, _tp)
+    const N = frames.normals[i]
+    const B = frames.binormals[i]
+    for (let j = 0; j <= TUBE_RAD; j++) {
+      const v = (j / TUBE_RAD) * Math.PI * 2
+      const sin = Math.sin(v)
+      const cos = -Math.cos(v)
+      arr[k++] = _tp.x + radius * (cos * N.x + sin * B.x)
+      arr[k++] = _tp.y + radius * (cos * N.y + sin * B.y)
+      arr[k++] = _tp.z + radius * (cos * N.z + sin * B.z)
+    }
+  }
+  geo.attributes.position.needsUpdate = true
+}
 
 /**
  * 一条弧 + 沿它跑的两枚数据包。
  * a/b 是静态端点（世界或组内坐标），bend 是弯向的signed偏移，
  * active 是一个逐帧取值的函数（该弧此刻的强度 0~1），
  * onDeliver 在包跑到终点那一刻回调一次 —— 布景拿它去点亮收方。
+ * ends（可选）是宿主每帧写端点与高亮度的同一个对象：{ a, b, boost }。
+ * 给了 ends 就按它重写管面，端点与牌同帧同源，回绕时不脱节。
  */
-export function FlowArc({ a, b, bend = 0.16, lift = 0.1, towardCamera = 0.12, color = THEME.sky, radius = 0.006, opacity = 0.9, speed = 0.34, size = 0.07, active, onDeliver }) {
+export function FlowArc({ a, b, ends, bend = 0.16, lift = 0.1, towardCamera = 0.12, color = THEME.sky, radius = 0.006, opacity = 0.9, speed = 0.34, size = 0.07, active, onDeliver }) {
   const tube = useRef(null)
   const packs = useRef([])
   const phase = useRef(0)
   const uni = useMemo(() => ({ uTime: { value: 0 }, uSpeed: { value: speed }, uOpacity: { value: 0 }, uColor: { value: hdr(color, 1.9) } }), [speed]) // eslint-disable-line react-hooks/exhaustive-deps
+  const baseCol = useMemo(() => hdr(color, 1.9), [color])
+  const hiCol = useMemo(() => hdr(color, 3.0), [color])
+  const lastA = useRef(a.clone())
+  const lastB = useRef(b.clone())
   const pkMat = useMemo(() => new THREE.MeshBasicMaterial({ map: glowTex(), color: hdr(color, 3.0), transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }), [color])
   /* 管身那份 shader 材质必须 memo：写在 JSX 里 material={new ...} 等于每次 render
      新造一份 —— 三个 rig 的 useFrame 每帧都在跑，一帧几十个 program 实例就这么漏出来了 */
@@ -426,7 +461,9 @@ export function FlowArc({ a, b, bend = 0.16, lift = 0.1, towardCamera = 0.12, co
     mid.y += lift
     mid.z += towardCamera
     const cv = new THREE.CatmullRomCurve3([A, mid, B], false, 'centripetal', 0.5)
-    return { geo: new THREE.TubeGeometry(cv, 30, radius, 4, false), curve: cv }
+    /* 端点每帧都在动，弧长表按 40 段重算就够 30 段的管子用 */
+    cv.arcLengthDivisions = 40
+    return { geo: new THREE.TubeGeometry(cv, TUBE_SEG, radius, TUBE_RAD, false), curve: cv }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [a, b, bend, lift, towardCamera, radius])
   useEffect(() => () => geo.dispose(), [geo])
@@ -436,6 +473,23 @@ export function FlowArc({ a, b, bend = 0.16, lift = 0.1, towardCamera = 0.12, co
     const m = tube.current
     if (!m) return
     uni.uTime.value = state.clock.elapsedTime
+    /* ―― 端点绑定：宿主（NeuralRig）在同一个 useFrame 里先算好五块牌的位姿，
+       再把两端写进 ends；这里只搬顶点，不新增动画循环 ―― */
+    if (ends && (!ends.a.equals(lastA.current) || !ends.b.equals(lastB.current))) {
+      lastA.current.copy(ends.a)
+      lastB.current.copy(ends.b)
+      const A = curve.points[0].copy(ends.a)
+      const B = curve.points[2].copy(ends.b)
+      _arcD.copy(B).sub(A)
+      _arcP.set(-_arcD.y, _arcD.x, 0).normalize()
+      const mid = curve.points[1].copy(A).add(B).multiplyScalar(0.5).addScaledVector(_arcP, bend)
+      mid.y += lift
+      mid.z += towardCamera
+      curve.updateArcLengths()
+      retube(geo, curve, radius)
+    }
+    /* 换位中段把线色抬到高饱和大亮，停稳回落到静止色 */
+    uni.uColor.value.copy(baseCol).lerp(hiCol, ends ? ends.boost : 0)
     const want = (active ? active() : 1) * opacity
     uni.uOpacity.value = damp(uni.uOpacity.value, want, 5, dt)
     const on = uni.uOpacity.value > 0.01
@@ -465,7 +519,7 @@ export function FlowArc({ a, b, bend = 0.16, lift = 0.1, towardCamera = 0.12, co
   })
   return (
     <group>
-      <mesh ref={tube} geometry={geo} material={arcMat} visible={false} renderOrder={2} />
+      <mesh ref={tube} geometry={geo} material={arcMat} visible={false} renderOrder={2} frustumCulled={false} />
       {[0, 1].map((i) => (
         <mesh key={i} ref={(el) => { packs.current[i] = el }} geometry={PK_GEO} material={pkMat} visible={false} renderOrder={2} />
       ))}

@@ -4,29 +4,31 @@ import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { heroScenes } from '../../../data/heroScenes'
 import { ContactGlow, FlowArc, damp, useAppear } from './kit'
-import AgentPanel, { ADF, HERO, HERO_H, HERO_W, BOARD_HUE, THK } from './AgentPanels'
+import AgentPanel, { ADF, HERO, HERO_H, HERO_W, HUES, THK } from './AgentPanels'
 import { BEAT_MS, beatNow } from './buildBus'
 
 /* ============================================================
- * AI 屏布景：同一块展板的五份复制品沿一条有纵深的弧线轮流走到中央
+ * AI 屏布景：五块方案展板轮流走「一主四卫」那五个错开的席位
  * ------------------------------------------------------------
- * 上一版是「一主四卫」的固定席位：0 号牌最大最近，其余四块散在四周。
- * 用户要的是五块轮流到中间放大，且「不改内容、不改摆放，只加轮播」——
- * 所以五块牌是同一块牌的复制品（内容/尺寸/色完全相同，见 AgentPanels），
- * 席位不再按牌固定，而是按槽位排成一条浅弧：中央槽就是原来那块主牌的位置
- * 与大小（scale 1，c 为原解），左右近槽后退 0.46m / 0.74 倍，远槽再退
- * 0.42m / 0.53 倍。位置、缩放、yaw 一起变，才有透视而不是一排贴纸。
+ * 席位回到轮播之前那一版：中央最近最大，左上高而远，左下 / 右下贴镜头压得最低，
+ * 右上最深 —— 五块牌是错开深度的一圈，不是一排（数值见下面的 SEATS，
+ * 都是当年按相机矩阵反解出来的原值）。轮播只是让它们依次走这五个位：
+ * 右上 → 右下 → 中央 → 左下 → 左上。
+ * 五块牌各挂一套方案（数字经济 / 金融科技 / 应用统计 / 商务数据分析 /
+ * 工商科一体化），内容与强调色见 AgentPanels，数据直接取 solutionPlans：
+ * 席位与方案的对应见 SLOT_SEAT 与 AgentPanels 的 ORDER。中央席保持原主牌的
+ * 位置与大小（scale 1），所以停稳时中央那一块和原来分毫不差。
  *
  * 节奏：每 4.8s 前进一格，其中 64% 停住（读内容），36% 换位。换位用
  * smoothstep，首尾速度归零，所以「进来 / 出去」是连续的，没有推一下的顿感。
- * 环形回绕在 |槽距| > 2.02 时开始压透明度、2.46 时归零，跨过 ±2.5 的那一帧
+ * 环形回绕在 |槽距| > 2.0 时开始压透明度、2.45 时归零，跨过 ±2.5 的那一帧
  * 看不见，因此循环是无缝的（不是靠跳帧或交叉淡入掩盖）。
  *
  * 可读性：五块牌统一用原主牌 288×178 版式，轮到中央时和原来一模一样大；
- * 侧牌靠 3D 缩放 + 纵深 + 压亮度（近 0.60 / 远 0.20）退到背景里。
+ * 侧牌靠席位本身的纵深 + 3D 缩放（208/288）+ 压亮度（近 0.70 / 远 0.40）退后。
  * 中央牌的 DOM 层级永远最高（z 60 → 58 → 56），侧牌不会盖住中间。
  *
- * 链路：按槽位固定的相邻弧，牌在换位时整组淡出（settle = 0），
+ * 链路：按环形顺序相邻的四条弧，牌在换位时整组淡出（settle = 0），
  * 停稳后再亮回来 —— 线始终接在牌边上，不会出现「线连到空气里」。
  *
  * 降级：reduced-motion 时 phase 冻结在 0（0 号牌居中、侧牌就位），
@@ -45,88 +47,156 @@ const N = 5
 const STEP = 4.8 // 每格 4.8s（停 ~3.1s + 走 ~1.7s）
 const HOLD_FRAC = 0.64
 const WRAP = N / 2
-const YAW = 0.16
 const PITCH_GAIN = 0.5
 const CAM = SCENE.cam.pos
 
-/* ―― 三档弧线：中心席位沿用各档原来反解出的主牌位，左右按档位收窄 ――
-   x1/z1/y1 是近槽（±1）的偏移，x2/z2/y2 是从近槽再走到远槽（±2）的增量。
-   s1/s2 是近/远槽的缩放。1440 起用 base，1280–1439 用 wide，1024–1279
-   用 narrow —— 两档紧凑弧线是为了不把牌推出右侧，并被 sticky 容器正常裁切。 */
-const RINGS = {
-  base: { c: { x: 0.308, y: 0.169, z: 0.466 }, x1: 1.26, x2: 0.9, z1: -0.46, z2: -0.42, y1: 0.045, y2: 0.07, s1: 0.74, s2: 0.53 },
-  wide: { c: { x: 0.952, y: 0.962, z: 0.323 }, x1: 1.02, x2: 0.72, z1: -0.36, z2: -0.33, y1: 0.035, y2: 0.06, s1: 0.75, s2: 0.55 },
-  narrow: { c: { x: 1.723, y: 0.974, z: 0.294 }, x1: 0.7, x2: 0.47, z1: -0.26, z2: -0.22, y1: 0.025, y2: 0.045, s1: 0.77, s2: 0.57 },
+/* ―― 席位：恢复到「一主四卫」那版的五点布阵 ――
+   各档的数值都是当初按相机矩阵反解出来的（tmp/ai-seat.cjs 等），不是调参调出来的：
+   中央最近最大；左上抬得很高、往后退；左下 / 右下几乎贴着镜头、压得最低；
+   右上最深最远。所以五块牌是「错开深度」的一圈，而不是一排。
+   轮播只是让它们依次走这五个位：右上 → 右下 → 中央 → 左下 → 左上。
+   中心席（SEATS[i][0]）与 40px 右移、机位都没动，停稳时中央那块和原来一模一样。
+
+   副牌缩放 SAT_K = 208/288：原来副牌的 DOM 是 208×122，现在五块统一用主牌
+   288×178 的版式，乘这个系数后它在屏幕上占的像素与那一版完全一致。
+   宽档 / 窄档再乘该档原来的副牌缩放（0.70 / 0.80）。 */
+const SAT_K = 208 / 288
+
+const SEATS = {
+  base: [
+    { x: 0.308, y: 0.169, z: 0.466, yaw: -0.034, s: 1 }, // 0 中央（最近）
+    { x: -1.521, y: 1.185, z: 0.053, yaw: 0.243, s: SAT_K }, // 1 左上（远）
+    { x: -0.739, y: -1.024, z: 0.594, yaw: 0.139, s: SAT_K }, // 2 左下（近）
+    { x: 0.767, y: -1.027, z: 0.038, yaw: -0.101, s: SAT_K }, // 3 右下（近）
+    { x: 0.835, y: 1.375, z: -0.894, yaw: -0.098, s: SAT_K }, // 4 右上（最远）
+  ],
+  wide: [
+    { x: 0.952, y: 0.962, z: 0.323, yaw: -0.135, s: 1 },
+    { x: 2.213, y: 1.209, z: 0.018, yaw: -0.311, s: SAT_K * 0.7 },
+    { x: 2.214, y: 0.566, z: 0.067, yaw: -0.313, s: SAT_K * 0.7 },
+    { x: 3.166, y: 0.566, z: 0.033, yaw: -0.437, s: SAT_K * 0.7 },
+    { x: 3.164, y: 1.209, z: -0.016, yaw: -0.434, s: SAT_K * 0.7 },
+  ],
+  narrow: [
+    { x: 1.723, y: 0.974, z: 0.294, yaw: -0.252, s: 1 },
+    { x: 1.149, y: 0.179, z: 0.134, yaw: -0.161, s: SAT_K * 0.8 },
+    { x: 1.151, y: -0.434, z: 0.18, yaw: -0.162, s: SAT_K * 0.8 },
+    { x: 2.43, y: -0.434, z: 0.135, yaw: -0.346, s: SAT_K * 0.8 },
+    { x: 2.428, y: 0.179, z: 0.089, yaw: -0.343, s: SAT_K * 0.8 },
+  ],
 }
+
+/* 槽位 k = -2..+2 各坐哪个席位：k=+2 右上、+1 右下、0 中央、-1 左下、-2 左上。
+   相位推进时 k 递减，所以牌是从右上入场、经右下进中央，再往左下、左上退场；
+   跨过 ±2.5 时回绕，那一格透明度为 0 */
+const SLOT_SEAT = [1, 2, 0, 3, 4]
+
+/* 板 i 停稳时（phase=0，k=i，i>2 时回绕）落在哪个席位 —— 那块板就挂那个席位的方案。
+   轮播前席位号即方案号（0 中央 数字经济 / 1 左上 金融科技 / 2 左下 应用统计 /
+   3 右下 商务数据分析 / 4 右上 工商科一体化），所以停稳时的seat→方案与原来一致 */
+const SEAT_OF = [0, 1, 2, 3, 4].map((i) => SLOT_SEAT[(i + 2) % N])
 
 const smooth01 = (x) => {
   const t = Math.min(1, Math.max(0, x))
   return t * t * (3 - 2 * t)
 }
 
-/** 槽位 k（-2..2，允许小数）→ 这一格的位姿。k 的小数部分由换位进度直接给出，
-    所以同一块牌在整段运动里是连续插值的，不会出现分段跳变 */
-function poseAt(k, ring) {
-  const a = Math.min(Math.abs(k), 2.6)
-  const s1 = Math.min(a, 1)
-  const s2 = Math.max(0, a - 1)
-  const sgn = k < 0 ? -1 : 1
-  const x = ring.c.x + sgn * (ring.x1 * s1 + ring.x2 * s2)
-  const z = ring.c.z + ring.z1 * s1 + ring.z2 * s2
-  const y = ring.c.y + ring.y1 * s1 + ring.y2 * s2
-  const scale = 1 - (1 - ring.s1) * s1 - (ring.s1 - ring.s2) * s2
-  const yaw = -sgn * YAW * Math.min(a, 2)
+/** 槽位 k（-2..2，允许小数）→ 这一格的位姿。
+    在两个相邻席位之间线性插值，k 的进度就是换位进度 —— 段与段共用端点，
+    所以整段运动是连续的；缓入缓出由外面的 smoothstep 统一给，不在这里叠 */
+function poseAt(k, seats) {
+  const a = Math.min(Math.max(k, -2.5), 2.5)
+  const u = a + 2
+  const i0 = Math.floor(u)
+  const t = u - i0
+  const A = seats[SLOT_SEAT[((i0 % N) + N) % N]]
+  const B = seats[SLOT_SEAT[(((i0 + 1) % N) + N) % N]]
+  const x = A.x + (B.x - A.x) * t
+  const y = A.y + (B.y - A.y) * t
+  const z = A.z + (B.z - A.z) * t
+  const yaw = A.yaw + (B.yaw - A.yaw) * t
+  const scale = A.s + (B.s - A.s) * t
   const sight = Math.hypot(CAM[0] - (RIG_X + x), CAM[2] - z)
   const pitch = -Math.atan2(CAM[1] - (CENTER + y), sight) * PITCH_GAIN
-  /* 亮度：中央满亮，近槽 0.60、远槽 0.20；到 2.46 槽外完全退场，
+  /* 亮度：中央满亮、近槽 0.70、远槽 0.40；到 2.45 槽外完全退场，
      环形回绕就发生在透明度为 0 的那一格，看不见接缝 */
-  const fade = 1 - smooth01((a - 2.02) / 0.44)
-  const opacity = Math.max(0, 1 - 0.4 * a) * fade
+  const fade = 1 - smooth01((Math.abs(k) - 2.0) / 0.45)
+  const opacity = Math.max(0, 1 - 0.3 * Math.abs(a)) * fade
   return { x, y, z, scale, yaw, pitch, opacity }
 }
 
-/* ―― 相邻槽位之间的数据弧：0 最左 → 4 最右，停稳时接在牌边上 ――
+/* 席位 → 板：停稳时坐这个席位的是第几块板 */
+const BOARD_AT = []
+SEAT_OF.forEach((seat, board) => {
+  BOARD_AT[seat] = board
+})
+
+/* ―― 四条数据弧：连的是「停稳时相邻」的那几块板 ――
+   换位时端点按牌的实时位姿重算，线跟着牌走，不再钉在槽位上；
    on 决定这条弧归哪条指令管，沿用原来的「按指令点亮不同链路」读法 */
 const EDGES = [
-  { a: 0, b: 1, ex: 'r', en: 'l', ak: 0.16, bk: -0.16, on: ['class', 'insight'] },
-  { a: 1, b: 2, ex: 'r', en: 'l', ak: 0.12, bk: -0.18, on: ['class', 'prep', 'hub'] },
-  { a: 2, b: 3, ex: 'r', en: 'l', ak: 0.18, bk: -0.12, on: ['class', 'prep', 'insight'] },
-  { a: 3, b: 4, ex: 'r', en: 'l', ak: 0.16, bk: -0.16, on: ['class', 'insight', 'hub'] },
+  { a: 0, b: 1, on: ['class', 'insight'] },
+  { a: 1, b: 2, on: ['class', 'prep', 'hub'] },
+  { a: 2, b: 3, on: ['class', 'prep', 'insight'] },
+  { a: 3, b: 4, on: ['class', 'insight', 'hub'] },
 ]
 
-/** 一档弧线 → 静态量：五个槽位、每条链路的端点与颜色 */
-function buildLayout(ring) {
-  const poses = [-2, -1, 0, 1, 2].map((k) => poseAt(k, ring))
-  const anchor = (i, side, along = 0) => {
-    const p = poses[i]
-    const sw = HERO_W * p.scale
-    const sh = HERO_H * p.scale
-    let ax = 0
-    let ay = 0
-    if (side === 'l') [ax, ay] = [-sw / 2, along * sh]
-    if (side === 'r') [ax, ay] = [sw / 2, along * sh]
-    if (side === 't') [ax, ay] = [along * sw, sh / 2]
-    if (side === 'b') [ax, ay] = [along * sw, -sh / 2]
-    const c = Math.cos(p.yaw)
-    const n = Math.sin(p.yaw)
-    return new THREE.Vector3(p.x + ax * c + 0.02 * n, p.y + ay, p.z - ax * n + 0.02 * c)
-  }
-  const arcs = EDGES.map((e) => ({
-    a: anchor(e.a, e.ex, e.ak),
-    b: anchor(e.b, e.en, e.bk),
-    bend: e.bend ?? 0.16,
-    lift: e.lift ?? 0.06,
-    tc: e.tc ?? 0.14,
-    key: `${e.a}>${e.b}`,
-    on: e.on,
-    hue: BOARD_HUE,
-  }))
-  return { ring, poses, arcs }
+/** 牌某条边上的接点（rig 局部）：半宽半高 + 沿边位置，再绕 Y 转牌自己的 yaw，
+    最后往外挪 2cm —— 线不埋在牌里。牌移动时用同一份位姿重算，端点不脱节 */
+function anchorInto(v, p, side, along = 0) {
+  const sw = HERO_W * p.scale
+  const sh = HERO_H * p.scale
+  let ax = 0
+  let ay = 0
+  if (side === 'l') [ax, ay] = [-sw / 2, along * sh]
+  if (side === 'r') [ax, ay] = [sw / 2, along * sh]
+  if (side === 't') [ax, ay] = [along * sw, sh / 2]
+  if (side === 'b') [ax, ay] = [along * sw, -sh / 2]
+  const c = Math.cos(p.yaw)
+  const n = Math.sin(p.yaw)
+  return v.set(p.x + ax * c + 0.02 * n, p.y + ay, p.z - ax * n + 0.02 * c)
 }
 
-const BASE = buildLayout(RINGS.base)
-const NARROW = buildLayout(RINGS.narrow)
-const WIDE = buildLayout(RINGS.wide)
+/** 一档席位 → 静态量：五个槽位、每条链路的端点与颜色（停稳时的兜底值） */
+function buildLayout(seats) {
+  const poses = [-2, -1, 0, 1, 2].map((k) => poseAt(k, seats))
+  const restPose = (board) => poses[(board > 2 ? board - N : board) + 2]
+  /* 席位不在一条水平线上，接边得看两块牌谁偏哪边：横向差大就左右接，纵向差大就上下接 */
+  const sides = (pa, pb) => {
+    const dx = pb.x - pa.x
+    const dy = pb.y - pa.y
+    if (Math.abs(dx) >= Math.abs(dy)) return dx > 0 ? ['r', 'l'] : ['l', 'r']
+    return dy > 0 ? ['b', 't'] : ['t', 'b']
+  }
+  const arcs = EDGES.map((e, i) => {
+    const ba = BOARD_AT[e.a]
+    const bb = BOARD_AT[e.b]
+    const [sa, sb] = sides(restPose(ba), restPose(bb))
+    const along = i % 2 ? -0.18 : 0.18
+    return {
+      a: ba,
+      b: bb,
+      sa,
+      sb,
+      along,
+      /* 停稳时的兜底端点：首帧之前 / ends 还没写进来时用它建管面 */
+      A: anchorInto(new THREE.Vector3(), restPose(ba), sa, along),
+      B: anchorInto(new THREE.Vector3(), restPose(bb), sb, -along),
+      bend: e.bend ?? 0.16,
+      lift: e.lift ?? 0.06,
+      tc: e.tc ?? 0.14,
+      key: `${ba}>${bb}`,
+      on: e.on,
+      /* 弧的颜色跟着它接过去的那块牌（目的板上的方案色），停稳时线牌同色 */
+      hue: HUES[bb],
+    }
+  })
+  return { seats, poses, arcs }
+}
+
+const BASE = buildLayout(SEATS.base)
+const NARROW = buildLayout(SEATS.narrow)
+const WIDE = buildLayout(SEATS.wide)
 
 export default function NeuralRig({ active, cmd, accent = SCENE.accent, panelLayout = false, still = false }) {
   /* 第三参是这套布景的离地高度：useAppear 每帧写 root.position.y，
@@ -138,6 +208,10 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent, panelLay
   const flow = useRef(EDGES.map(() => 0))
   const opLast = useRef(Array(N).fill(-1))
   const offLast = useRef(Array(N).fill(''))
+  /* 这一帧五块牌各自的位姿：板矩阵与链路端点读的是同一份，线不会滞后一帧 */
+  const poseLive = useRef(Array(N))
+  /* 四条弧的端点 + 高亮量：由这块 useFrame 写，FlowArc 只负责搬顶点 */
+  const arcEnds = useRef(EDGES.map(() => ({ a: new THREE.Vector3(), b: new THREE.Vector3(), boost: 0 })))
   /* 连续的轮播相位：0 是 0 号牌居中，1 是 1 号牌居中……到 5 回绕 */
   const phase = useRef(0)
   const acc = useRef(0)
@@ -205,8 +279,8 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent, panelLay
     const e = smooth01((f - HOLD_FRAC) / (1 - HOLD_FRAC))
     if (!still) phase.current = base + e
     const ph = still ? 0 : phase.current
-    /* 换位中把链路整组淡出：牌在动，线接在固定槽位边上会对不上 */
-    const settle = still ? 1 : 1 - Math.sin(Math.PI * e)
+    /* 换位进度（0 停稳、1 中段）：链路跟着牌走，同时在换位中段抬亮 */
+    const glow = still ? 0 : Math.sin(Math.PI * e)
 
     /* 中央牌：换到下一格的中点再翻，扫描带与 FOCUS 只在中央那一块出现 */
     const now = ((Math.round(ph) % N) + N) % N
@@ -215,16 +289,13 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent, panelLay
       setFocus(now)
     }
 
-    for (let i = 0; i < EDGES.length; i++) {
-      flow.current[i] = damp(flow.current[i], EDGES[i].on.includes(modeId) ? live * settle : 0, 3.2, dt)
-    }
-
     for (let i = 0; i < N; i++) {
       /* i - ph 落在 [-2.5, 2.5)：环形窗口的回绕点在透明度 0 的角落，
          所以看不见的那一侧可以任意接缝 */
       let k = i - ph
       k = ((((k + WRAP) % N) + N) % N) - WRAP
-      const p = poseAt(k, L.ring)
+      const p = poseAt(k, L.seats)
+      poseLive.current[i] = p
       const g = boards.current[i]
       if (g) {
         /* 不在这里加「空中微浮」：每帧改一次组矩阵，五个全屏级 DOM 图层
@@ -254,7 +325,26 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent, panelLay
         }
       }
     }
-  })
+
+    /* ―― 链路端点：直接拿上一轮算好的五块牌位姿，不另起一套运动学 ――
+       端点跟着牌走，牌在换位中段最亮，线色同时冲高一档；两端任一块退场时
+       整条弧一起变淡，回绕的那一格看不见接缝。
+       这段和上面写板矩阵在同一个 useFrame 里，且本回调排在 FlowArc 之前
+       （priority -1），所以渲染时线牌同帧，没有一帧的滞后 */
+    for (let i = 0; i < L.arcs.length; i++) {
+      const c = L.arcs[i]
+      const pa = poseLive.current[c.a]
+      const pb = poseLive.current[c.b]
+      const ends = arcEnds.current[i]
+      anchorInto(ends.a, pa, c.sa, c.along)
+      anchorInto(ends.b, pb, c.sb, -c.along)
+      ends.boost = glow
+      /* 只在有端点回绕（该牌整块退场）时才压暗整条弧；平时保持常亮，
+         否则侧牌 0.4 的常态亮度会把线一起拖灰，换位里的高亮就看不出来 */
+      const alive = Math.min(pa.opacity, pb.opacity) > 0.03 ? 1 : 0
+      flow.current[i] = damp(flow.current[i], EDGES[i].on.includes(modeId) ? live * alive : 0, 4.5, dt)
+    }
+  }, -1)
 
   /* 离中央越远层级越低：0 格 → 60，1 格 → 58，2 格 → 56。
      以 focus（已翻到新中央）为准，换位中点两侧牌等大时，进来的那块在上 */
@@ -269,13 +359,14 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent, panelLay
       <ContactGlow radius={1.8} color={accent} opacity={0.07} y={-CENTER + 0.012} />
 
       {/* ―― 数据链路：弯管 + 沿线短划 + 两枚离散数据包 ――
-          按槽位固定，牌停稳时端点正好接在相邻两块牌的边上；
-          换位期间整组淡出（settle），停稳后再亮回来 */}
+          端点每帧由上面的 useFrame 按牌的实际位姿写入 ends，换位时线跟着牌走；
+          中段线色抬到高亮，停稳回落。a / b 只是首帧之前用来建管面的兜底端点 */}
       {L.arcs.map((c, i) => (
         <FlowArc
           key={c.key}
-          a={c.a}
-          b={c.b}
+          a={c.A}
+          b={c.B}
+          ends={arcEnds.current[i]}
           bend={c.bend}
           lift={c.lift}
           towardCamera={c.tc}
@@ -288,7 +379,8 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent, panelLay
         />
       ))}
 
-      {/* ―― 五块同一块牌的复制品：真 DOM，按槽位透视摆在弧线上 ――
+      {/* ―― 五块方案展板：真 DOM，按槽位透视摆在弧线上 ――
+          index 传的是「这块板停稳时所在席位」的方案号，五块内容各不相同；
           pointerEvents 关掉：这一屏不需要点牌，牌是背景舞台的一部分。
           zIndexRange 与链屏同一段：高于 scrim、低于 StoryHero 的排版层（z-[70]）；
           前后层级由下面按「离中央几格」错开的 zIndexRange 保证 */}
@@ -313,7 +405,7 @@ export default function NeuralRig({ active, cmd, accent = SCENE.accent, panelLay
               pointerEvents="none"
               style={{ width: HERO.w, height: HERO.h, pointerEvents: 'none' }}
             >
-              <AgentPanel index={i} beat={beat} live={i === focus} yaw={s0.yaw} pitch={s0.pitch} />
+              <AgentPanel index={SEAT_OF[i]} beat={beat} live={i === focus} still={still} yaw={s0.yaw} pitch={s0.pitch} />
             </Html>
           </group>
         )

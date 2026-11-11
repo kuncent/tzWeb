@@ -16,8 +16,15 @@ import { Reveal } from '../ui'
  *   ③ 节点 0.72 → 1 弹入，六个错开 0.28s；悬停只加一圈辉光，不放大
  *   ④ 核心是呼吸光晕 + 两条 rotateX 压扁的轨道（12s / 18s 反向）+ 一条纵向
  *      扫描线；天择圆盘压在连线起点上，光是「从盘后出来」的
- *   ⑤ 背景一层 canvas 星尘（点 + 近邻连线的极淡网）和一层 20% 透明度的
- *      多边形网；两者都只做气氛，不参与语义
+ *   ⑤ 背景网由 canvas 统一绘制：26 个锚点极慢漂移，50 条连线每帧按节点
+ *      当前位置重画；节点、连线全是预分配的数组，绘制循环里不再分配对象
+ *
+ * 在这个骨架上补的几处「慢氛围」（都不改变内容与文案）：
+ *   · 六边形里的图标各自漂浮：幅度 3~4.5px、缩放 ±3%、周期 8.6~11.4s 且相位全错开，
+ *     部分略大略快形成轻微景深，读起来是浮在六个面上方，而不是在格子里闪
+ *   · 中心徽标外三枚 创新 / 服务 / 专业 玻璃框锁在同一条外环上：同半径、同角速度、
+ *     严格相隔 120°，外圈正向转、内层等量反向转抵消，框永远正立；整环一起轻微浮动
+ *   · 以上全部在滚出视口时暂停；减弱动效时直接落成静态完整构图
  *
  * 与参考稿的差异，都是为了这块内容：
  *   · 核心的「地球」（大陆 / 经纬线）换成天择圆盘——这里的主体是品牌
@@ -63,25 +70,63 @@ const LINKS = NODES.map((n) => {
   const c2y = sy + dy * 0.8 + py * len * 0.014
   return {
     d: `M ${sx.toFixed(1)} ${sy.toFixed(1)} C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${n.x} ${n.y}`,
-    // 落点：线撞到六边形边上那颗小站点点位
-    lx: n.x - ux * (HEX_U + 4),
-    ly: n.y - uy * (HEX_U + 4),
   }
 })
 
 const HEX_POINTS = '80,8 145,45 145,115 80,152 15,115 15,45'
 const HEX_INNER = '80,18 136,50 136,110 80,142 24,110 24,50'
 
-/* 与参考稿同构的 `scene` 背景网：一个十二边形 + 几条弦，压到 5% 左右 */
-const MESH = [
-  'M90 230L220 150 340 205 500 95 660 180 820 145 920 270 850 500 700 650 500 740 300 650 120 500Z',
-  'M90 230L120 500 300 650 340 205M220 150L500 95 660 180 850 500 700 650M340 205L500 740M660 180L500 740M820 145L700 650',
-  'M70 330L220 150M920 270L660 180M120 500L300 650M850 500L700 650',
-]
-const MESH_DOTS = [
+/* 背景网沿用参考稿的十二边形骨架，但节点改成活的：每帧按各自的慢速正弦
+   轨迹算出当前位置，连线再跟着节点重画。26 个点 + 50 条边用 canvas 一笔画完，
+   不占 DOM；节点与连线的坐标数组只在挂载时分配一次，绘制循环里不 new 任何东西。 */
+const NET_SPACE = { w: 1000, h: 820 }
+/* 节点漂移速度的整体倍率：在当前 1.2× 的基础上再 ×2.5，实际取 3.0×（相对首版慢速基准） */
+const NET_SPEED = 3.0
+const NET_ANCHORS = [
+  // 外圈：十二边形
   [90, 230], [220, 150], [340, 205], [500, 95], [660, 180], [820, 145],
   [920, 270], [850, 500], [700, 650], [500, 740], [300, 650], [120, 500],
+  // 内圈：八边形
+  [350, 330], [500, 300], [650, 330], [720, 430], [650, 520], [500, 550], [350, 520], [280, 430],
+  // 四角散点，把外圈再撑开一点
+  [300, 120], [700, 110], [110, 380], [890, 380], [300, 720], [700, 720],
 ]
+const NET_EDGES = [
+  // 外圈
+  [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 0],
+  // 长弦
+  [11, 2], [2, 9], [5, 8], [1, 4],
+  // 内圈
+  [12, 13], [13, 14], [14, 15], [15, 16], [16, 17], [17, 18], [18, 19], [19, 12],
+  // 内外桥接
+  [0, 12], [1, 12], [3, 13], [4, 14], [5, 14], [6, 15], [6, 16], [7, 16],
+  [7, 17], [8, 17], [9, 18], [10, 18], [10, 19], [11, 19],
+  // 散点接线
+  [1, 20], [3, 20], [3, 21], [5, 21], [11, 22], [0, 22], [6, 23], [7, 23],
+  [10, 24], [9, 24], [8, 25], [9, 25],
+]
+
+/* 图标漂浮参数：dx/dy 是像素幅度（3~4.5px），s0/s1 是这条轨迹两端的缩放
+   （形成景深差），周期 8.6~11.4s、delay 全不相同，所以六个图标不会同拍。 */
+const ICON_FLOAT = [
+  { dx: 4.5, dy: 3.2, s0: 1.04, s1: 1.005, dur: 9.1, delay: -1.6 },
+  { dx: 3.4, dy: 4.2, s0: 0.975, s1: 0.995, dur: 10.9, delay: -6.2 },
+  { dx: 4.1, dy: 2.9, s0: 1.02, s1: 0.99, dur: 8.6, delay: -3.9 },
+  { dx: 3.1, dy: 3.8, s0: 0.965, s1: 0.99, dur: 11.4, delay: -9.4 },
+  { dx: 4.2, dy: 3.5, s0: 1.035, s1: 1.005, dur: 9.8, delay: -5.1 },
+  { dx: 3.6, dy: 3.1, s0: 0.99, s1: 1.02, dur: 9.5, delay: -8.3 },
+]
+
+/* 中心徽标周围的三枚浮框锁在同一条外环上：同一半径、同一周期，初始角度
+   严格相隔 120°，所以任意时刻都等距。半径取场宽的 68%（始终大于圆盘半径），
+   72s 一圈；delay 由初始角度换算，让它们一开始就散在三个方向。 */
+const CORE_ORBIT = { r: 68, dur: 72 }
+const CORE_FRAMES = [
+  { label: '创新', a: -90 },
+  { label: '服务', a: 30 },
+  { label: '专业', a: 150 },
+]
+const orbitDelay = (a) => (-(((a % 360) + 360) % 360) / 360) * CORE_ORBIT.dur
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(
@@ -96,33 +141,66 @@ function useReducedMotion() {
   return reduced
 }
 
-/* 星尘：参考稿用 canvas 画点 + 近邻连线（150 个点两两比较，代价不低）。
-   这里降到 34 个点、连线半径 110px，只在视口内跑；滚出视口或标签页隐藏即停。 */
-function DustField() {
+/* 背景网：节点按各自的慢速正弦轨迹漂移，连线每帧按节点新位置重画。
+   绘制节流到 30fps —— 位移速度只有每秒一两像素，30fps 看不出差别，
+   但主线程的绘制开销直接减半；滚出视口 / 标签页隐藏即停。
+   减弱动效时不跑循环，只画一帧完整的静态网（构图不缺任何东西）。 */
+function NetField({ reduced }) {
   const ref = useRef(null)
   useEffect(() => {
     const cv = ref.current
     if (!cv) return
     const ctx = cv.getContext('2d')
     const dpr = Math.min(2, window.devicePixelRatio || 1)
-    const COUNT = 34
-    const LINK = 110
-    const dots = []
+    const nodes = NET_ANCHORS.map(([x, y], i) => ({
+      nx: x / NET_SPACE.w,
+      ny: y / NET_SPACE.h,
+      ax: 3.4 + (i % 4) * 1.5,
+      ay: 3.2 + ((i + 2) % 4) * 1.4,
+      sx: (0.17 + (i % 5) * 0.013) * NET_SPEED,
+      sy: (0.14 + ((i + 3) % 5) * 0.011) * NET_SPEED,
+      p: i * 1.37,
+      r: 1.9 + (i % 3) * 0.5,
+    }))
     let w = 0
     let h = 0
     let raf = 0
     let live = false
-    let last = 0
+    let lastPaint = -1
+    /* 坐标缓冲区与画笔样式都在挂载时定好，绘制循环里不再创建任何对象 */
+    const xs = new Float32Array(nodes.length)
+    const ys = new Float32Array(nodes.length)
+    const EDGE_STYLE = 'rgba(11,15,23,0.048)'
+    const DOT_STYLE = 'rgba(22,119,255,0.14)'
 
-    const spawn = () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      r: Math.random() * 1.15 + 0.45,
-      vx: (Math.random() - 0.5) * 9,
-      vy: (Math.random() - 0.5) * 9,
-      a: Math.random() * 0.35 + 0.12,
-      p: Math.random() * 6.28,
-    })
+    const paint = (t) => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.clearRect(0, 0, w, h)
+      const s = w / 1000
+      for (let i = 0; i < nodes.length; i += 1) {
+        const n = nodes[i]
+        xs[i] = n.nx * w + (Math.sin(t * n.sx + n.p) * n.ax + Math.sin(t * n.sx * 1.9 + n.p * 1.7) * n.ax * 0.3) * s
+        ys[i] = n.ny * h + (Math.cos(t * n.sy + n.p * 1.3) * n.ay + Math.cos(t * n.sy * 1.7 + n.p * 0.8) * n.ay * 0.3) * s
+      }
+
+      ctx.lineWidth = 1
+      ctx.strokeStyle = EDGE_STYLE
+      ctx.beginPath()
+      for (let i = 0; i < NET_EDGES.length; i += 1) {
+        const e = NET_EDGES[i]
+        ctx.moveTo(xs[e[0]], ys[e[0]])
+        ctx.lineTo(xs[e[1]], ys[e[1]])
+      }
+      ctx.stroke()
+
+      ctx.fillStyle = DOT_STYLE
+      ctx.beginPath()
+      for (let i = 0; i < nodes.length; i += 1) {
+        ctx.moveTo(xs[i] + nodes[i].r * s, ys[i])
+        ctx.arc(xs[i], ys[i], nodes[i].r * s, 0, Math.PI * 2)
+      }
+      ctx.fill()
+    }
 
     const resize = () => {
       const box = cv.getBoundingClientRect()
@@ -130,47 +208,14 @@ function DustField() {
       h = Math.max(1, Math.round(box.height))
       cv.width = Math.round(w * dpr)
       cv.height = Math.round(h * dpr)
-      if (!dots.length) for (let i = 0; i < COUNT; i += 1) dots.push(spawn())
+      if (reduced) paint(0)
     }
 
-    const paint = (t) => {
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      ctx.clearRect(0, 0, w, h)
-      const dt = last ? Math.min(48, t - last) / 1000 : 0
-      last = t
-
-      for (const d of dots) {
-        d.x += d.vx * dt
-        d.y += d.vy * dt
-        if (d.x < 0) d.x += w
-        if (d.x > w) d.x -= w
-        if (d.y < 0) d.y += h
-        if (d.y > h) d.y -= h
-      }
-
-      for (let i = 0; i < dots.length; i += 1) {
-        const a = dots[i]
-        for (let j = i + 1; j < dots.length; j += 1) {
-          const b = dots[j]
-          const dx = a.x - b.x
-          const dy = a.y - b.y
-          const d = Math.hypot(dx, dy)
-          if (d > LINK) continue
-          ctx.strokeStyle = `rgba(22,119,255,${((1 - d / LINK) * 0.08).toFixed(3)})`
-          ctx.lineWidth = 1
-          ctx.beginPath()
-          ctx.moveTo(a.x, a.y)
-          ctx.lineTo(b.x, b.y)
-          ctx.stroke()
-        }
-      }
-
-      for (const d of dots) {
-        ctx.fillStyle = `rgba(22,119,255,${(d.a * (0.62 + 0.38 * Math.sin(t / 900 + d.p))).toFixed(3)})`
-        ctx.beginPath()
-        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2)
-        ctx.fill()
-      }
+    if (reduced) {
+      resize()
+      const ro = new ResizeObserver(resize)
+      ro.observe(cv)
+      return () => ro.disconnect()
     }
 
     const tick = (t) => {
@@ -178,12 +223,16 @@ function DustField() {
         raf = 0
         return
       }
-      paint(t)
+      if (lastPaint < 0 || t - lastPaint >= 32) {
+        paint(t / 1000)
+        lastPaint = t
+      }
       raf = requestAnimationFrame(tick)
     }
     const start = () => {
+      if (live) return
       live = true
-      last = 0
+      lastPaint = -1
       if (!raf) raf = requestAnimationFrame(tick)
     }
     const stop = () => {
@@ -211,9 +260,41 @@ function DustField() {
       document.removeEventListener('visibilitychange', onVis)
       stop()
     }
-  }, [])
+  }, [reduced])
 
   return <canvas ref={ref} aria-hidden className="pointer-events-none absolute inset-0 z-0 h-full w-full" />
+}
+
+/* 中心徽标外的三枚浮框：三枚共用同一半径与同一周期，只差 120° 的初始角度，
+   所以始终等距地锁在一条外环上；外圈整体旋转（绕核心），内层等量反向旋转
+   把角度抵消，框因此永远正立。整环的轻微上下浮动放在 .fw-frames 上，
+   三枚同步升降，不会破坏等距读法。定角只在减弱动效时使用。 */
+function OrbitFrames() {
+  return (
+    <div className="fw-frames pointer-events-none absolute inset-0 z-[5]">
+      {CORE_FRAMES.map((f) => {
+        const style = {
+          '--dur': `${CORE_ORBIT.dur}s`,
+          '--delay': `${orbitDelay(f.a)}s`,
+          '--a': `${f.a}deg`,
+        }
+        return (
+          <span key={f.label} className="fw-orb" style={style}>
+            <span className="fw-orb-arm" style={{ '--r': `${CORE_ORBIT.r}%` }}>
+              <span className="fw-orb-fix" style={style}>
+                <span className="fw-orb-bob">
+                  <span className="fw-frame">
+                    <span className="fw-frame-dot" />
+                    {f.label}
+                  </span>
+                </span>
+              </span>
+            </span>
+          </span>
+        )
+      })}
+    </div>
+  )
 }
 
 /* 天择圆盘 + 轨道 + 扫描：核心场直径 216px（画布宽度的 20%），
@@ -221,6 +302,7 @@ function DustField() {
 function CoreField({ reduced, className = '', disc = 'inset-[11%]' }) {
   return (
     <div className={`fw-core relative aspect-square ${className}`}>
+      <OrbitFrames />
       <span
         aria-hidden
         className={`pointer-events-none absolute -inset-[30%] rounded-full ${reduced ? '' : 'fw-breathe'}`}
@@ -279,7 +361,7 @@ function CoreField({ reduced, className = '', disc = 'inset-[11%]' }) {
   )
 }
 
-function HexPlate({ icon: Icon, iconSize = 22, className = '' }) {
+function HexPlate({ icon: Icon, iconSize = 22, float, className = '' }) {
   return (
     <span className={`relative block aspect-square ${className}`}>
       <svg viewBox="0 0 160 160" className="block h-full w-full overflow-visible">
@@ -287,7 +369,23 @@ function HexPlate({ icon: Icon, iconSize = 22, className = '' }) {
         <polygon points={HEX_INNER} fill="none" stroke="rgba(22,119,255,0.2)" strokeWidth="0.7" />
       </svg>
       <span className="absolute inset-0 grid place-items-center text-brand-text">
-        <Icon size={iconSize} strokeWidth={1.6} />
+        <span
+          className={float ? 'fw-icon-drift' : ''}
+          style={
+            float
+              ? {
+                  '--dx': `${float.dx}px`,
+                  '--dy': `${float.dy}px`,
+                  '--s0': float.s0,
+                  '--s1': float.s1,
+                  animationDuration: `${float.dur}s`,
+                  animationDelay: `${float.delay}s`,
+                }
+              : undefined
+          }
+        >
+          <Icon size={iconSize} strokeWidth={1.6} />
+        </span>
       </span>
     </span>
   )
@@ -317,26 +415,7 @@ function RadialScene({ reduced, on, inView, sceneRef }) {
       className={`fw-scene relative mx-auto hidden w-full max-w-[1080px] xl:block ${on ? 'is-on' : ''} ${inView ? '' : 'fw-idle'}`}
       style={{ aspectRatio: `${G.w} / ${G.h}` }}
     >
-      {!reduced && <DustField />}
-
-      {/* 背景网：只做底纹，压到 5% */}
-      <svg
-        aria-hidden
-        viewBox="0 0 1000 820"
-        preserveAspectRatio="none"
-        className="pointer-events-none absolute inset-0 z-[1] h-full w-full"
-      >
-        <g fill="none" stroke="rgba(11,15,23,0.055)" strokeWidth="0.8" vectorEffect="non-scaling-stroke">
-          {MESH.map((d) => (
-            <path key={d} d={d} />
-          ))}
-        </g>
-        <g fill="rgba(22,119,255,0.16)">
-          {MESH_DOTS.map(([x, y]) => (
-            <circle key={`${x}-${y}`} cx={x} cy={y} r="2.6" />
-          ))}
-        </g>
-      </svg>
+      <NetField reduced={reduced} />
 
       {/* 连线：底下是常显虚线的「滚过」，上面叠一层流动的亮虚线 */}
       <svg
@@ -387,10 +466,6 @@ function RadialScene({ reduced, on, inView, sceneRef }) {
             style={{ '--d': `${2.1 + i * 0.08}s` }}
           />
         ))}
-
-        {LINKS.map((l) => (
-          <circle key={`s-${l.d}`} className="fw-station" cx={l.lx} cy={l.ly} r="3.2" fill="rgba(22,119,255,0.55)" />
-        ))}
       </svg>
 
       {/* 核心：天择圆盘 */}
@@ -416,6 +491,7 @@ function RadialScene({ reduced, on, inView, sceneRef }) {
               <div className="group relative">
                 <HexPlate
                   icon={Icon}
+                  float={ICON_FLOAT[i]}
                   className="w-full transition-[filter] duration-300 group-hover:drop-shadow-[0_0_16px_rgba(22,119,255,0.4)]"
                 />
                 <NodeLabel n={n} className={LABEL_POS[n.side]} />
@@ -443,7 +519,7 @@ function SpineNode({ n, i }) {
         }`}
       >
         <span className="relative">
-          <HexPlate icon={Icon} iconSize={19} className="h-[54px] w-[54px]" />
+          <HexPlate icon={Icon} iconSize={19} float={ICON_FLOAT[i]} className="h-[54px] w-[54px]" />
           <span
             aria-hidden
             className={`fw-branch absolute top-1/2 h-px w-7 bg-brand/25 ${left ? '-right-7 origin-right' : '-left-7 origin-left'}`}
@@ -474,7 +550,7 @@ function SpineScene({ reduced, on, inView, sceneRef }) {
         ))}
       </ul>
 
-      <div className="relative z-[3] flex justify-center py-4">
+      <div className="relative z-[3] flex justify-center py-12">
         <CoreField reduced={reduced} className="w-[128px]" disc="inset-[9%]" />
       </div>
 
@@ -535,10 +611,6 @@ export default function CoBuildFramework() {
         .fw-glow { opacity: 0; transition: opacity .9s ease var(--d, 2.1s); animation: fw-flow 4s linear infinite; }
         .fw-scene.is-on .fw-glow { opacity: .72; }
 
-        /* 落点小圆：流光亮起来之后才出现 */
-        .fw-station { opacity: 0; transition: opacity .5s ease 2.6s; }
-        .fw-scene.is-on .fw-station { opacity: 1; }
-
         /* ―― 核心：先缩后放到位（参考稿 centerIn 0.55 → 1.06 → 1），再呼吸 / 转轨道 / 扫描 ―― */
         .fw-core { opacity: 0; scale: .55; transition: opacity .5s ease .4s, scale 1.1s cubic-bezier(.34,1.42,.64,1) .4s; }
         .fw-scene.is-on .fw-core { opacity: 1; scale: 1; }
@@ -565,6 +637,71 @@ export default function CoBuildFramework() {
         }
         .fw-scan { animation: fw-scan 3.5s ease-in-out infinite; }
 
+        /* ―― 六边形内的图标：各自一条极慢漂浮轨迹（幅度 2~3px、缩放 ±3%），
+              周期与相位全错开，形成轻微景深差，读起来是浮在六个面之上 ―― */
+        @keyframes fw-icon-float {
+          0%, 100% { transform: translate3d(0, 0, 0) scale(var(--s0, 1)); }
+          30% { transform: translate3d(var(--dx, 2.5px), calc(var(--dy, 2.5px) * -0.65), 0) scale(var(--s1, 1)); }
+          58% { transform: translate3d(calc(var(--dx, 2.5px) * -0.55), var(--dy, 2.5px), 0) scale(var(--s0, 1)); }
+          82% { transform: translate3d(calc(var(--dx, 2.5px) * 0.35), calc(var(--dy, 2.5px) * 0.45), 0) scale(var(--s1, 1)); }
+        }
+        .fw-icon-drift { display: block; animation: fw-icon-float 12s ease-in-out infinite; will-change: transform; }
+
+        /* ―― 徽标外三枚浮框：同一外环、120° 等距；外圈绕核心转，内层等量
+              反向转抵消角度，框永远正立；上下浮动只给整环，三枚同步 ―― */
+        .fw-frames {
+          opacity: 0;
+          transition: opacity .7s ease 1.15s;
+          animation: fw-orb-bob 8.6s ease-in-out infinite;
+        }
+        .fw-scene.is-on .fw-frames { opacity: 1; }
+        @keyframes fw-orb-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fw-orb-spin-rev { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+        @keyframes fw-orb-bob { 0%, 100% { transform: translateY(-2.5px); } 50% { transform: translateY(2.5px); } }
+        .fw-orb { position: absolute; inset: 0; }
+        .fw-orb-arm { position: absolute; left: calc(50% + var(--r, 68%)); top: 50%; width: 0; height: 0; }
+        .fw-orb-fix { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+        .fw-orb {
+          animation: fw-orb-spin var(--dur, 72s) linear infinite;
+          animation-delay: var(--delay, 0s);
+        }
+        .fw-orb-fix {
+          animation: fw-orb-spin-rev var(--dur, 72s) linear infinite;
+          animation-delay: var(--delay, 0s);
+        }
+        .fw-orb-bob { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+        .fw-frame {
+          position: absolute;
+          left: 0;
+          top: 0;
+          transform: translate(-50%, -50%);
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 8px 4px 7px;
+          border-radius: 7px;
+          border: 1px solid rgba(22, 119, 255, 0.18);
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(244, 248, 255, 0.86));
+          box-shadow:
+            0 10px 22px -14px rgba(11, 74, 176, 0.55),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95);
+          font-size: 11.5px;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          line-height: 1;
+          color: var(--color-ink-800, #161b24);
+          white-space: nowrap;
+          backdrop-filter: blur(6px);
+        }
+        .fw-frame-dot {
+          width: 4px;
+          height: 4px;
+          border-radius: 1px;
+          background: rgba(22, 119, 255, 0.75);
+          box-shadow: 0 0 6px rgba(22, 119, 255, 0.35);
+          transform: rotate(45deg);
+        }
+
         /* ―― 竖轴版：轴从中间往两头长，支线从轴往外伸，节点依次到位 ―― */
         .fw-axis { transform: scaleY(0); transform-origin: center; transition: transform 1.1s cubic-bezier(.65,0,.35,1) .1s; }
         .fw-scene.is-on .fw-axis { transform: scaleY(1); }
@@ -578,7 +715,11 @@ export default function CoBuildFramework() {
         .fw-idle .fw-breathe,
         .fw-idle .fw-orbit-a,
         .fw-idle .fw-orbit-b,
-        .fw-idle .fw-scan { animation-play-state: paused; }
+        .fw-idle .fw-scan,
+        .fw-idle .fw-icon-drift,
+        .fw-idle .fw-frames,
+        .fw-idle .fw-orb,
+        .fw-idle .fw-orb-fix { animation-play-state: paused; }
 
         @media (prefers-reduced-motion: reduce) {
           .fw-node, .fw-node-row { opacity: 1; scale: 1; transition: none; }
@@ -586,26 +727,22 @@ export default function CoBuildFramework() {
           .fw-bloom { display: none; }
           .fw-link { stroke-dashoffset: 0; transition: none; }
           .fw-glow { opacity: .55; animation: none; transition: none; }
-          .fw-station { opacity: 1; transition: none; }
           .fw-axis, .fw-branch { transform: none; transition: none; }
           .fw-breathe, .fw-orbit-a, .fw-orbit-b, .fw-scan { animation: none; }
+          .fw-frames { opacity: 1; transition: none; animation: none; }
+          .fw-icon-drift { animation: none; }
+          .fw-orb { animation: none; transform: rotate(var(--a, 0deg)); }
+          .fw-orb-fix { animation: none; transform: rotate(calc(-1 * var(--a, 0deg))); }
         }
       `}</style>
 
       <div className="container-x relative">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <Reveal>
-            <p className="font-mono text-caption uppercase tracking-eyebrow text-brand-text">CO-BUILDING FRAMEWORK</p>
-            <h2 className="mt-2.5 text-[32px] font-bold leading-[1.04] tracking-tight text-ink-900 sm:text-[38px] lg:text-[46px]">
-              专业共建框架
-            </h2>
-          </Reveal>
-          <Reveal delay={0.08} className="lg:max-w-[40ch] lg:pb-1.5">
-            <p className="text-[13px] leading-[1.75] text-ink-500">
-              六个维度从同一个中心展开，彼此咬合成一套可执行的共建框架。
-            </p>
-          </Reveal>
-        </div>
+        <Reveal>
+          <p className="font-mono text-caption uppercase tracking-eyebrow text-brand-text">CO-BUILDING FRAMEWORK</p>
+          <h2 className="mt-2.5 text-[32px] font-bold leading-[1.04] tracking-tight text-ink-900 sm:text-[38px] lg:text-[46px]">
+            专业共建框架
+          </h2>
+        </Reveal>
 
         {wide ? (
           <RadialScene reduced={reduced} on={on} inView={inView} sceneRef={sceneRef} />

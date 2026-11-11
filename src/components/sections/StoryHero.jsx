@@ -119,12 +119,12 @@ function HeroIntro({ scene, still }) {
     transition: { duration: 0.62, delay, ease: EASE },
   })
   return (
-    /* 整块文案的宽度上限 = 标题最长一行（5 个字 ≈ 4.85 × 字号）：
+    /* 整块文案的宽度上限 = 标题区的既有宽度（4.85 × 旧标尺字号，桌面 341px）：
        桌面由外层列宽兜底，这一条负责窄屏堆叠版式 ——
-       标题最宽那一行只有 5 字，正文/色块却铺满整屏会显得上小下大，
-       也违背"下方内容不宽于标题"。
-       窄屏的标题字号单独放大到 16.7vw（上限仍是 4.4rem）：5 字标题在 390 上
-       约 316px 宽，正好占满手机的内容宽度，不会变成一条细窄的竖条 */
+       标题最长一行（「天择科技，AI」/「与数字产教的」，约 5.82 × 新字号）收在这条线内，
+       正文/色块如果铺满整屏会显得上小下大，也违背"下方内容不宽于标题"。
+       窄屏字号 13.9vw 是按这条宽度反解的：390 上最长行约 315px，
+       正好占满手机的内容宽度，不会变成一条细窄的竖条 */
     <div
       className="relative max-w-full"
       style={{ maxWidth: 'calc(4.85 * clamp(2.5rem, 16.7vw, 4.4rem))' }}
@@ -137,26 +137,35 @@ function HeroIntro({ scene, still }) {
         </span>
       </motion.div>
 
-      {/* 公司主张 —— 每行最多 6 字（本轮由 7 字收紧到 6），断点写死（不靠自动换行）：
-          天择科技 (4) / 构建下一代 (5) / 人才培养 (4) / 基础设施 (4)。
-          现有断行本来就每行 ≤ 6，所以这一轮文字与断点都没有变 —— 不是漏改。
-          也试过把它们排成更满的 6 字行：第二行要凑到 6 字只能写成「构建下一代人」，
-          会把「人才培养」拦腰截断（而「构建下一代人才」已经是 7 字，超限）；
-          把「基础设施」拆成「人才培养基础 / 设施」则会留下 2 字尾行。两种都属于拆词，
-          所以维持 4/5/4/4。最长一行 5 字 × (1 − 0.03 字距) = 4.85 倍字号，
-          外层左栏与下方内容都按这个宽度收，标题不会溢出、下方也不会宽过它 */}
-      <h1 className="relative mt-4 max-w-full whitespace-nowrap text-[clamp(2.5rem,16.7vw,4.4rem)] font-bold leading-[1.02] tracking-[-0.03em] text-white lg:text-h1">
+      {/* 公司主张 —— 文案固定为「天择科技，AI 与数字产教的创新实践者」，断点写死：
+          天择科技，AI (5 字 + AI) / 与数字产教的 (6 字) / 创新实践者 (5 字)。
+          三行宽度约 5.82 / 5.82 / 4.85 倍字号，是这套文案在「不拆词」前提下发色最匀的断法：
+          「天择科技」与逗号必须留在首行（行首不能是标点）；「数字产教」是完整术语，
+          不能拆到两行；「创新实践者」整词收尾，尾行 5 字，不会留下孤字。
+          换行只会落在原文的空格处与标点之后，标点仍按原文保留。
+          左栏宽度（4.85 × 旧字号 = 341px）这一轮不动，所以标题字号相应收到
+          约 0.83 倍（最长行 5.82 × 56.8px ≈ 331px < 341px），下方段落 / 色块 / CTA
+          继续收在标题宽度内，醒目程度靠三行满排而不是靠超宽溢出来撑 */}
+      {/* 首行拆成两段颜色：品牌名「天择科技，」（含全角逗号）走白色，
+          同一行余下的「AI 」与后两行走场景强调色（scene.accent）。
+          只加一个内联色的小 span，不动文案、字号、断行与列宽；
+          文字节点与空白保持不变，首行宽度不受影响。
+          仍不做任何 background-clip 渐变 —— 两段都是平色，交界处是一条硬色界 */}
+      <h1
+        className="relative mt-4 max-w-full whitespace-nowrap text-[clamp(2.1rem,13.9vw,3.55rem)] font-bold leading-[1.02] tracking-[-0.03em] lg:text-[clamp(2.15rem,calc(1.25rem_+_3.1vw),3.55rem)]"
+        style={{ color: scene.accent }}
+      >
         <span className="block overflow-hidden">
-          <motion.span className="block" {...rise(0.06)}>天择科技</motion.span>
+          <motion.span className="block" {...rise(0.06)}>
+            <span style={{ color: '#fff' }}>{'天择科技，'}</span>
+            {'AI '}
+          </motion.span>
         </span>
         <span className="block overflow-hidden">
-          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.12)}>构建下一代</motion.span>
+          <motion.span className="block" {...rise(0.12)}>与数字产教的</motion.span>
         </span>
         <span className="block overflow-hidden">
-          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.18)}>人才培养</motion.span>
-        </span>
-        <span className="block overflow-hidden">
-          <motion.span className="block" style={{ color: scene.accent }} {...rise(0.24)}>基础设施</motion.span>
+          <motion.span className="block" {...rise(0.18)}>创新实践者</motion.span>
         </span>
       </h1>
 
@@ -561,9 +570,9 @@ export default function StoryHero() {
                左半屏的指针事件全截走 —— 链屏那条看板线伸到 x 230 起，左边几块牌
                点不到就是这么被吃掉的（实测 elementFromPoint 在牌心返回的是文案
                那个 motion 容器）。真正要交互的只有下面那两个按钮，它们自己接回 auto */}
-            {/* 左文案列：宽度直接跟标题字号走 —— 标题最长一行 5 个字、字距 -0.03em，
-                5 × (1 − 0.03) = 4.85 倍字号。列宽按这个值定死，标题那一行就
-                恰好占满整列：标题不会溢出，下方副文案 / 产品栅格也天然不会宽过它 */}
+            {/* 左文案列：宽度是首屏沿用下来的标题量尺（4.85 × 旧标尺字号，桌面 341px）。
+                新的三行标题按这条量尺反解字号（最长行 5.82 × 56.8px ≈ 331px），
+                列宽本身不动：标题那一行仍收在列内，下方副文案 / 产品栅格也不会宽过它 */}
             <div
               className="pointer-events-none absolute inset-y-0 left-10 flex flex-col justify-center pt-[132px] pb-[156px]"
               style={{ width: 'calc(4.85 * clamp(2.5rem, 1.5rem + 3.8vw, 4.4rem))' }}

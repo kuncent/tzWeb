@@ -85,7 +85,7 @@ export const navCta = { label: '预约演示', to: '/about#contact' }
 export const advisorKicker = '构建下一代人才培养基础设施'
 export const advisorTitle = ['用科技重塑教育', '让培养的人才', '站在时代前沿']
 export const advisorDesc =
-  '我们为高校提供区块链、数字金融、传统金融、数字经济、新商科大数据、电子商务、智能产品与其他产品体系，以及数字经济、金融科技、应用统计、商务数据分析、工商科一体化五套实验教学方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
+  '我们为高校提供区块链、数字金融、创新金融、数字经济、新商科大数据、电子商务、智能产品与其他产品体系，以及数字经济、金融科技、应用统计、商务数据分析、工商科一体化五套实验教学方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
 export const advisorCtas = [
   { label: '免费开通试用', primary: true },
   { label: '方案咨询', primary: false },
@@ -162,15 +162,15 @@ export const productMatrix = [
     rich: 'gallery',
   },
   {
-    id: 'traditional-finance',
-    en: 'TRADITIONAL FINANCE',
+    id: 'innovation-finance',
+    en: 'INNOVATION FINANCE',
     icon: Briefcase,
-    title: PRODUCT_NAMES['traditional-finance'],
+    title: PRODUCT_NAMES['innovation-finance'],
     tagline: '银行、证券、保险到供应链金融，经典金融业务逐岗位仿真',
     desc: '覆盖商业银行、投资银行、保险、供应链金融与公司金融等经典业务：按真实机构岗位流程设计，案例数据内置、规则校验自动评分，学生在校内即可走完一笔完整业务。',
     bullets: ['商业银行 · 投资银行', '保险综合业务', '供应链金融 · 公司金融', '模拟交易 · 外汇 · 网贷众筹'],
     stats: [{ k: '实训系统', v: '11 套' }, { k: '界面实景', v: '31 张' }],
-    intent: PRODUCT_NAMES['traditional-finance'],
+    intent: PRODUCT_NAMES['innovation-finance'],
     rich: 'gallery',
   },
   {
@@ -294,18 +294,18 @@ export const galleryProducts = {
     gal('ml-lab', 'ML-LAB', 'MACHINE LEARNING', '机器学习实验系统', '考练学一体 · 近 80 个案例集锦', '系统以在线 Python 编译器为工具，机器学习实验实操为主体、考练学一体，内置回归、决策树、随机森林、神经网络等案例与近 80 个案例集锦。', '人工智能、数据科学与大数据技术', 5, PRODUCT_NAMES['digital-finance']),
     gal('smart-biz-ops', 'BIZ-OPS', 'SMART BUSINESS OPS', '数智财经运营决策实战系统', '虚拟商业社会 · 跨专业分岗实训', '平台构建虚拟商业社会环境，以数字经济时代智能制造企业运营为主线开展跨专业综合实训，含撮合交易竞争机制与碳定价碳交易沙盘模拟。', '工商管理、财务管理等跨专业', 6, PRODUCT_NAMES['digital-finance']),
   ],
-  'traditional-finance': [
-    gal('supply-chain-fin', 'SCF', 'SUPPLY CHAIN FINANCE', '供应链金融教学系统', '五种供应链融资业务模式实验', '系统涵盖存货质押、保兑仓、应收账款质押、正向保理、反向保理五种融资业务模式实验，支持个人与分组分角色团队实验，自动评分统计成绩。', '金融学、供应链管理', 3, PRODUCT_NAMES['traditional-finance']),
-    gal('corporate-fin', 'CORP-FIN', 'CORPORATE FINANCE', '公司金融实训系统', '七大模块 · 18 个教学任务', '系统涵盖收益与风险、价值评估、投资决策、融资决策、营运资本管理、公司财务分析、财务预警七大模块共 18 个教学任务，引入 Python 计算与可视化。', '金融学、财务管理', 3, PRODUCT_NAMES['traditional-finance']),
-    gal('commercial-bank', 'BANK', 'COMMERCIAL BANKING', '商业银行综合业务', '七大业务模块 · 多岗位柜面模拟', '系统涵盖个人银行卡、存取款、贷款、对公活期、对公贷款、支付结算、国际结算七大业务模块，支持柜员、信贷员、国际结算专员等岗位模拟。', '金融学、投资学', 3, PRODUCT_NAMES['traditional-finance']),
-    gal('investment-bank', 'IB', 'INVESTMENT BANKING', '投资银行实验教学系统', '募 · 投 · 管 · 退四步完整流程', '系统模拟投资实务操作流程，包含私募基金募集、项目投资、投后管理、项目退出四个完整步骤，配套全流程文件模板与《投资银行实验教程》教辅。', '投资学、金融学、财务管理', 3, PRODUCT_NAMES['traditional-finance']),
-    gal('wealth-planning', 'WEALTH', 'WEALTH PLANNING', '智能理财分析教学系统', '理财顾问岗位全流程规划', '系统参照真实理财机构要求、基于理财顾问岗位流程设计，涵盖风险测评、家庭财务报表分析到投资、保险、税务、传承规划的完整理财规划流程。', '金融学、财务管理', 3, PRODUCT_NAMES['traditional-finance']),
-    gal('fin-sim-trading', 'SIM-TRADE', 'SIMULATED TRADING', '金融模拟交易教学系统', '六大交易所实时行情 · 精准撮合', '系统严格按真实交易所规则设计，接入国内六大交易所实时行情，清算中心与撮合引擎分离，提供股票、基金、期货模拟交易与竞赛排名机制。', '投资学、金融工程', 3, PRODUCT_NAMES['traditional-finance']),
-    gal('forex-sim', 'FOREX', 'FOREX SIMULATION', '外汇模拟交易实验系统', '主要货币对 · 仿真下单与风控', '系统分学生端与教师端，覆盖美元/日元、欧元/美元等主要货币对，提供仿真下单、持仓管理、外汇风险预警与班级交易排行、实验报告评分。', '金融学、投资学', 3, PRODUCT_NAMES['traditional-finance']),
-    gal('insurance-biz', 'INS', 'INSURANCE BUSINESS', '保险综合业务教学系统', '十八险种 · 九大角色全流程', '系统以保险公司内部经营为模板，涵盖财险寿险十八个险种、九大角色，实现从保险计划书制作、承保到理赔的全流程实验，内置全仿真单据。', '保险学、精算学', 4, PRODUCT_NAMES['traditional-finance']),
-    gal('venture-capital', 'VC', 'VENTURE CAPITAL', '风险投资虚拟仿真系统', '注册制一级市场募投管退', '系统模拟注册制下一级市场基金投资运作，完整覆盖私募股权投资募、投、管、退四个流程，含财务尽调、估值、IPO 发行与择机退出收益分配。', '投资学、金融学、财务管理', 3, PRODUCT_NAMES['traditional-finance']),
-    gal('online-lending', 'P2P', 'ONLINE LENDING', '网络融资教学系统', '四种贷款产品 · 仿真网贷风控', '系统包含信用标、抵押标、担保标、实地标四种贷款产品，仿真真实网贷流程与风控措施，内置 12 种网贷产品及 16 个案例，可反复实验。', '金融科技、互联网金融', 3, PRODUCT_NAMES['traditional-finance']),
-    gal('fin-mgmt-crowdfund', 'CROWD', 'INTERNET FINANCE MGMT', '金融管理实训(互联网金融)系统', '三种众筹 · 仿真众筹全流程', '系统包含奖励众筹、股权众筹、公益众筹三种众筹方式，仿真真实众筹系统功能流程，采用虚拟时间体验众筹业务流程、平台收费运营与风控措施，具备完善的股权管理与资金台账统计。', '金融科技、互联网金融', 0, PRODUCT_NAMES['traditional-finance']),
+  'innovation-finance': [
+    gal('supply-chain-fin', 'SCF', 'SUPPLY CHAIN FINANCE', '供应链金融教学系统', '五种供应链融资业务模式实验', '系统涵盖存货质押、保兑仓、应收账款质押、正向保理、反向保理五种融资业务模式实验，支持个人与分组分角色团队实验，自动评分统计成绩。', '金融学、供应链管理', 3, PRODUCT_NAMES['innovation-finance']),
+    gal('corporate-fin', 'CORP-FIN', 'CORPORATE FINANCE', '公司金融实训系统', '七大模块 · 18 个教学任务', '系统涵盖收益与风险、价值评估、投资决策、融资决策、营运资本管理、公司财务分析、财务预警七大模块共 18 个教学任务，引入 Python 计算与可视化。', '金融学、财务管理', 3, PRODUCT_NAMES['innovation-finance']),
+    gal('commercial-bank', 'BANK', 'COMMERCIAL BANKING', '商业银行综合业务', '七大业务模块 · 多岗位柜面模拟', '系统涵盖个人银行卡、存取款、贷款、对公活期、对公贷款、支付结算、国际结算七大业务模块，支持柜员、信贷员、国际结算专员等岗位模拟。', '金融学、投资学', 3, PRODUCT_NAMES['innovation-finance']),
+    gal('investment-bank', 'IB', 'INVESTMENT BANKING', '投资银行实验教学系统', '募 · 投 · 管 · 退四步完整流程', '系统模拟投资实务操作流程，包含私募基金募集、项目投资、投后管理、项目退出四个完整步骤，配套全流程文件模板与《投资银行实验教程》教辅。', '投资学、金融学、财务管理', 3, PRODUCT_NAMES['innovation-finance']),
+    gal('wealth-planning', 'WEALTH', 'WEALTH PLANNING', '智能理财分析教学系统', '理财顾问岗位全流程规划', '系统参照真实理财机构要求、基于理财顾问岗位流程设计，涵盖风险测评、家庭财务报表分析到投资、保险、税务、传承规划的完整理财规划流程。', '金融学、财务管理', 3, PRODUCT_NAMES['innovation-finance']),
+    gal('fin-sim-trading', 'SIM-TRADE', 'SIMULATED TRADING', '金融模拟交易教学系统', '六大交易所实时行情 · 精准撮合', '系统严格按真实交易所规则设计，接入国内六大交易所实时行情，清算中心与撮合引擎分离，提供股票、基金、期货模拟交易与竞赛排名机制。', '投资学、金融工程', 3, PRODUCT_NAMES['innovation-finance']),
+    gal('forex-sim', 'FOREX', 'FOREX SIMULATION', '外汇模拟交易实验系统', '主要货币对 · 仿真下单与风控', '系统分学生端与教师端，覆盖美元/日元、欧元/美元等主要货币对，提供仿真下单、持仓管理、外汇风险预警与班级交易排行、实验报告评分。', '金融学、投资学', 3, PRODUCT_NAMES['innovation-finance']),
+    gal('insurance-biz', 'INS', 'INSURANCE BUSINESS', '保险综合业务教学系统', '十八险种 · 九大角色全流程', '系统以保险公司内部经营为模板，涵盖财险寿险十八个险种、九大角色，实现从保险计划书制作、承保到理赔的全流程实验，内置全仿真单据。', '保险学、精算学', 4, PRODUCT_NAMES['innovation-finance']),
+    gal('venture-capital', 'VC', 'VENTURE CAPITAL', '风险投资虚拟仿真系统', '注册制一级市场募投管退', '系统模拟注册制下一级市场基金投资运作，完整覆盖私募股权投资募、投、管、退四个流程，含财务尽调、估值、IPO 发行与择机退出收益分配。', '投资学、金融学、财务管理', 3, PRODUCT_NAMES['innovation-finance']),
+    gal('online-lending', 'P2P', 'ONLINE LENDING', '网络融资教学系统', '四种贷款产品 · 仿真网贷风控', '系统包含信用标、抵押标、担保标、实地标四种贷款产品，仿真真实网贷流程与风控措施，内置 12 种网贷产品及 16 个案例，可反复实验。', '金融科技、互联网金融', 3, PRODUCT_NAMES['innovation-finance']),
+    gal('fin-mgmt-crowdfund', 'CROWD', 'INTERNET FINANCE MGMT', '金融管理实训(互联网金融)系统', '三种众筹 · 仿真众筹全流程', '系统包含奖励众筹、股权众筹、公益众筹三种众筹方式，仿真真实众筹系统功能流程，采用虚拟时间体验众筹业务流程、平台收费运营与风控措施，具备完善的股权管理与资金台账统计。', '金融科技、互联网金融', 0, PRODUCT_NAMES['innovation-finance']),
   ],
   'digital-economy': [
     gal('digital-trade', 'D-TRADE', 'DIGITAL TRADE', '数字贸易实验系统', '十三章 · 50+ 实务项目', '系统以数字教材框架模式为设计蓝图，涵盖十三个章节、50 多个实务项目，涉及数字贸易标准规则、法律法规、知识产权保护与数据要素交易。', '数字经济、国际经济与贸易', 3, PRODUCT_NAMES['digital-economy']),

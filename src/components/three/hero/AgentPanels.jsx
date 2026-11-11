@@ -3,14 +3,14 @@ import { solutionPlans } from '../../../data/pages'
 /* ============================================================
  * AI 屏空中那块展板 —— 板面是 DOM，不是 canvas 纹理
  * ------------------------------------------------------------
- * 板面内容 = 五大解决方案里的第一套（数字经济），字段全部直接读
- * solutionPlans（src/data/pages.js）：标题、主线、指标、课程层、编号
- * 都不在这里另造说法 —— 首屏与 /solutions 说两套话，是 B 端官网
- * 最容易被客户当场抓住的事故。
+ * 板面内容 = 五大解决方案（数字经济 / 金融科技 / 应用统计 / 商务数据分析 /
+ * 工商科一体化），字段全部直接读 solutionPlans（src/data/pages.js）：
+ * 标题、主线、培养定位、英文名与编号都不在这里另造说法 —— 首屏与 /solutions
+ * 说两套话，是 B 端官网最容易被客户当场抓住的事故。
  *
- * 轮播后场上有五块牌，但它们是同一块牌的复制品：内容、尺寸、强调色
- * 完全一致（见下面的 BOARD / BOARD_HUE）。区分五块只靠位置、缩放、
- * 亮度 —— 用户明确要求「不改内容、不改摆放，只加轮播」。
+ * 五块牌各挂一套方案，强调色按方案固定（HUES），牌换位时颜色跟着牌走，
+ * 不会出现「同一块牌换个位置就换了个颜色」。版式只有一套（主牌 288×178）：
+ * 轮到中央时要能读全；侧牌靠席位纵深 + 3D 缩放 + 亮度退到背景里。
  *
  * 为什么走 DOM 不是纹理：字过 canvas 纹理要吃三道折损（烤进纹理、按 dpr 0.8
  * 贴出、被 Bloom 阈值糊一层）。drei 的 <Html transform> 把真 DOM 按相机透视
@@ -34,15 +34,24 @@ export const HERO_W = (HERO.w * ADF) / 400
 export const HERO_H = (HERO.h * ADF) / 400
 
 /* ―― 五支通道色（蓝 → 青等距阶梯）――
-   板面的强调色仍然只取第一支（BOARD_HUE）：轮播的五块牌是同一块牌的复制品，
-   内容、材质、尺寸都必须一模一样，否则就成了「换图轮播」而不是「同一块牌在走位」。 */
+   五块牌各挂一套方案，要在一屏里彼此认得出，又不能像随机蓝：沿蓝→青把色相
+   等距排开、明度逐档对齐，读作一条刻意的光谱。与 StoryHero 的 PRODUCT_HUES 同族。 */
 export const HUES = ['#5C8DFF', '#46A2FF', '#2FB8F0', '#1FCBE0', '#2AD9C9']
-export const BOARD_HUE = HUES[0]
 
-/* ―― 板面内容：固定取第一套方案（原主牌那一块）――
-   轮播不改内容 —— 五块牌渲染的是同一份 plan，谁走到中央都是它。
-   标题、主线、指标、课程层、编号全部原样读 solutionPlans，不另造说法。 */
-const BOARD = solutionPlans[0]
+/* ―― 五块展板 = 五套方案：字段原样取自 pages.js ――
+   index 就是方案序号（0 数字经济 … 4 工商科一体化），与轮播前一致；
+   NeuralRig 按「停稳时这块板坐在哪个席位」把这个序号传进来。
+   app = 方案简称（标题栏），sub = 培养定位（标题栏副行），en = 英文名，n = 方案序号。
+   标题、主线、培养定位、英文名与编号全部取自方案自身（plan.n），
+   不会出现「方案换了、编号还是旧的」这种图文不符。
+   席位通道色（HUES）按方案固定，跟着牌走 —— 牌换位时颜色不会跳。 */
+const planAt = (i) => solutionPlans[i]
+export const APPS = solutionPlans.map((p) => ({
+  app: p.short,
+  en: p.en,
+  n: p.n,
+  sub: p.positioning,
+}))
 
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace'
 const SANS = '"PingFang SC", "Microsoft YaHei", system-ui, sans-serif'
@@ -171,70 +180,311 @@ function Mainline({ steps, hue, b, live, size = 8.5, compact }) {
   )
 }
 
-/** 指标：一枚数值 + 一枚标签。主图（hero）用大号，卫星牌用小号 */
-function Metric({ k, v, hue, big }) {
+/* ============================================================
+ * 中间区：图标塔 + 终端出码，五块牌同一套语言
+ * ------------------------------------------------------------
+ * 只读 solutionPlans 里已有的东西：方案图标（plan.icon）、英文名、主线、
+ * 培养定位。不写产品数、不造指标 —— 牌上出现的每个词都能在 /solutions 找到出处。
+ * 终端把方案读作「一段正在跑的命令」：提示符 + 方案号 + 四段主线；
+ * 打字盖板只挂在中央那一块，滑走的是合成层，不逐帧改字。
+ * ============================================================ */
+
+/** 图标塔：方案自己的图标 + 四枚跟着主线走的点 */
+function IconTower({ plan, hue, b }) {
+  const Glyph = plan.icon
+  const cur = b % plan.mainline.length
   return (
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ fontFamily: MONO, fontSize: big ? 18 : 12, fontWeight: big ? 700 : 600, lineHeight: 1.1, color: hue, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v}</div>
-      <div style={{ marginTop: 1, fontFamily: SANS, fontSize: big ? 9 : 8, color: 'rgba(255,255,255,0.68)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{k}</div>
+    <div
+      style={{
+        position: 'relative',
+        width: 56,
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 7,
+        clipPath: cut(8),
+        background: `linear-gradient(180deg,${hue}26,rgba(255,255,255,0.02) 58%,${hue}12)`,
+        boxShadow: `inset 0 1px 0 ${hue}55, inset 0 0 16px ${hue}12`,
+      }}
+    >
+      {Glyph ? <Glyph size={30} strokeWidth={1.4} color={hue} /> : null}
+      <span style={{ display: 'flex', gap: 3 }}>
+        {plan.mainline.map((s, i) => (
+          <span
+            key={s}
+            style={{
+              width: 4,
+              height: 4,
+              borderRadius: 4,
+              background: i === cur ? hue : `${hue}4a`,
+              boxShadow: i === cur ? `0 0 6px ${hue}` : 'none',
+              transition: `background .4s ${EASE}, box-shadow .4s ${EASE}`,
+            }}
+          />
+        ))}
+      </span>
     </div>
   )
 }
 
-/** 课程层：四层的名字，同宽的斜角小格 —— 结构一眼能数清是四层 */
-function LayerRow({ layers, hue, size = 7.5 }) {
+/* ―― 中间区形态：按方案本身选仪表，而不是五块同一台终端 ――
+   01 数字经济（增量/网络）→ 折线趋势
+   02 金融科技（多标的对比）→ 柱列
+   03 应用统计（抽样/分布）→ 径向分布仪表
+   04 商务数据分析（取数/查询）→ 终端
+   05 工商科一体化（流程编排）→ 终端
+   折线 / 柱列 / 径向分布都是示意占位：轴上不写数值、图例不写百分比，
+   牌是「在做分析」的样子，不是一张经营看板，不编造真实指标。 */
+const DISPLAY = ['trend', 'bars', 'radial', 'terminal', 'terminal']
+
+const TREND_A = [0.16, 0.3, 0.24, 0.42, 0.36, 0.55, 0.46, 0.64]
+const TREND_B = [0.1, 0.18, 0.15, 0.26, 0.22, 0.33, 0.28, 0.4]
+const BARS_A = [0.34, 0.52, 0.42, 0.66, 0.48, 0.8]
+const BARS_B = [0.28, 0.6, 0.36, 0.7, 0.55, 0.74]
+
+/* 三种仪表共用一块屏：同底色、同切角、同一枚左下角小标 */
+const screenBox = (hue) => ({
+  position: 'relative',
+  flex: 1,
+  minWidth: 0,
+  boxSizing: 'border-box',
+  padding: '5px 7px 11px',
+  clipPath: cut(8),
+  background: '#060b14',
+  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px ${hue}26`,
+  overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+})
+
+function Tag({ hue, t }) {
   return (
-    <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
-      {layers.map((t, i) => (
-        <span
-          key={t}
-          style={{
-            flex: 1,
-            minWidth: 0,
-            textAlign: 'center',
-            padding: '2px 1px',
-            clipPath: cut(4),
-            background: `linear-gradient(180deg,${hue}${i === 0 ? '24' : '22'},rgba(255,255,255,0.02))`,
-            borderBottom: `1px solid ${hue}${i === 0 ? '99' : '55'}`,
-            fontFamily: SANS,
-            fontSize: size,
-            color: 'rgba(255,255,255,0.82)',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {t}
-        </span>
+    <span style={{ position: 'absolute', left: 7, bottom: 4, fontFamily: MONO, fontSize: 6.5, letterSpacing: 0.7, color: `${hue}99` }}>{t}</span>
+  )
+}
+
+const linePath = (vals, x0, x1, y0, y1) =>
+  vals.map((v, i) => `${i ? 'L' : 'M'}${(x0 + (i / (vals.length - 1)) * (x1 - x0)).toFixed(1)},${(y1 - v * (y1 - y0)).toFixed(1)}`).join(' ')
+
+/** 折线：两条抽象序列 + 一枚跟着节拍走的读数点；无坐标数值
+    过渡只给中央那块 —— 五块同时做 CSS 过渡等于让五个全屏 DOM 图层一起重合成 */
+function Trend({ hue, b, uid, live }) {
+  const i = b % TREND_A.length
+  const mx = 8 + (i / (TREND_A.length - 1)) * 184
+  const my = 66 - TREND_A[i] * 52
+  return (
+    <svg viewBox="0 0 200 80" width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block' }}>
+      <defs>
+        <linearGradient id={`tr${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={hue} stopOpacity="0.26" />
+          <stop offset="100%" stopColor={hue} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {[22, 42, 62].map((y) => (
+        <line key={y} x1="6" x2="194" y1={y} y2={y} stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" vectorEffect="non-scaling-stroke" />
       ))}
+      <path d={`${linePath(TREND_A, 8, 192, 14, 66)} L192,72 L8,72 Z`} fill={`url(#tr${uid})`} />
+      <path d={linePath(TREND_B, 8, 192, 14, 66)} fill="none" stroke={hue} strokeOpacity="0.34" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+      <path d={linePath(TREND_A, 8, 192, 14, 66)} fill="none" stroke={hue} strokeWidth="1.6" vectorEffect="non-scaling-stroke" />
+      <circle
+        cx="0"
+        cy="0"
+        r="2.4"
+        fill={hue}
+        style={{ transform: `translate(${mx}px,${my}px)`, transition: live ? 'transform 1.1s cubic-bezier(0.22,0.61,0.36,1)' : 'none' }}
+      />
+    </svg>
+  )
+}
+
+/** 柱列：六根对比柱，节拍换一组高度、当前柱点亮；无刻度数值 */
+function Bars({ hue, b, live }) {
+  const vals = b % 2 ? BARS_B : BARS_A
+  const cur = b % vals.length
+  return (
+    <svg viewBox="0 0 200 80" width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block' }}>
+      {vals.map((v, i) => (
+        <rect
+          key={i}
+          x={10 + i * 30}
+          y="12"
+          width="16"
+          height="54"
+          fill={i === cur ? hue : `${hue}3d`}
+          style={{
+            transform: `scaleY(${v})`,
+            transformBox: 'fill-box',
+            transformOrigin: 'bottom',
+            transition: live ? 'transform 1.2s cubic-bezier(0.22,0.61,0.36,1), fill .5s' : 'none',
+          }}
+        />
+      ))}
+      <line x1="8" x2="192" y1="66" y2="66" stroke="rgba(255,255,255,0.16)" strokeWidth="0.8" vectorEffect="non-scaling-stroke" />
+    </svg>
+  )
+}
+
+/** 径向分布仪表：外圈 49 枚刻度 + 三层同心弧 + 36 根辐条与分布包络 + 巡扫扇区。
+    03 应用统计读作一台正在扫描的仪器；不写任何刻度值 / 百分比。
+    辐条与包络按节拍整组换形（包络的 d 无法过渡，索性整组刷新，像雷达重采样），
+    连续的慢动效只有扫臂：transform 过渡，且只给中央那块 */
+const RAD_N = 36
+const RAD_WOBBLE = [
+  [0.86, 1, 0.92, 1.08, 0.8, 0.96],
+  [0.9, 0.82, 1.04, 0.94, 1.1, 0.88],
+]
+const radProfile = (k, peak, spread) =>
+  Array.from({ length: RAD_N }, (_, i) => {
+    const t = i / (RAD_N - 1)
+    const bell = Math.exp(-(((t - peak) / spread) ** 2))
+    return Math.max(0.18, Math.min(1, bell * RAD_WOBBLE[k][i % 6]))
+  })
+const RAD_A = radProfile(0, 0.46, 0.3)
+const RAD_B = radProfile(1, 0.6, 0.26)
+const RAD_TICKS = Array.from({ length: 49 }, (_, i) => {
+  const a = Math.PI + (i / 48) * Math.PI
+  const r2 = i % 6 === 0 ? 47 : 50
+  return {
+    x1: (100 + 54 * Math.cos(a)).toFixed(1),
+    y1: (62 + 54 * Math.sin(a)).toFixed(1),
+    x2: (100 + r2 * Math.cos(a)).toFixed(1),
+    y2: (62 + r2 * Math.sin(a)).toFixed(1),
+  }
+})
+const radArc = (r) => `M${100 - r},62 A${r},${r} 0 0 1 ${100 + r},62`
+
+function Radial({ hue, b, live }) {
+  const vals = b % 2 ? RAD_B : RAD_A
+  const rot = -72 + (b % 5) * 36
+  const ease = 'cubic-bezier(0.22,0.61,0.36,1)'
+  const half = 0.21
+  /* 以「正上方」为 0°：x = 100 + r·sinφ，y = 62 − r·cosφ，
+     扇区约 24°、外圈亮弧约 30° —— 扫臂是一道窄光，不是半个仪表罩 */
+  const wedge = `M100,62 L${(100 - 54 * Math.sin(half)).toFixed(1)},${(62 - 54 * Math.cos(half)).toFixed(1)} A54,54 0 0 1 ${(100 + 54 * Math.sin(half)).toFixed(1)},${(62 - 54 * Math.cos(half)).toFixed(1)} Z`
+  const cap = `M${(100 - 57 * Math.sin(0.26)).toFixed(1)},${(62 - 57 * Math.cos(0.26)).toFixed(1)} A57,57 0 0 1 ${(100 + 57 * Math.sin(0.26)).toFixed(1)},${(62 - 57 * Math.cos(0.26)).toFixed(1)}`
+  /* 分布包络：把辐条端点连成一块扇形底色 —— 侧牌缩到 200px 时，
+     单根 1.5 单位的辐条会退成噪点，这块面的轮廓还立得住 */
+  const fan = vals
+    .map((v, i) => {
+      const a = Math.PI + (i / (RAD_N - 1)) * Math.PI
+      const r = 26 + 22 * v
+      return `${i ? 'L' : 'M'}${(100 + r * Math.cos(a)).toFixed(1)},${(62 + r * Math.sin(a)).toFixed(1)}`
+    })
+    .join(' ') + ' L100,62 Z'
+  return (
+    <svg viewBox="0 0 200 80" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style={{ display: 'block' }}>
+      {[44, 34, 24].map((r) => (
+        <path key={r} d={radArc(r)} fill="none" stroke={hue} strokeOpacity="0.12" strokeWidth="0.7" />
+      ))}
+      {RAD_TICKS.map((t, i) => (
+        <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} stroke="rgba(255,255,255,0.22)" strokeWidth="0.7" vectorEffect="non-scaling-stroke" />
+      ))}
+      <line x1="42" x2="158" y1="62" y2="62" stroke="rgba(255,255,255,0.16)" strokeWidth="0.8" vectorEffect="non-scaling-stroke" />
+      <path d={fan} fill={hue} opacity="0.16" />
+      {vals.map((v, i) => {
+        const deg = -90 + (i / (RAD_N - 1) - 0.5) * 176
+        return (
+          <g key={i} transform={`rotate(${deg.toFixed(2)} 100 62)`}>
+            <rect
+              x="99"
+              y="16"
+              width="2"
+              height="20"
+              fill={hue}
+              opacity={0.45 + v * 0.5}
+              style={{ transform: `scaleY(${v.toFixed(3)})`, transformBox: 'fill-box', transformOrigin: 'center bottom' }}
+            />
+          </g>
+        )
+      })}
+      {/* 巡扫臂：随节拍在 -72°…+72° 之间扫，扇区 + 外圈亮弧一起走 */}
+      <g
+        style={{
+          transformBox: 'view-box',
+          transformOrigin: '100px 62px',
+          transform: `rotate(${rot}deg)`,
+          transition: live ? `transform 1.2s ${ease}` : 'none',
+        }}
+      >
+        <path d={wedge} fill={hue} opacity="0.12" />
+        <line x1="100" y1="62" x2="100" y2="5" stroke={hue} strokeWidth="1" opacity="0.8" vectorEffect="non-scaling-stroke" />
+        <path d={cap} fill="none" stroke={hue} strokeWidth="2.2" strokeLinecap="round" opacity="0.9" />
+      </g>
+      <circle cx="100" cy="62" r="2" fill={hue} />
+    </svg>
+  )
+}
+
+/** 终端：命令行 + 方案主线；中央那块演「正在敲」，侧牌直接摊开全文
+    只留三行 —— 英文名在页脚已经有一份，挤进 200px 的侧牌反而会截字；
+    主线拆成两行，每行都完整 */
+function Terminal({ plan, hue, live, still }) {
+  const m = plan.mainline
+  const rows = [
+    { p: '$', t: `tz solve --plan ${plan.n}`, c: '#fff' },
+    { p: '>', t: `${m[0]} / ${m[1]}`, c: 'rgba(255,255,255,0.86)' },
+    { p: '>', t: `${m[2]} / ${m[3 % m.length]}`, c: 'rgba(255,255,255,0.86)' },
+  ]
+  return (
+    <div style={screenBox(hue)}>
+      {rows.map((r, i) => (
+        <div key={i} style={{ display: 'flex', gap: 4, minWidth: 0, alignItems: 'baseline' }}>
+          <span style={{ fontFamily: MONO, fontSize: 9.5, color: r.p === '$' ? hue : `${hue}aa`, flexShrink: 0 }}>{r.p}</span>
+          <span style={{ fontFamily: MONO, fontSize: i === 0 ? 10.5 : 10, lineHeight: 1.4, color: r.c, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.t}</span>
+          {i === rows.length - 1 && <span style={{ width: 4, height: 9, background: hue, flexShrink: 0, opacity: 0.9 }} />}
+        </div>
+      ))}
+      <Tag hue={hue} t="STDOUT" />
+      {/* 打字盖板：只给中央那块；transform 在合成层里滑走，不触发文字重排。
+          reduced-motion 与侧牌不挂，读者看到的直接是完整落定的输出 */}
+      {live && !still && <span className="ap-type-cover" aria-hidden style={{ position: 'absolute', inset: 0, background: '#060b14' }} />}
     </div>
   )
 }
 
-/* ―― 主图（288×178=屏幕上 252×156）：链路 + 2×2 指标 + 四层课程 ――
-   这块牌最近、也最大，是全场的"封面"，所以给它一张完整的方案名片 */
-function HeroBody({ plan, hue, b, live }) {
+/** 五块牌共用的中间区：图标塔 +（折线 / 柱列 / 径向分布 / 终端） */
+function Display({ kind, plan, hue, b, live, still, idx }) {
+  if (kind === 'trend') {
+    return (
+      <div style={screenBox(hue)}>
+        <Trend hue={hue} b={b} uid={idx} live={live} />
+        <Tag hue={hue} t="INDICATIVE" />
+      </div>
+    )
+  }
+  if (kind === 'bars') {
+    return (
+      <div style={screenBox(hue)}>
+        <Bars hue={hue} b={b} live={live} />
+        <Tag hue={hue} t="INDICATIVE" />
+      </div>
+    )
+  }
+  if (kind === 'radial') {
+    return (
+      <div style={screenBox(hue)}>
+        <Radial hue={hue} b={b} live={live} />
+        <Tag hue={hue} t="INDICATIVE" />
+      </div>
+    )
+  }
+  return <Terminal plan={plan} hue={hue} live={live} still={still} />
+}
+
+/* ―― 主图（288×178）：主线 + 图标塔 + 仪表屏 ――
+   原来那组「课程模块 / 支撑产品」数字块与四层课程格子都撤了：
+   牌缩到屏幕 200px 宽时 2×2 数字先糊成噪点，图形 + 几行等宽字反而立得住 */
+function HeroBody({ plan, hue, b, live, still, kind, idx }) {
   return (
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Mainline steps={plan.mainline} hue={hue} b={b} live={live} size={11} />
-      <div style={{ height: 1, margin: '2px 0', background: `linear-gradient(90deg,${hue}00,${hue}66 22%,${hue}52 70%,${hue}00)`, flexShrink: 0 }} />
-      <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
-        {plan.metrics.slice(0, 2).map((m) => (
-          <Metric key={m.k} k={m.k} v={m.v} hue={hue} big />
-        ))}
-      </div>
-      <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
-        {plan.metrics.slice(2, 4).map((m) => (
-          <Metric key={m.k} k={m.k} v={m.v} hue={hue} big />
-        ))}
-      </div>
-      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {/* 这一行只留"四层课程"这一枚行标签：产品总数上面 2×2 指标里已经有一条
-            「9 套支撑产品」，同一块牌上写两遍就是重复信息 */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-          <Mono v="四层课程" s={8} c="rgba(255,255,255,0.6)" />
-        </div>
-        <LayerRow layers={plan.layers.map((l) => l.name)} hue={hue} size={8} />
+      <div style={{ height: 1, flexShrink: 0, background: `linear-gradient(90deg,${hue}00,${hue}66 22%,${hue}52 70%,${hue}00)` }} />
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 7 }}>
+        <IconTower plan={plan} hue={hue} b={b} />
+        <Display kind={kind} plan={plan} hue={hue} b={b} live={live} still={still} idx={idx} />
       </div>
     </div>
   )
@@ -256,13 +506,10 @@ function HeroBody({ plan, hue, b, live }) {
 const THK = 26
 export { THK }
 
-export default function AgentPanel({ index, beat, live, yaw = 0, pitch = 0 }) {
-  const hue = BOARD_HUE
-  const plan = BOARD
-  const app = BOARD.short
-  const en = BOARD.en
-  const n = BOARD.n
-  const sub = BOARD.positioning
+export default function AgentPanel({ index, beat, live, still = false, yaw = 0, pitch = 0 }) {
+  const hue = HUES[index]
+  const plan = planAt(index)
+  const { app, en, n, sub } = APPS[index]
   const { w, h } = HERO
   /* 板厚与溢出量：与 ChainPanels 那层同一个算法（溢出 = t·sin(转角)，t=26px ≈ 10cm）。
      量在 data-plate 那层之外，所以 tmp/ai-flow.mjs 量到的牌 rect 不跟着长 */
@@ -402,7 +649,7 @@ export default function AgentPanel({ index, beat, live, yaw = 0, pitch = 0 }) {
       <div style={{ position: 'relative', height: 1, margin: '0 -8px 3px', background: `linear-gradient(90deg,${hue}00,${hue}66 22%,${hue}52 70%,${hue}00)` }} />
 
       {/* ―― 板心：五块统一用主牌完整版式，谁轮到中央谁就读全 ―― */}
-      <HeroBody plan={plan} hue={hue} b={beat} live={live} />
+      <HeroBody plan={plan} hue={hue} b={beat} live={live} still={still} kind={DISPLAY[index] || 'terminal'} idx={index} />
 
       {/* ―― 底部状态行：一块真界面永远有一条在跑的系统信息 ―― */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, height: 10, flexShrink: 0 }}>

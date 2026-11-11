@@ -1357,11 +1357,14 @@ function deskSimTexture() {
 /** 地面标线贴花：真实实验室的地面是有“交通法规”的 —— 这是参考图里
     最容易被漏掉、却最能说明“这是一间交付出去的实验室”的一笔。
     三间房各一版：具身是作业区/AGV 湾，链是冷通道，AI 是算力区边界 */
-function floorDecalTexture(variant = 'embodied') {
+function floorDecalTexture(variant = 'embodied', scale = 1) {
   const c = document.createElement('canvas')
-  c.width = 2048
-  c.height = 1536
+  c.width = 2048 * scale
+  c.height = 1536 * scale
   const g = c.getContext('2d')
+  /* 画布缩放而不是改坐标：下面所有像素常量（线宽、虚线节距、字号、圆弧半径）
+     都按 2048×1536 这套世界→像素映射写死，整体 scale 才能一处降分辨率而不动标线几何 */
+  g.scale(scale, scale)
   g.clearRect(0, 0, 2048, 1536)
   /* 世界 24×18、中心 [0,-3] → 像素：px = (x+12)/24*2048, py = (z+12)/18*1536 */
   const X = (x) => ((x + 12) / 24) * 2048
@@ -1401,17 +1404,13 @@ function floorDecalTexture(variant = 'embodied') {
     text('节点机房 NODE HALL', 2.5, -0.6, 62, 'rgba(95,168,255,0.42)', -Math.PI / 2)
     text('共识区 CONSENSUS', -1.5, 4.3, 74)
   } else if (variant === 'ai') {
-    /* 算力区边界：黄黑虚线框 + 基座圆 + 运维通道线 */
+    /* 算力区边界：黄黑虚线框 + 运维通道线
+       （原来那圈基座圆改成了地坪喷绘的品牌 logo，见组件里的 logo 面片） */
     g.strokeStyle = 'rgba(201,151,29,0.5)'
     g.lineWidth = 12
     g.setLineDash([46, 30])
     rect(-2.7, -2.4, 2.7, 2.4)
     g.setLineDash([])
-    g.strokeStyle = 'rgba(95,168,255,0.4)'
-    g.lineWidth = 8
-    g.beginPath()
-    g.arc(X(0), Z(0), 0.85 * (2048 / 24), 0, Math.PI * 2)
-    g.stroke()
     g.strokeStyle = 'rgba(95,168,255,0.3)'
     g.lineWidth = 10
     g.beginPath()
@@ -1753,13 +1752,34 @@ export default function LabEnvironment({ variant = 'embodied', amr = variant ===
     () => (geo.sim ? new THREE.MeshBasicMaterial({ map: tex('sim', deskSimTexture), color: new THREE.Color(1.45, 1.45, 1.45), toneMapped: false, fog: false }) : null),
     [geo],
   )
-  /* 地面贴花与玻璃隔断是整层里面积最大的两块透明 overdraw（合起来约 4~5ms/帧，
-     Intel HD630 实测）。它们只贡献“氛围”不贡献结构，所以 weakest tier 收掉：
-     弱设备保住房间骨架/视频墙/居民，字标与玻璃留给 tier1 以上。
-     贴花纹理也一并不在这一档生成 —— 2048×1536 的 canvas 与上传不该白花 */
+  /* 玻璃隔断是整层里最贵的透明 overdraw，弱档收掉。
+     地面标线不再跟着一起收：它是「这是一间真的交付过的实验室」在地上的唯一证据，
+     收掉之后弱机看到的是一块光板，与强机像两个产品（用户实测：别的机器有划线、这台没有）。
+     它本身只是一个 quad + 一次采样，与玻璃不在一个量级；弱档只把贴图降到半分辨率
+     （1024×768），省的是 canvas 绘制、上传与显存，不是逐像素成本。 */
+  const decalScale = lite ? 0.5 : 1
   const decalMat = useMemo(
-    () => (lite ? null : new THREE.MeshBasicMaterial({ map: tex('decal:' + variant, () => floorDecalTexture(variant)), transparent: true, depthWrite: false, toneMapped: false })),
-    [lite, variant],
+    () => new THREE.MeshBasicMaterial({ map: tex(`decal:${variant}:${decalScale}`, () => floorDecalTexture(variant, decalScale)), transparent: true, depthWrite: false, toneMapped: false }),
+    [decalScale, variant],
+  )
+  /* 地坪喷绘 logo：替掉原来那圈基座圆，尺寸沿用圆的外径（r=0.85m → 1.7m）。
+     贴图直接取品牌标记的 512 位图，比画进 85px/m 的地坪图里清晰得多；
+     喷绘是印在地上的，所以压到 0.78 透明度、不写深度、不参与色调映射 */
+  const logoMat = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        map: tex('brand:floor-logo', () => {
+          const t = new THREE.TextureLoader().load('/images/brand-mark-512.png')
+          t.colorSpace = THREE.SRGBColorSpace
+          t.anisotropy = 4
+          return t
+        }),
+        transparent: true,
+        opacity: 0.78,
+        depthWrite: false,
+        toneMapped: false,
+      }),
+    [],
   )
   return (
     <group name="lab">
@@ -1772,7 +1792,12 @@ export default function LabEnvironment({ variant = 'embodied', amr = variant ===
       {geo.code && <mesh ref={codeRef} geometry={geo.code} material={codeMat} />}
       {geo.sim && <mesh ref={simRef} geometry={geo.sim} material={simMat} />}
       {!lite && <mesh geometry={geo.glass} material={MAT.glass} position={[0, 1.3, -5.2]} />}
-      {decalMat && <mesh geometry={geo.decal} material={decalMat} rotation-x={-Math.PI / 2} position={[0, 0.006, -3]} />}
+      <mesh geometry={geo.decal} material={decalMat} rotation-x={-Math.PI / 2} position={[0, 0.006, -3]} />
+      {variant === 'ai' && (
+        <mesh material={logoMat} rotation-x={-Math.PI / 2} position={[0, 0.008, 0]}>
+          <planeGeometry args={[1.7, 1.7]} />
+        </mesh>
+      )}
       <mesh material={MAT.wall} position={[0, 4, -16]}>
         <planeGeometry args={[60, 12]} />
       </mesh>

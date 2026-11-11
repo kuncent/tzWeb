@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 import { brand } from '../data/site'
 
@@ -29,9 +30,12 @@ export function BrandMark({ size = 30, className = '' }) {
   )
 }
 
-/* 顶栏 / 页脚通用锁定：图形 + 中文主标 + 英文副行。
-   tone='dark' 用于暗底（首屏、页脚），'light' 用于白底（滚动后顶栏）。 */
-export function BrandLockup({ tone = 'light', className = '' }) {
+/* 顶栏 / 页脚通用锁定：图形 + 中文主标 + 副行。
+   tone='dark' 用于暗底（首屏、页脚），'light' 用于白底（滚动后顶栏）。
+   domains=true 时副行改成「教育 ｜ 科技 ｜ 产业」三域，用于顶栏（页脚仍留英文全称）。 */
+const DOMAINS = ['教育', '科技', '产业']
+
+export function BrandLockup({ tone = 'light', className = '', domains = false }) {
   const dark = tone === 'dark'
   return (
     <Link to="/" className={'group flex items-center gap-2.5 ' + className}>
@@ -40,9 +44,20 @@ export function BrandLockup({ tone = 'light', className = '' }) {
         <div className={'text-[16.5px] font-bold tracking-tight ' + (dark ? 'text-white' : 'text-ink-900')}>
           {brand.short}
         </div>
-        <div className={'mt-1 text-[9px] font-semibold tracking-[0.3em] ' + (dark ? 'text-brand-300' : 'text-brand')}>
-          {brand.en}
-        </div>
+        {domains ? (
+          <div className={'mt-[5px] flex items-center gap-[5px] text-[9px] font-semibold tracking-[0.14em] ' + (dark ? 'text-brand-300' : 'text-brand')}>
+            {DOMAINS.map((d, i) => (
+              <Fragment key={d}>
+                {i > 0 && <span aria-hidden className="h-[7px] w-px bg-current opacity-30" />}
+                <span>{d}</span>
+              </Fragment>
+            ))}
+          </div>
+        ) : (
+          <div className={'mt-1 text-[9px] font-semibold tracking-[0.3em] ' + (dark ? 'text-brand-300' : 'text-brand')}>
+            {brand.en}
+          </div>
+        )}
       </div>
     </Link>
   )

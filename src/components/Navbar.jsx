@@ -251,7 +251,7 @@ export default function Navbar() {
           右 = 末端的主 CTA 与辅助入口；中间空白交给 ml-auto，不把导航推到右侧。
           窄屏（<lg）导航与辅助入口整体收起，只留汉堡。 */}
       <div className="container-x flex h-[64px] items-center gap-6 xl:gap-8">
-        <BrandLockup tone={light ? 'dark' : 'light'} className="shrink-0" />
+        <BrandLockup tone={light ? 'dark' : 'light'} domains className="shrink-0" />
 
         {/* 一级导航：紧跟 logo 左侧成组，不折行靠 shrink-0 + whitespace-nowrap，
             而不是 overflow-x-auto —— 滚动容器会把下拉面板一起裁掉

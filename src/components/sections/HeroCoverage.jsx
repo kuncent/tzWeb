@@ -24,7 +24,7 @@ function ensureMap() {
   }
 }
 
-/* 枢纽标签的落位：六个点在东部挤成一团，默认统一「右侧」会互相压字；
+/* 枢纽标签的落位：七个点在东部挤成一团，默认统一「右侧」会互相压字；
    按各自周边空位手工分流，再用 hideOverlap 兜底 */
 const HUB_LABEL = {
   深圳总部: { position: 'bottom', offset: [0, 8] },
@@ -33,6 +33,7 @@ const HUB_LABEL = {
   西安: { position: 'left', offset: [-9, 0] },
   重庆: { position: 'left', offset: [-9, 4] },
   长沙: { position: 'right', offset: [9, 1] },
+  广州: { position: 'left', offset: [-12, 4] },
 }
 
 /* 合作城市 → 取最近的服务枢纽（可取前 n 个，做更密的网络）；按经纬度平方距离排序即可 */
@@ -47,8 +48,8 @@ function hubsFor(c, n) {
 /* 四组航线各自的流光周期（秒）：比上一版更慢、振幅更小，读作「数据在走」而不是「屏在闪」 */
 const PERIODS = [3.8, 4.6, 5.4, 6.2]
 
-/* 参与呼吸的城市：挑大区中心，且不含六个枢纽（枢纽自己有更慢的波纹） */
-const PULSE_CITIES = ['上海', '天津', '沈阳', '南京', '杭州', '武汉', '广州', '成都', '昆明', '乌鲁木齐', '拉萨', '哈尔滨']
+/* 参与呼吸的城市：挑大区中心，且不含七个枢纽（枢纽自己有更慢的波纹） */
+const PULSE_CITIES = ['上海', '天津', '沈阳', '南京', '杭州', '武汉', '成都', '昆明', '乌鲁木齐', '拉萨', '哈尔滨']
 
 const INK = {
   hub: '#dcecff',
@@ -238,7 +239,7 @@ function buildOption(reduced, compact) {
       auraSeries,
       ...lineSeries,
 
-      // 六个服务枢纽（带涟漪亮点 + 名称；悬停放大，东缘枢纽名标在左侧防溢出）
+      // 七个服务枢纽（带涟漪亮点 + 名称；悬停放大，东缘枢纽名标在左侧防溢出）
       {
         type: reduced ? 'scatter' : 'effectScatter',
         coordinateSystem: 'geo',

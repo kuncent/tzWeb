@@ -30,6 +30,7 @@ export default function DriftWall({
   direction = 'left',
   variance = 0.5,
   pauseOnHover = true,
+  hoverSpeed = 0,
   fade = true,
   className = '',
   style
@@ -100,9 +101,10 @@ export default function DriftWall({
         for (let r = 0; r < trackRefs.current.length; r++) {
           const meta = rowMeta[r]
           if (!meta) continue
-          const paused = (wallHoveredRef.current || hoveredRowRef.current === r) && pauseOnHover
-          const target = paused ? 0 : baseVelocities[r]
-          const ease = 1 - Math.exp(-dt / (target === 0 ? 0.16 : 0.28))
+          const hovering = (wallHoveredRef.current || hoveredRowRef.current === r) && pauseOnHover
+          /* 悬停不硬停：按 hoverSpeed 降到低速继续漂移（0 = 完全停住，保持旧行为） */
+          const target = hovering ? baseVelocities[r] * hoverSpeed : baseVelocities[r]
+          const ease = 1 - Math.exp(-dt / (hovering ? 0.5 : 0.28))
           velocitiesRef.current[r] += (target - velocitiesRef.current[r]) * ease
           let next = (offsetsRef.current[r] ?? 0) + velocitiesRef.current[r] * dt
           next = ((next % meta.copyWidth) + meta.copyWidth) % meta.copyWidth
@@ -120,7 +122,7 @@ export default function DriftWall({
       rafRef.current = null
       lastTsRef.current = null
     }
-  }, [baseVelocities, rowMeta, pauseOnHover, reduced])
+  }, [baseVelocities, rowMeta, pauseOnHover, hoverSpeed, reduced])
 
   // 左右两端淡出（横向漂移用水平遮罩）
   const mask = fade

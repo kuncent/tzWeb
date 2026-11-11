@@ -108,8 +108,8 @@ const AB = DEV && QUERY
 const showRig = (name) => !AB || AB.rigs.includes(name)
 
 /* 首屏的全局转角定义在下面 CameraRig 附近的 VIEW_YAW（+π/6）。
-   它是「镜头绕场景右转 30°」，场景自身的坐标保持不变 ——
-   房间、展板、地面字标都是被同一台转过的相机看，不是各自转一次。 */
+   它现在是「实验室整体右转 30°」：镜头正对房间，转角套在 Scene 的 lab-room 上。
+   房间、地面字标随组一起转；AI 看板不进这组，保持原位与朝向，始终正对观众。 */
 
 /* 起始画质档：探测一次、结果模块级缓存。
    绝不能在每次调用里都 getContext —— HeroStage 在 React 18 并发渲染下，
@@ -203,11 +203,13 @@ function FrameGauge({ onWindow }) {
 }
 
 /* ―― 观看方向的基准偏转 ――
-   首屏不是正对场景，而是镜头绕看点水平右移 30°（球坐标 theta +π/6）。
-   这是「把相机绕场景转了 30°」：场景自己的坐标一个都不动 —— 房间、展板、
-   地面字标、地格作为刚体一起被同一台相机看，牌位间距、牌面尺寸、40px 台位
-   偏移、链路端点全部保持原值。不改成「转某一个 group」是因为那样牌与房间
-   会各转一次，端点和牌边就会错开。 */
+   首屏不是正对房间，而是房间整体右转 30°；镜头自己不转，仍正对房间中线。
+   转角套在房间那一侧（Scene 里 lab-room 绕看点的竖轴转 -VIEW_YAW）：
+   实验室 / 地台 / 地面字标作为刚体一起转，与「把相机右偏 30°」在投影上等价，
+   观感完全一样，但看板不必跟着转。
+   五块 AI 看板不在这组里 —— 它们留在世界原位、朝向不动，于是始终正对观众，
+   并保留「一主四卫」原本那套错落；牌位、牌面尺寸、链路端点、40px 台位偏移
+   全都还是原值。 */
 const VIEW_YAW = Math.PI / 6
 
 const _look = new THREE.Vector3()
@@ -368,10 +370,8 @@ function CameraRig({ idx, cmd, still = false }) {
     if (still) {
       _look.set(...s.cam.look)
       _want.set(...s.cam.pos)
-      /* 降级动效里也要带上这次全局转角：量测与截图走的就是这一支 */
       _off.copy(_want).sub(_look)
       _sph.setFromVector3(_off)
-      _sph.theta += VIEW_YAW
       _want.copy(_look).add(_off.setFromSpherical(_sph))
       camera.position.copy(_want)
       camera.lookAt(_look)
@@ -455,12 +455,11 @@ function CameraRig({ idx, cmd, still = false }) {
     if (!drag.current && el.style.cursor !== (orbitOn.current ? 'grab' : '')) el.style.cursor = orbitOn.current ? 'grab' : ''
     yaw.current = damp(yaw.current, yawT.current, 5, dt)
     pitch.current = damp(pitch.current, pitchT.current, 5, dt)
-    /* 基准转角 + 用户拖拽：两者都绕同一个 look 点做球坐标偏转，
-       所以首屏看到的是「相机整体右转 30° 后的那一个刚体场景」，
-       用户再拖也还是在这台相机的轨道上继续加角 */
+    /* 用户拖拽：绕 look 点做球坐标偏转，惯性来自目标角与阻尼角之差。
+       基准的 30° 不在相机这一侧（相机正对房间），而是转在 Scene 的 lab-room 上 */
     _off.copy(_want).sub(_look)
     _sph.setFromVector3(_off)
-    _sph.theta += VIEW_YAW + yaw.current
+    _sph.theta += yaw.current
     _sph.phi = clamp(_sph.phi - pitch.current, 0.9, 1.62)
     _want.copy(_look).add(_off.setFromSpherical(_sph))
 
@@ -606,6 +605,7 @@ function KeyLight({ accent }) {
 
 function Scene({ idx, cmd, tier, panelLayout, still }) {
   const accent = heroScenes[idx].accent
+  const LOOK = heroScenes[idx].cam.look
   const q = TIERS[tier]
   return (
     <>
@@ -625,16 +625,18 @@ function Scene({ idx, cmd, tier, panelLayout, still }) {
       <directionalLight position={[-4.5, 2.6, -2]} intensity={0.52} color="#5FA8FF" />
       <KeyLight accent={accent} />
 
-      {/* ―― 场景刚体：房间与展板都不带自己的初始转角 ――
-          30° 只在相机那一侧（CameraRig 的 VIEW_YAW）：地台 / 实验室 / 展板 /
-          地面字标都保持原来的世界坐标，由同一台转过的相机去看。
-          这样牌位、牌面尺寸、链路端点（牌边局部坐标算出来的）与 40px 台位偏移
-          全部原样，画面却整体右转 30°。 */}
-      <group name="lab-room">
-        {(AB ? AB.floor : true) && <Floor accent={accent} />}
-        {(AB ? AB.lab : true) && <LabEnvironment variant={heroScenes[idx].id} lite={tier === 0} />}
+      {/* ―― 实验室整体右转 30°：转角套在房间这一侧，看板不转 ――
+          绕看点的竖轴转 -VIEW_YAW，与「把相机右偏 30°」在投影上等价，
+          所以房间 / 地台 / 地面字标的观感与原来完全一样；
+          五块看板（NeuralRig）不在这组里 —— 留在世界原位、朝向不动，
+          于是始终正对观众，并保留「一主四卫」原本那套错落。 */}
+      <group name="lab-room" position={[LOOK[0], 0, LOOK[2]]} rotation-y={-VIEW_YAW}>
+        <group position={[-LOOK[0], 0, -LOOK[2]]}>
+          {(AB ? AB.floor : true) && <Floor accent={accent} />}
+          {(AB ? AB.lab : true) && <LabEnvironment variant={heroScenes[idx].id} lite={tier === 0} />}
+          {(AB ? AB.floor : true) && <FloorBrand variant={heroScenes[idx].id} />}
+        </group>
       </group>
-      {(AB ? AB.floor : true) && <FloorBrand variant={heroScenes[idx].id} />}
 
       {showRig('neural') && (
         <NeuralRig active cmd={cmd} accent={heroScenes[idx].accent} panelLayout={panelLayout} still={still} />

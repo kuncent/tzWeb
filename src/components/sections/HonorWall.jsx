@@ -7,7 +7,7 @@ import { useContentData } from '../../lib/contentStore'
 /* 荣誉墙：浅色展墙 + 一条横向排开的牌匾展台。
    牌匾图为按实物正面重绘的 1600×1200 SVG（scripts/gen-honors.mjs 生成），
    统一画幅、留白与光感，材质差异靠画面本身表达，这里只负责排列与图注。
-   第四项数据直接取 honors.length：honors.js 是唯一真源，增删牌匾不必再改文案。
+   第四项为对外口径的合作牌匾总数，与墙上展示的收录匾数（honors.js）分开维护。
 
    底色走全站浅色 token（mist / ink / brand），与下方新闻、联系两屏同一张纸，
    不再是一条深色块。黄铜、红木这类暖色匾面放在浅底上会发飘，所以每块牌匾
@@ -25,9 +25,10 @@ const HOVER_SLOW = 0.25 // 悬停降到四分之一速：明显变慢但仍在�
 
 const stats = [
   { v: '国家级', k: '高新技术企业' },
-  { v: '省市级', k: '专精特新中小企业' },
+  { v: '深圳市', k: '专精特新企业' },
   { v: 'AAA', k: '企业信用等级' },
-  { v: String(honors.length), k: '块校企合作牌匾' },
+  /* 合作牌匾按对外口径 36 块；墙上轮回展示的是 honors.js 收录的实拍重绘匾 */
+  { v: '36', k: '块校企合作牌匾' },
 ]
 
 function useReducedMotion() {
@@ -50,7 +51,13 @@ function Plaque({ h, clone = false }) {
       className="group w-[calc((100%_-_0.75rem)/2.6)] max-w-[200px] shrink-0 sm:w-[calc((100%_-_2rem)/3.7)] lg:w-[calc((100%_-_3.75rem)/5.4)] xl:w-[calc((100%_-_5rem)/6.6)]"
     >
       {/* 牌匾只作展示，不再可点：交互只剩展台本身的滚动 */}
-      <div className="relative rounded-xl bg-white p-1 shadow-[0_1px_2px_rgba(11,18,32,0.06),0_12px_26px_-16px_rgba(11,18,32,0.32)] ring-1 ring-ink-900/[0.08]">
+      {/* 图片防下载：拦右键菜单 / 拖拽 / 长按「存储图像」；img 关掉指针命中，
+          右键落点变成外层容器，浏览器就不会给出「图片另存为」 */}
+      <div
+        className="relative select-none rounded-xl bg-white p-1 shadow-[0_1px_2px_rgba(11,18,32,0.06),0_12px_26px_-16px_rgba(11,18,32,0.32)] ring-1 ring-ink-900/[0.08]"
+        onContextMenu={(e) => e.preventDefault()}
+        style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
+      >
         <img
           src={h.file}
           alt={`${h.org} · ${h.title}`}
@@ -59,7 +66,8 @@ function Plaque({ h, clone = false }) {
           loading="lazy"
           decoding="async"
           draggable={false}
-          className="block h-auto w-full rounded-[7px]"
+          onDragStart={(e) => e.preventDefault()}
+          className="pointer-events-none block h-auto w-full select-none rounded-[7px]"
         />
       </div>
       <figcaption className="mt-2.5 px-0.5">

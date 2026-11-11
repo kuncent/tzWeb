@@ -11,20 +11,20 @@ import { Server, Layers3, Bot, Blocks, Cpu, Network, Building2 } from 'lucide-re
 
 /* 设备类型（页面分区与筛选按这个维度走） */
 export const deviceTypes = [
-  { id: 'workstation', en: 'SUPER WORKSTATION', zh: '超级工作站', icon: Server,
-    note: '软硬件一体的算力底座，内置成套教学案例，开箱即用' },
+  { id: 'aiterminal', en: 'AI TERMINAL', zh: 'AI 交互终端', icon: Cpu,
+    note: '3D 虚拟人对话的专业能力训练与智能评价终端' },
+  { id: 'sandtable', en: 'SAND TABLE & COGNITION', zh: '智能沙盘与产业认知', icon: Blocks,
+    note: '手工盘面 + 数字孪生 + 沙盘一体化，探究式教学与竞赛载体' },
   { id: 'xr', en: 'XR INTERACTION', zh: 'XR 沉浸交互', icon: Layers3,
     note: 'AR / VR 虚实融合，把企业现场搬进课堂的沉浸式感知交互' },
   { id: 'robot', en: 'ROBOTICS', zh: '智能机器人', icon: Bot,
     note: '人形 / 移动 / 交互机器人，覆盖操作、导航、感知与认知教学' },
-  { id: 'sandtable', en: 'SAND TABLE & COGNITION', zh: '智能沙盘与产业认知', icon: Blocks,
-    note: '手工盘面 + 数字孪生 + 沙盘一体化，探究式教学与竞赛载体' },
-  { id: 'aiterminal', en: 'AI TERMINAL', zh: 'AI 交互终端', icon: Cpu,
-    note: '3D 虚拟人对话的专业能力训练与智能评价终端' },
   { id: 'iiot', en: 'INDUSTRIAL IoT LAB', zh: '工业互联网实训', icon: Network,
     note: '云 — 边 — 端真实工业设备，数据采集、接入与治理实训' },
   { id: 'line', en: 'SMART PRODUCTION LINE', zh: '智能制造产线', icon: Building2,
     note: '以真实智能工厂为原型的全工艺产线与数字孪生实训环境' },
+  { id: 'workstation', en: 'SUPER WORKSTATION', zh: '超级工作站', icon: Server,
+    note: '软硬件一体的算力底座，内置成套教学案例，开箱即用' },
 ]
 
 const D = (id, type, name, en, img, tag, blurb, specs = []) => ({ id, type, name, en, img, tag, blurb, specs })
@@ -81,7 +81,7 @@ export const devices = [
   D('ai-screen', 'aiterminal', 'AI 数智教练智屏', 'AI COACH SCREEN', '/images/devices/ai-screen.png', '会计 · 金融',
     '立体等身高竖屏设计，支持 AI 垂直领域模型，运用 3D 虚拟人进行角色扮演与交互对话，为学生提供专业学习、训练与智能评价；轻薄机身，支持移动与壁挂两种方式。',
     [['显示', '4K 高清 · 等身高竖屏'], ['交互', '3D 虚拟人对话'], ['部署', '移动 / 壁挂两用']]),
-  D('ai-cabinet', 'aiterminal', 'AI 数智教练智柜', 'AI COACH CUBE', '/images/devices/ai-cabinet.png', '会计 · 金融',
+  D('ai-cabinet', 'aiterminal', 'AI 数智教练智柜', 'AI COACH CUBE', '/images/devices/ai-cabinet-holo.png', '会计 · 金融',
     '裸眼封闭空间立体化设计，全息柜体提供裸眼 3D 沉浸交互，配高清阵列麦克风精准收音与多点触控，用 3D 虚拟人完成专业能力训练与智能评价。',
     [['显示', '裸眼 3D · 4K 高清'], ['拾音', '高清阵列麦克风'], ['交互', '多点触控']]),
 

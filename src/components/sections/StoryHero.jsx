@@ -13,7 +13,7 @@ import { hasWebGL } from '../../lib/capability'
  * 首屏：企业型单屏（AI 3D 作背景）
  * ------------------------------------------------------------
  * 左栏 = 公司简介 + 八大产品体系入口色块；右栏 = 服务网络地图
- * （HeroCoverage：六服务枢纽向全国辐射的暗色中国地图航线）；身后保留 AI 3D 舞台。
+ * （HeroCoverage：七服务枢纽向全国辐射的暗色中国地图航线）；身后保留 AI 3D 舞台。
  * 桌面端 sticky 钉屏，移动 / 平板纵向堆叠、不挂 WebGL。
  *
  * 两条硬约束：
@@ -123,10 +123,10 @@ function HeroIntro({ scene, still }) {
     transition: { duration: 0.62, delay, ease: EASE },
   })
   return (
-    /* 整块文案的宽度与标题字号同源（--colw，定义见 index.css 的 .hero-copy）：
-       四行里最宽的一行是「天择科技，」/「数字产教的」/「创新实践者」，均 292.5px，
-       桌面量尺 350px —— 再宽就会压到左侧展板（1440 上第一块牌从 x≈391 起）。
-       正文 / 色块 / CTA 都跟着这条量尺走，仍与标题右缘齐平；
+    /* 整块文案的宽度与标题同宽（--colw，定义见 index.css 的 .hero-copy）：
+       量尺取标题最宽的一行「AI与数字产教」（60px 下 354.7px → 桌面 356px），
+       再宽就会压到左侧展板（1440 上第一块牌从 x≈391 起）。
+       正文 / 色块 / CTA 都跟着这条量尺走，右缘与标题右缘齐平；
        短窗（高度 ≤740px）由同一段 CSS 压行高与间距，字号一档不降 */
     <div
       className="hero-copy relative max-w-full"
@@ -140,13 +140,12 @@ function HeroIntro({ scene, still }) {
         </span>
       </motion.div>
 
-      {/* 公司主张 —— 文案固定为「天择科技，AI 与数字产教的创新实践者」，断成四行：
-          天择科技， (品牌名独占首行，白色) / AI 与 / 数字产教的 / 创新实践者。
-          每行最多 6 个字（5 / 4 / 5 / 5）；「数字产教」是完整术语、不拆开；
+      {/* 公司主张 —— 文案固定为「天择科技，AI与数字产教的创新实践者」，断成三行：
+          天择科技， (品牌名独占首行，白色) / AI与数字产教 / 的创新实践者。
+          逗号之后每行 7 个字（7 / 6）；「数字产教」是完整术语、不拆开；
           「创新实践者」整词收尾、不留孤字；逗号只在首行行尾，不会落到行首。
-          为什么不是三行：「AI 与数字产教」已经 7 个字、60px 下要 420px 宽，
-          超出行首 6 字上限，也会压到 1440 上第一块展板（从 x≈391 起）；
-          四行里最长一行 292.5px，350px 的量尺装得下。
+          最宽的一行是「AI与数字产教」（60px 下实测 354.7px），量尺按它取 356px
+          （见 index.css 的 .hero-copy）—— 仍在 1440 首块展板（x≈391）之内。
           字号直接取 /solutions 页标题那一套（PageShell 的 PageHero）：
           38px / md 52px / xl 60px，行高 1.1 / 1.06，字距 -0.025em —— 不再按量尺反解。 */}
       <h1
@@ -157,13 +156,10 @@ function HeroIntro({ scene, still }) {
           <motion.span className="block" style={{ color: '#fff' }} {...rise(0.06)}>{'天择科技，'}</motion.span>
         </span>
         <span className="block overflow-hidden">
-          <motion.span className="block" {...rise(0.12)}>{'AI 与'}</motion.span>
+          <motion.span className="block" {...rise(0.12)}>{'AI与数字产教'}</motion.span>
         </span>
         <span className="block overflow-hidden">
-          <motion.span className="block" {...rise(0.18)}>{'数字产教的'}</motion.span>
-        </span>
-        <span className="block overflow-hidden">
-          <motion.span className="block" {...rise(0.24)}>创新实践者</motion.span>
+          <motion.span className="block" {...rise(0.18)}>的创新实践者</motion.span>
         </span>
       </h1>
 
@@ -260,7 +256,7 @@ function MobileHero({ scene, still }) {
           <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]" aria-hidden />
           <div className="relative">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em]" style={{ color: scene.accent }}>服务网络</p>
-            <p className="mt-1.5 text-[13px] text-white/60">以深圳总部为中心，六大服务枢纽辐射全国</p>
+            <p className="mt-1.5 text-[13px] text-white/60">以深圳总部为中心，七大服务枢纽辐射全国</p>
             <div className="relative mt-4 h-[320px] overflow-hidden rounded-xl border border-white/[0.08] bg-night-900">
               <Suspense fallback={null}>
                 <HeroCoverage reduced={still} />
@@ -590,8 +586,8 @@ export default function StoryHero() {
                左半屏的指针事件全截走 —— 链屏那条看板线伸到 x 230 起，左边几块牌
                点不到就是这么被吃掉的（实测 elementFromPoint 在牌心返回的是文案
                那个 motion 容器）。真正要交互的只有下面那两个按钮，它们自己接回 auto */}
-            {/* 左文案列：宽度与标题字号同源（--colw，见 index.css 的 .hero-copy），
-                桌面 350px —— 装下四行里最宽的 292.5px，再宽会压到左侧展板。
+            {/* 左文案列：宽度与标题同宽（--colw，见 index.css 的 .hero-copy），
+                桌面 356px —— 装下三行里最宽的 354.7px，再宽会压到左侧展板。
                 列高由 .hero-col 的上下留白兜底（对称 80px，900 高里整块垂直居中），
                 短窗（≤740px 高）里这段留白与行高、间距一起收一档 */}
             <div
@@ -617,7 +613,7 @@ export default function StoryHero() {
 
             {/* ―― 服务网络：贴着右下角的地图面板（半透明，尽量不遮挡 3D 实验室）――
                 位置在这一轮又上移了 20px（bottom-0 → bottom-[20px]），与首屏底沿拉开
-                一点呼吸，也给低位的商务数据分析展板让出下沿 */}
+                一点呼吸，也给低位的新商科大数据展板让出下沿 */}
             {/* 1024–1279 用紧凑版：280px 窄面板 + 更矮的地图 + 精简标签，只保住
                 「6 枢纽 / 52 城」这组背书，不再挤占文案列；≥1280 恢复完整尺寸。
                 完整档这一轮再收一档：24vw/380 上限 → 22vw/350（1440 上 346 → 317），
@@ -646,7 +642,7 @@ export default function StoryHero() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: scene.accent }}>服务网络</p>
-                      <p className="mt-1 text-[12px] text-white/55">六大服务枢纽辐射全国</p>
+                      <p className="mt-1 text-[12px] text-white/55">七大服务枢纽辐射全国</p>
                     </div>
                     <div className="mt-0.5 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-white/55">
                       <span className="h-1 w-1 rounded-full" style={{ background: scene.accent, boxShadow: `0 0 6px ${scene.accent}` }} />
@@ -665,10 +661,10 @@ export default function StoryHero() {
                     <div>
                       <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.14em] text-white/40">
                         <span>NODES</span>
-                        <span className="text-white/70">6 / 6</span>
+                        <span className="text-white/70">7 / 7</span>
                       </div>
                       <div className="mt-1.5 flex gap-1">
-                        {Array.from({ length: 6 }).map((_, i) => (
+                        {Array.from({ length: 7 }).map((_, i) => (
                           <span key={i} className="h-[3px] w-4 rounded-full" style={{ background: `linear-gradient(90deg, ${scene.accent}80, ${scene.accent})`, boxShadow: `0 0 6px ${scene.accent}55` }} />
                         ))}
                       </div>

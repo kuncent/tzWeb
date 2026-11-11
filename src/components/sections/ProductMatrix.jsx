@@ -165,24 +165,24 @@ export default function ProductMatrix() {
     }
   }, [])
 
-  /* 点击竖排导航：把页面滚到对应那一屏 */
+  /* 点击竖排导航 / 顶栏产品下拉：直接把页面落到对应那一屏。
+     这里必须是瞬移而不是平滑滚 —— 钉屏区一共 8 屏，从第 1 屏平滑滚到第 5 屏
+     会把中间那几屏逐一推过一遍（每屏都触发一次整屏切换动画），读起来就是闪屏。
+     lenis 缓存的最大滚动值同样要先 resize，理由见 useLenis.fly */
   const jump = (i) => {
     const outer = outerRef.current
     if (!outer) return
     const rect = outer.getBoundingClientRect()
     const span = rect.height - window.innerHeight
-    if (span <= 0 || window.innerWidth < 1024) {
-      outer.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      return
-    }
-    const y = window.scrollY + rect.top + span * ((i + 0.5) / N)
+    const y =
+      span <= 0 || window.innerWidth < 1024
+        ? window.scrollY + rect.top
+        : window.scrollY + rect.top + span * ((i + 0.5) / N)
     if (window.__lenis) {
-      /* 懒加载刚挂载时 lenis 缓存的最大滚动值还是旧页的短尺寸，
-         不先 resize 就会被夹到接近顶部（看着像点了没反）——与 useLenis.fly 同理 */
       window.__lenis.resize()
-      window.__lenis.scrollTo(y)
+      window.__lenis.scrollTo(y, { immediate: true })
     } else {
-      window.scrollTo({ top: y, behavior: 'smooth' })
+      window.scrollTo(0, y)
     }
   }
 

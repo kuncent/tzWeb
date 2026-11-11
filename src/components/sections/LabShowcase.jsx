@@ -23,12 +23,13 @@ const IMG_MS = 3600
 /* 手动暂停后，从最后一次操作起隔这么久无进一步操作即自动恢复轮播 */
 const RESUME_MS = 5000
 
-/* 轮播位次序：深圳北理莫斯科大学（01）置顶，前五位按 1 → 4 → 7 → 6 → 5，再按原序（02/03/08/09） */
-const PRIORITY = ['sinos-moscow', 'gdcm-literacy', 'hbsy-factory', 'pzxy-quant', 'gxtc-aimarketing']
-const SHOWCASE = [
-  ...PRIORITY.map((id) => labCases.find((c) => c.id === id)).filter(Boolean),
-  ...labCases.filter((c) => !PRIORITY.includes(c.id)),
+/* 展示顺序按业务指定：深圳北理莫斯科 → 兴义民族师范 → 湖北商贸 → 广东财贸 →
+   广西金融职业 → 广东技术师范 → 郑州西亚斯 → 广东培正。数据里没列进的案例不再展示 */
+const ORDER = [
+  'sinos-moscow', 'xysu-fintech', 'hbsy-factory', 'gdcm-literacy',
+  'gxtc-aimarketing', 'gpnu-digital', 'sias-fintech', 'pzxy-quant',
 ]
+const SHOWCASE = ORDER.map((id) => labCases.find((c) => c.id === id)).filter(Boolean)
 
 export default function LabShowcase() {
   const [pos, setPos] = useState({ school: 0, img: 0 })
@@ -36,6 +37,7 @@ export default function LabShowcase() {
   const [locked, setLocked] = useState(false)
   const lockTimer = useRef(null)
   const wrapRef = useRef(null)
+  const railRef = useRef(null)
   const dragX = useRef(null)
   const inView = useInView(wrapRef, { once: false, margin: '-15% 0px -15% 0px' })
   const reduced = useMemo(
@@ -86,6 +88,79 @@ export default function LabShowcase() {
 
   const pickSchool = (i) => { setPos({ school: i, img: 0 }); lock() }
   const pickImg = (k) => { setPos((p) => ({ ...p, img: k })); lock() }
+
+  /* 八所院校在窄屏放不下，切换轨要能横滑。Lenis 默认把滚轮整段吃掉，这里挂
+     data-lenis-prevent 并自己把竖向滚量折成横向（与 HonorWall / ClipRail 同一套做法）；
+     滑到端点就把属性摘掉一帧，把这一下滚轮交还页面，不把用户锁在轨道上 */
+  useEffect(() => {
+    const rail = railRef.current
+    if (!rail) return
+    /* 只在真的放不下时才拦 Lenis：放得下的时候轨道上要能正常滚页面 */
+    const sync = () => {
+      if (rail.scrollWidth - rail.clientWidth > 2) rail.setAttribute('data-lenis-prevent', '')
+      else rail.removeAttribute('data-lenis-prevent')
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(rail)
+    const onWheel = (e) => {
+      const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+      const max = rail.scrollWidth - rail.clientWidth
+      if (max <= 2) return
+      const next = Math.min(max, Math.max(0, rail.scrollLeft + d))
+      if (next !== rail.scrollLeft) {
+        e.preventDefault()
+        rail.scrollLeft = next
+      } else {
+        rail.removeAttribute('data-lenis-prevent')
+        requestAnimationFrame(() => rail.setAttribute('data-lenis-prevent', ''))
+      }
+    }
+    rail.addEventListener('wheel', onWheel, { passive: false })
+
+    /* 鼠标左右拖拽（触屏走原生横滑）：只认左键。拖过 3px 才算拖拽，
+       没拖动就照常触发点选；拖动松手后吞掉那一次 click，免得拖完还顺手切了院校 */
+    let active = false
+    let moved = false
+    let startX = 0
+    let startLeft = 0
+    const onDown = (e) => {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return
+      active = true; moved = false; startX = e.clientX; startLeft = rail.scrollLeft
+    }
+    const onMove = (e) => {
+      if (!active) return
+      const dx = e.clientX - startX
+      if (!moved && Math.abs(dx) > 3) {
+        moved = true
+        rail.setPointerCapture?.(e.pointerId)
+      }
+      if (!moved) return
+      e.preventDefault()
+      rail.scrollLeft = startLeft - dx
+    }
+    const onUp = () => { active = false }
+    const onClickCapture = (e) => {
+      if (!moved) return
+      e.preventDefault()
+      e.stopPropagation()
+      moved = false
+    }
+    rail.addEventListener('pointerdown', onDown)
+    rail.addEventListener('pointermove', onMove)
+    rail.addEventListener('pointerup', onUp)
+    rail.addEventListener('pointercancel', onUp)
+    rail.addEventListener('click', onClickCapture, true)
+    return () => {
+      ro.disconnect()
+      rail.removeEventListener('wheel', onWheel)
+      rail.removeEventListener('pointerdown', onDown)
+      rail.removeEventListener('pointermove', onMove)
+      rail.removeEventListener('pointerup', onUp)
+      rail.removeEventListener('pointercancel', onUp)
+      rail.removeEventListener('click', onClickCapture, true)
+    }
+  }, [])
 
   /* 手动左右切图：越界则跨院校（向前到尾→下一所首图，向后到头→上一所末图） */
   const step = (dir) => {
@@ -182,7 +257,7 @@ export default function LabShowcase() {
               {/* 压图抬头 */}
               <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 md:p-6">
                 <div className="min-w-0">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-brand-300">CASE {cur.n}</p>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-brand-300">CASE {String(pos.school + 1).padStart(2, '0')}</p>
                   <h4 className="mt-1 truncate text-[22px] font-bold leading-tight tracking-tight text-white drop-shadow md:text-[26px]">{cur.school}</h4>
                   <p className="mt-0.5 truncate text-[14px] text-white/80">{cur.lab}</p>
                 </div>
@@ -289,7 +364,7 @@ export default function LabShowcase() {
 
       {/* 院校切换轨：有照片的院校逐一点选，当前高亮 */}
       <Reveal delay={0.1} className="mt-5">
-        <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+        <div ref={railRef} className="no-scrollbar flex cursor-grab gap-3 select-none overflow-x-auto overscroll-x-contain pb-1 active:cursor-grabbing">
           {SHOWCASE.map((c, i) => {
             const on = i === pos.school
             return (

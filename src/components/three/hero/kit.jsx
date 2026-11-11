@@ -213,7 +213,7 @@ export function ContactShade({ radius = 0.4, opacity = 0.55, y = 0.004 }) {
   )
 }
 
-/* ---------- 地面品牌字标：把「天择科技」漆在三间房的地板上 ----------
+/* ---------- 地面品牌字标：把 TIANZE 漆在三间房的地板上 ----------
    为什么漆在地上而不是叠在 DOM 上：首屏原本只在顶栏提过一次公司名，而这一屏
    最大的一块闲置权重就是脚下那片地板。先试过在排版层加一枚描边巨字 TIANZE，
    实测不成立：链屏与 AI 屏的上半屏本来就压着六块 DOM 牌与五块智能体界面，
@@ -228,8 +228,10 @@ export function ContactShade({ radius = 0.4, opacity = 0.55, y = 0.004 }) {
    差得远（具身 3.9×、链 2.3×、AI 3.6×），所以是一张纹理配三组非等比缩放，
    而不是三张纹理。位量由 tmp/floor-brand.mjs 拿真相机矩阵反解（屏幕空带 → 地板）。
 
-   只给四个汉字、不带六边形标：图形经不起单向 3.9× 拉伸（拉完就不是那个 logo 了），
-   而拉丁字 TIANZE 在顶栏已经有它的位置。 */
+   只给字、不带六边形标：图形经不起单向 3.9× 拉伸（拉完就不是那个 logo 了）。
+   字面用拉丁字标 TIANZE（与顶栏同一枚）：340px 粗体量下来 1286px 宽，正好落进
+   1360 画布，比四个汉字略窄一档，贴角时右沿还能吃满那 30px 间距 */
+const BRAND_TEXT = 'TIANZE'
 const BRAND_QUAD = { w: 2.125, d: 0.531 } // 1360×340 画布的不拉伸字框（640 texel/m）
 /* 反解算出来的是「这条空带塞得下多大」，不是「品牌该有多大」。按上限漆满，地上的
    铭牌就开始跟标题抢权重了 —— 它该读作房间里的标线，不是第二个 headline。
@@ -251,6 +253,11 @@ const BRAND_PLACE = {
    z ∈ [-2.4, 2.4]。线宽 12 canvas px，贴图 24m 铺 2048px → 12px = 0.140625m；
    内沿要退半个线宽，「贴齐」贴的是这条内沿而不是线心。 */
 const OUTLINE_AI = { x: 2.7, z: 2.4, stroke: (12 * 24) / 2048 }
+/* 字标离这条虚线内沿的间距：各 30 屏幕像素（按 1440×900 出厂机位反解）。
+   地面是掠射视角，两个方向的比例差着三倍 —— 水平 289 px/m，30px = 0.096m；
+   纵深只有 105 px/m，同样的 30px 要 0.250m。写成一个数会让下方那条边几乎贴线。 */
+const BRAND_GAP_X = 0.096
+const BRAND_GAP_Z = 0.25
 /* 具身与 AI 的 z 在反解值上又往相机方向推了十几公分：反解只保证出厂机位下那一条
    屏幕空带，而镜头常驻漂移（±十几像素）。tmp/floor-live.mjs 量到原位的上缘离
    copy 那一列最后那行状态字只剩 2~7px —— 漂移再大一点就上脸了。往下让到 15~20px
@@ -277,10 +284,10 @@ function brandPos(p) {
   const w = BRAND_QUAD.w * p.scale[0] * BRAND_SIZE
   const d = BRAND_QUAD.d * p.scale[1] * BRAND_SIZE
   return [
-    OUTLINE_AI.x - OUTLINE_AI.stroke / 2 - (_brandInk.r - 0.5) * w,
+    OUTLINE_AI.x - OUTLINE_AI.stroke / 2 - BRAND_GAP_X - (_brandInk.r - 0.5) * w,
     /* 用「基线」而不是墨盒下沿：基线在画布 63.6% 处，墨盒下沿还带着 0.45m
        的透明留白 —— 拿它去贴角，字会离虚线半个身位，正是要避免的“浮在附近” */
-    OUTLINE_AI.z - OUTLINE_AI.stroke / 2 - (_brandInk.base - 0.5) * d,
+    OUTLINE_AI.z - OUTLINE_AI.stroke / 2 - BRAND_GAP_Z - (_brandInk.base - 0.5) * d,
   ]
 }
 function brandTex() {
@@ -296,11 +303,11 @@ function brandTex() {
   /* 冷白偏蓝、半透：与地面区域字标同一家族。不取近白 —— Bloom 阈值 1.8 虽然
      吃不到它，但 AGX 会把近白往中性灰里抽，反而脏在辉光地板上 */
   g.fillStyle = 'rgba(203,224,250,0.62)'
-  g.fillText('天择科技', c.width / 2, c.height / 2)
+  g.fillText(BRAND_TEXT, c.width / 2, c.height / 2)
   /* 字墨盒（画布比例 0..1）：贴角要对齐的是「字的右沿 + 基线」，不是那块
      带透明留白的字框。middle 基线 = 画布中线 + (上伸-下伸)/2，
      再往外取实际墨迹的上/下/左/右 —— 值只在 DEV/PROD 首次建纹理时算一次 */
-  const m = g.measureText('天择科技')
+  const m = g.measureText(BRAND_TEXT)
   const base = c.height / 2 + ((m.fontBoundingBoxAscent || 0) - (m.fontBoundingBoxDescent || 0)) / 2
   _brandInk = {
     l: (c.width / 2 - m.actualBoundingBoxLeft) / c.width,
@@ -371,7 +378,7 @@ export function FloorBrand({ variant = 'embodied' }) {
     }
   })
   return (
-    /* 字框只做平移：朝向由全局镜头那一次 30° 转交代（见 HeroStage 的 VIEW_YAW），
+    /* 字框只做平移：朝向由房间那一组统一的 30° 转交代（见 HeroStage 的 lab-room），
        这里再叠一次就是转两次了。内层 rotation-x 把平面放平，法线朝上、贴地不翘 */
     <group ref={ref} name="floor-brand">
       <mesh rotation-x={-Math.PI / 2} geometry={BRAND_GEO} material={mat} />

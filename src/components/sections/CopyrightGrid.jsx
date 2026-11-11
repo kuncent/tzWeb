@@ -351,7 +351,13 @@ export default function CopyrightGrid() {
                     reduced ? '' : 'transition-transform duration-300 ease-out'
                   }`}
                 >
-                  <span className="relative block rounded-[7px] bg-white p-1.5 shadow-[0_1px_2px_rgba(3,6,20,0.5),0_16px_32px_-16px_rgba(2,5,22,0.62)] transition-shadow duration-300 group-data-[centre=true]:shadow-[0_1px_2px_rgba(3,6,20,0.5),0_0_0_1px_rgba(168,196,255,0.45),0_26px_54px_-18px_rgba(96,140,255,0.5)]">
+                  <span
+                    className="relative block select-none rounded-[7px] bg-white p-1.5 shadow-[0_1px_2px_rgba(3,6,20,0.5),0_16px_32px_-16px_rgba(2,5,22,0.62)] transition-shadow duration-300 group-data-[centre=true]:shadow-[0_1px_2px_rgba(3,6,20,0.5),0_0_0_1px_rgba(168,196,255,0.45),0_26px_54px_-18px_rgba(96,140,255,0.5)]"
+                    onContextMenu={(e) => e.preventDefault()}
+                    style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
+                  >
+                    {/* 图片防下载：拦右键菜单 / 拖拽 / 长按「存储图像」；
+                        img 关掉指针命中，右键落点变成外层容器，浏览器就不给「图片另存为」 */}
                     <img
                       src={c.file}
                       alt={duplicate ? '' : `${c.title} 软件著作权登记证书`}
@@ -360,7 +366,7 @@ export default function CopyrightGrid() {
                       draggable={false}
                       onDragStart={(e) => e.preventDefault()}
                       style={{ aspectRatio: RATIO }}
-                      className="block w-full rounded-[3px] bg-white object-contain"
+                      className="pointer-events-none block w-full select-none rounded-[3px] bg-white object-contain"
                     />
                   </span>
                 </div>

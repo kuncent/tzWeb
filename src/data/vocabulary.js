@@ -13,7 +13,7 @@ export const SOLUTIONS = [
   { id: 'digital-economy', name: '数字经济' },
   { id: 'fintech', name: '金融科技' },
   { id: 'applied-statistics', name: '应用统计' },
-  { id: 'business-analytics', name: '商务数据分析' },
+  { id: 'business-analytics', name: '新商科大数据' },
   { id: 'biz-tech-integration', name: '工商科一体化' },
 ]
 
@@ -27,10 +27,10 @@ export const solutionFullName = (id) => `${SOLUTION_NAMES[id]}实验教学方案
    「智能产品」下的具身智能机器人产品（3D 展台展示原样保留）；Excel 的
    「其他未分类」在此落为「其他」体系。 */
 export const PRODUCTS = [
+  { id: 'blockchain', name: '区块链', short: '区块链' },
   { id: 'digital-finance', name: '数字金融', short: '数字金融' },
   { id: 'innovation-finance', name: '创新金融', short: '创新金融' },
   { id: 'digital-economy', name: '数字经济', short: '数字经济' },
-  { id: 'blockchain', name: '区块链', short: '区块链' },
   { id: 'new-business-data', name: '新商科大数据', short: '新商科大数据' },
   { id: 'ecommerce', name: '电子商务', short: '电子商务' },
   { id: 'smart-products', name: '智能产品', short: '智能产品' },

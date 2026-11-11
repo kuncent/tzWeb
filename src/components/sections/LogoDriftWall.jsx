@@ -34,7 +34,7 @@ export default function LogoDriftWall() {
 
       {/* 漂移墙：横向多行校徽卡平面漂移（无倾斜、无卡片框）；入视口才挂载，占位保持布局高度 */}
       {inView ? (
-        <DriftWall items={items} />
+        <DriftWall items={items} hoverSpeed={0.16} />
       ) : (
         <div className="h-[440px] w-full sm:h-[484px]" aria-hidden />
       )}

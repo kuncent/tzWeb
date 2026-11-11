@@ -29,7 +29,7 @@ export const CONTENT_GROUPS = [
         desc: '眉标、品牌行与公司简介段落；留空即沿用源码默认。',
         locked: {
           label: '主标题（固定，不在后台编辑）',
-          lines: ['天择科技，AI', '与数字产教的', '创新实践者'],
+          lines: ['天择科技，AI', '与数字产教', '的创新实践者'],
         },
         fields: [
           text('heroMeta.eyebrow', '眉标（英文）', heroMeta.eyebrow),
@@ -55,7 +55,7 @@ export const CONTENT_GROUPS = [
     sections: [
       {
         id: 'co-build-title',
-        title: '专业共建框架 · 区块',
+        title: '为什么选择我们 · 区块',
         desc: '区块标题与六个共建维度的名称、说明。',
         fields: [text('about.coBuild.title', '区块标题', coBuildTitle)],
       },

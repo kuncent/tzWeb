@@ -85,7 +85,7 @@ export const navCta = { label: '预约演示', to: '/about#contact' }
 export const advisorKicker = '构建下一代人才培养基础设施'
 export const advisorTitle = ['用科技重塑教育', '让培养的人才', '站在时代前沿']
 export const advisorDesc =
-  '我们为高校提供数字金融、创新金融、数字经济、区块链、新商科大数据、电子商务、智能产品与其他产品体系，以及数字经济、金融科技、应用统计、商务数据分析、工商科一体化五套实验教学方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
+  '我们为高校提供区块链、数字金融、创新金融、数字经济、新商科大数据、电子商务、智能产品与其他产品体系，以及数字经济、金融科技、应用统计、新商科大数据、工商科一体化五套实验教学方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
 export const advisorCtas = [
   { label: '免费开通试用', primary: true },
   { label: '方案咨询', primary: false },
@@ -96,7 +96,7 @@ export const advisorConsoleUrl = 'console.sztzjy.com / ai-engine'
 export const advisorStats = [
   { value: 800, suffix: '+', label: '合作高校' },
   { value: 30, suffix: '+', label: '覆盖学科' },
-  { value: 100000, suffix: '+', label: '培养学员' },
+  { value: 300000, suffix: '+', label: '培养学员' },
   { value: 98, suffix: '%', label: '课堂互动率提升' },
 ]
 
@@ -122,7 +122,7 @@ export const problems = [
 ]
 
 /* ---------------- 产品矩阵（8 大产品体系 · 整屏轮播） ----------------
-   八个体系名对齐客户《产品体系.xlsx》：数字金融、创新金融、数字经济、区块链、
+   八个体系名对齐客户《产品体系.xlsx》：区块链、数字金融、创新金融、数字经济、
    新商科大数据、电子商务、智能产品、其他。表现形式统一为 GalleryScreen 图片画廊
    （区块链前两套沿用上版真实录屏），界面截图取客户提供的真实系统截图
    （public/images/products/）。原独立的「具身智能」3D 展台体系已并入「智能产品」
@@ -149,6 +149,18 @@ export const embodiedSystem = {
 }
 
 export const productMatrix = [
+  {
+    id: 'blockchain',
+    en: 'BLOCKCHAIN & LEDGER',
+    icon: Blocks,
+    title: PRODUCT_NAMES.blockchain,
+    tagline: '从联盟链搭建到链上数据与数字人民币，八套系统覆盖区块链全链路',
+    desc: '八套系统按区块链的真实技术栈排布：FISCO 联盟链搭建与智能合约部署打底，链上数据 ETL 聚合与态势分析展开，再到数字人民币、区块链发票与供应链金融的应用实训收口。前两套配上真实操作录屏，其余各套均带界面实景与适用专业。',
+    bullets: ['FISCO 联盟链 · 合约部署', '链上数据 ETL · 态势大屏', '数字人民币 · 发票 · 供应链', 'NFT 与七大应用场景'],
+    stats: [{ k: '实训系统', v: '8 套' }, { k: '实景演示', v: '2 录屏 · 21 图' }],
+    intent: PRODUCT_NAMES.blockchain,
+    rich: 'gallery',
+  },
   {
     id: 'digital-finance',
     en: 'DIGITAL FINANCE',
@@ -183,18 +195,6 @@ export const productMatrix = [
     bullets: ['数字贸易 · 数字营销', '企业数字化转型', '数字供应链 · 区块链发票', '文本挖掘 · 机器学习'],
     stats: [{ k: '实训系统', v: '12 套' }, { k: '界面实景', v: '44 张' }],
     intent: PRODUCT_NAMES['digital-economy'],
-    rich: 'gallery',
-  },
-  {
-    id: 'blockchain',
-    en: 'BLOCKCHAIN & LEDGER',
-    icon: Blocks,
-    title: PRODUCT_NAMES.blockchain,
-    tagline: '从联盟链搭建到链上数据与数字人民币，八套系统覆盖区块链全链路',
-    desc: '八套系统按区块链的真实技术栈排布：FISCO 联盟链搭建与智能合约部署打底，链上数据 ETL 聚合与态势分析展开，再到数字人民币、区块链发票与供应链金融的应用实训收口。前两套配上真实操作录屏，其余各套均带界面实景与适用专业。',
-    bullets: ['FISCO 联盟链 · 合约部署', '链上数据 ETL · 态势大屏', '数字人民币 · 发票 · 供应链', 'NFT 与七大应用场景'],
-    stats: [{ k: '实训系统', v: '8 套' }, { k: '实景演示', v: '2 录屏 · 21 图' }],
-    intent: PRODUCT_NAMES.blockchain,
     rich: 'gallery',
   },
   {
@@ -679,7 +679,7 @@ export const contact = {
   email: 'contact@sztzjy.com',
   address: '深圳市光明区 · 科技金融大厦',
 }
-export const offices = ['深圳总部', '北京', '重庆', '郑州', '西安', '长沙']
+export const offices = ['深圳总部', '北京', '重庆', '郑州', '西安', '长沙', '广州']
 
 /* ---------------- 页脚 ----------------
    产品与方案两列都从词表生成：产品 = 8 大产品体系，方案 = 5 套学科方案，

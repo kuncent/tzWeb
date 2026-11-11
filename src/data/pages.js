@@ -254,7 +254,7 @@ export const solutionPlans = [
     short: SOLUTION_NAMES['business-analytics'],
     en: 'BUSINESS ANALYTICS',
     tagline: '商数融合 · 决策驱动 · 面向商业分析人才培养',
-    goal: '面向企业数字化转型中的商科人才需求，以“业务提问—数据分析—可视化呈现—经营决策”为主线构建商务数据分析实验教学体系，培养能用真实经营数据讲好商业故事的复合型商业分析人才。',
+    goal: '面向企业数字化转型中的商科人才需求，以“业务提问—数据分析—可视化呈现—经营决策”为主线构建新商科大数据实验教学体系，培养能用真实经营数据讲好商业故事的复合型商业分析人才。',
     mainline: ['业务提问', '数据分析', '可视化呈现', '经营决策'],
     positioning: '复合型商业分析人才',
     metrics: [
@@ -570,7 +570,7 @@ export const caseFilters = [
 ]
 
 /* ---------------- 标杆实验室建设案例集（源自公司《高校专业实验室设计建设案例集》）----------------
-   与案例墙「只写公开属性」的纪律不同：这里的九条是公司自己整理、可对外展示的
+   与案例墙「只写公开属性」的纪律不同：这里的八条是公司自己整理、可对外展示的
    经典交付案例，内容（院校 / 实验室 / 面积机位 / 软硬件配置）均来自该案例集原文，
    不做数字加工。展示形态做成深色科技控制台：左轨点选、右板详情联动。 */
 export const labCases = [
@@ -670,31 +670,19 @@ export const labCases = [
     highlight: '支撑现有专业实验教学需求，同时作为虚拟仿真实验教学项目的建设底座。',
     imgs: ['/images/labcases/lab-08-1.webp', '/images/labcases/lab-08-2.webp', '/images/labcases/lab-08-3.webp'],
   },
-  {
-    id: 'xa-mingde', n: '09', icon: Server,
-    school: '西安明德理工学院', lab: '数字化综合金融实验室', en: 'DIGITAL COMPREHENSIVE FINANCE LAB',
-    city: '西安', province: '陕西', year: '2024.12', type: '本科 · 理工',
-    summary: '面向综合金融教学的数字化实验室，覆盖量化投资、大数据分析、银行国际结算与外汇交易，软硬件一体交付。',
-    specs: [ { k: '面积', v: '160㎡' }, { k: '学生机位', v: '50' }, { k: '教师机位', v: '1' } ],
-    regions: ['量化投资交易', '金融大数据分析', '国际结算与外汇交易'],
-    hardware: ['可视化大屏幕系统 · LED 跑马灯', '纳米触控智慧黑板 · 录播 · 互动视频会议', '飞屏器 · 数位手写板'],
-    software: ['量化投资交易平台', '金融大数据分析挖掘系统', '银行国际结算及外汇交易系统', '金融数据终端'],
-    highlight: '可视化大屏与智慧课堂设备一体化，兼顾讲授、实训与数据分析。',
-    imgs: ['/images/labcases/lab-09-1.webp', '/images/labcases/lab-09-2.webp', '/images/labcases/lab-09-3.webp'],
-  },
 ]
 
-/* 案例集聚合口径：数字全部由上面 9 条真实数据汇总，不另立说法 */
+/* 案例集聚合口径：数字全部由上面 8 条真实数据汇总，不另立说法 */
 export const labCaseStats = [
-  { k: '标杆院校', v: 9, suffix: ' 所' },
+  { k: '标杆院校', v: 8, suffix: ' 所' },
   { k: '实验室 / 中心', v: 12, suffix: '+' },
   { k: '累计实训机位', v: 470, suffix: '+' },
   { k: '累计建设面积', v: 2700, suffix: '㎡+' },
-  { k: '覆盖省市', v: 6, suffix: ' 个' },
+  { k: '覆盖省市', v: 7, suffix: ' 个' },
 ]
 
 /* ---------------- 客户 logo 墙（院校 + 金融机构）----------------
-   院校 101 所 + 金融机构 5 家。旧站迁移的标杆 logo 多为白底 / 透明，原样保留；
+   院校 101 所 + 金融机构 10 家。旧站迁移的标杆 logo 多为白底 / 透明，原样保留；
    合作名录扩充院校的真实校徽取自 Wikimedia 共享资源，经 /images/logos/ 规范化为 webp。
    kind 分 school / corp；公开可核验的院校才带 logo，未核验者仅在 Cases 页名录中以文字呈现。 */
 export const clientLogos = [
@@ -806,6 +794,11 @@ export const clientLogos = [
   { name: '广发期货', img: '/images/cases/case-29.jpg', kind: 'corp', cat: '期货' },
   { name: '中国平安', img: '/images/cases/case-30.jpg', kind: 'corp', cat: '保险' },
   { name: '道富资本', img: '/images/cases/case-27.jpg', kind: 'corp', cat: '投资' },
+  { name: '第一创业证券', img: '/images/cases/corp-firstcapital.png', kind: 'corp', cat: '证券' },
+  { name: '东方财富', img: '/images/cases/corp-eastmoney.png', kind: 'corp', cat: '证券' },
+  { name: '中原证券', img: '/images/cases/corp-ccnew.png', kind: 'corp', cat: '证券' },
+  { name: '腾讯众创', img: '/images/cases/corp-tencent.png', kind: 'corp', cat: '科技' },
+  { name: '国信证券', img: '/images/cases/corp-guosen.png', kind: 'corp', cat: '证券' },
 ]
 
 /* 三类典型建设形态：不指向具体学校，讲的是我们的标准交付组合 */

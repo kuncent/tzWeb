@@ -205,8 +205,10 @@ function IconTower({ plan, hue, b }) {
         justifyContent: 'center',
         gap: 7,
         clipPath: cut(8),
-        background: `linear-gradient(180deg,${hue}26,rgba(255,255,255,0.02) 58%,${hue}12)`,
-        boxShadow: `inset 0 1px 0 ${hue}55, inset 0 0 16px ${hue}12`,
+        /* 图标塔做成一格凹进去的壁龛：顶部一枚通道色回光把图标托住，
+           四周硬边 + 下缘反上来的次色，与右边那块屏是同一套腔体语言 */
+        background: `radial-gradient(76% 50% at 50% 30%,${hue}30,rgba(0,0,0,0) 72%),linear-gradient(180deg,rgba(255,255,255,0.09) 0%,rgba(255,255,255,0.015) 60%,${hue}16 100%)`,
+        boxShadow: `inset 0 1px 0 ${hue}7a, inset 0 0 0 1px ${hue}2b, inset 0 -9px 14px -10px ${hue}66`,
       }}
     >
       {Glyph ? <Glyph size={30} strokeWidth={1.4} color={hue} /> : null}
@@ -244,6 +246,13 @@ const TREND_B = [0.1, 0.18, 0.15, 0.26, 0.22, 0.33, 0.28, 0.4]
 const BARS_A = [0.34, 0.52, 0.42, 0.66, 0.48, 0.8]
 const BARS_B = [0.28, 0.6, 0.36, 0.7, 0.55, 0.74]
 
+/* 屏面底色：比 bezel 深两档，顶上回一抹通道色。
+   牌缩到屏幕上 200px 时，屏与框只差几个亮度值就会糊成同一块灰板；
+   拉开明度差之后才读作「一圈被照亮的边框裹着一块通电的黑屏」。
+   打字盖板要用同一份底（见 Terminal），否则盖板滑过时会露出一道色差边 */
+const screenBg = (hue) =>
+  `radial-gradient(135% 96% at 50% -14%,${hue}26,rgba(0,0,0,0) 58%),linear-gradient(180deg,#04070f 0%,#02040a 100%)`
+
 /* 三种仪表共用一块屏：同底色、同切角、同一枚左下角小标 */
 const screenBox = (hue) => ({
   position: 'relative',
@@ -252,8 +261,8 @@ const screenBox = (hue) => ({
   boxSizing: 'border-box',
   padding: '5px 7px 11px',
   clipPath: cut(8),
-  background: '#060b14',
-  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px ${hue}26`,
+  background: screenBg(hue),
+  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.16), inset 0 0 0 1px ${hue}45, inset 0 0 18px -6px ${hue}3a`,
   overflow: 'hidden',
   display: 'flex',
   flexDirection: 'column',
@@ -440,7 +449,7 @@ function Terminal({ plan, hue, live, still }) {
       <Tag hue={hue} t="STDOUT" />
       {/* 打字盖板：只给中央那块；transform 在合成层里滑走，不触发文字重排。
           reduced-motion 与侧牌不挂，读者看到的直接是完整落定的输出 */}
-      {live && !still && <span className="ap-type-cover" aria-hidden style={{ position: 'absolute', inset: 0, background: '#060b14' }} />}
+      {live && !still && <span className="ap-type-cover" aria-hidden style={{ position: 'absolute', inset: 0, background: screenBg(hue) }} />}
     </div>
   )
 }
@@ -542,22 +551,32 @@ export default function AgentPanel({ index, beat, live, still = false, yaw = 0, 
           color: '#fff',
           userSelect: 'none',
           background: [
-            'radial-gradient(125% 105% at 50% 44%,rgba(0,0,0,0) 52%,rgba(0,0,0,0.32) 100%)',
+            'radial-gradient(125% 105% at 50% 44%,rgba(0,0,0,0) 52%,rgba(0,0,0,0.38) 100%)',
             'linear-gradient(180deg,rgba(255,255,255,0.22) 0%,rgba(255,255,255,0.08) 10%,rgba(255,255,255,0) 22%)',
             `radial-gradient(160px 74px at 10% -12%,rgba(255,255,255,0.24),rgba(255,255,255,0) 70%)`,
-            `linear-gradient(0deg,${hue}3d 0%,${hue}18 7%,${hue}00 16%)`,
-            'repeating-linear-gradient(0deg,rgba(255,255,255,0.022) 0 1px,transparent 1px 13px)',
-            'repeating-linear-gradient(90deg,rgba(255,255,255,0.022) 0 1px,transparent 1px 13px)',
-            'linear-gradient(168deg,rgba(30,38,64,0.94) 0%,rgba(16,22,40,0.955) 52%,rgba(8,12,22,0.975) 100%)',
+            `linear-gradient(0deg,${hue}4d 0%,${hue}1c 7%,${hue}00 16%)`,
+            /* 网格从白 0.022 提到通道色 0.043：原来那层在深底上根本看不见，
+               牌就成了一块没有刻度的灰板。染成通道色后它读作仪器面板的坐标纸，
+               而且每块牌的网格跟着自己的色相走，五块并排能一眼分出彼此 */
+            `repeating-linear-gradient(0deg,${hue}0b 0 1px,transparent 1px 13px)`,
+            `repeating-linear-gradient(90deg,${hue}0b 0 1px,transparent 1px 13px)`,
+            /* bezel 自身的明度跨度拉开（顶 33,42,70 → 底 5,8,15），屏面压黑
+               （见 screenBox）：原来框与屏落在同一个深灰值上，整块牌读作一张
+               平贴的暗卡。提亮只走 bezel 的上下梯度，不往上叠白膜 —— 叠过
+               0.26 的一版把标题区糊成了一片奶白，字反而比原来更难认 */
+            'linear-gradient(168deg,rgba(33,42,70,0.95) 0%,rgba(14,19,34,0.96) 52%,rgba(5,8,15,0.98) 100%)',
           ].join(','),
           boxShadow: [
-            'inset 0 1px 0 rgba(255,255,255,0.36)',
-            'inset 1px 0 0 rgba(255,255,255,0.09)',
-            `inset -1px 0 0 ${hue}1f`,
-            `inset 0 -1px 0 ${hue}4d`,
-            `inset 0 0 20px ${hue}14`,
+            'inset 0 1px 0 rgba(255,255,255,0.42)',
+            'inset 1px 0 0 rgba(255,255,255,0.11)',
+            /* 一圈实边：牌缩到屏幕上 200px 时，柔光 inset 会糊成一团，
+               只有 1px 的硬边还立得住轮廓 */
+            `inset 0 0 0 1px ${hue}3d`,
+            `inset -1px 0 0 ${hue}2e`,
+            `inset 0 -1px 0 ${hue}66`,
+            `inset 0 0 22px ${hue}1a`,
             /* 只有正在聚焦的那一块往外发光：五块一起发光就等于没有一块发光 */
-            live ? `0 0 22px ${hue}33, 0 0 54px ${hue}14` : '0 0 0 rgba(0,0,0,0)',
+            live ? `0 0 24px ${hue}40, 0 0 58px ${hue}1a` : '0 0 0 rgba(0,0,0,0)',
           ].join(','),
           opacity: live ? 1 : 0.95,
           /* 这里挂过一枚 filter: saturate()/brightness() 给非聚焦牌压色 —— 摘掉了。
@@ -593,11 +612,11 @@ export default function AgentPanel({ index, beat, live, still = false, yaw = 0, 
             width: 9,
             height: 9,
             pointerEvents: 'none',
-            opacity: 0.55,
-            borderLeft: p.edges.includes('left') ? `1.5px solid ${hue}99` : undefined,
-            borderTop: p.edges.includes('top') ? `1.5px solid ${hue}99` : undefined,
-            borderRight: p.edges.includes('right') ? `1.5px solid ${hue}99` : undefined,
-            borderBottom: p.edges.includes('bottom') ? `1.5px solid ${hue}99` : undefined,
+            opacity: 0.9,
+            borderLeft: p.edges.includes('left') ? `1.5px solid ${hue}cc` : undefined,
+            borderTop: p.edges.includes('top') ? `1.5px solid ${hue}cc` : undefined,
+            borderRight: p.edges.includes('right') ? `1.5px solid ${hue}cc` : undefined,
+            borderBottom: p.edges.includes('bottom') ? `1.5px solid ${hue}cc` : undefined,
           }}
         />
       ))}

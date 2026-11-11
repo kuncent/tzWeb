@@ -416,17 +416,22 @@ void main() {
   /* TubeGeometry 的 uv.x 就是沿管长（0=起点 a，1=终点 b），uv.y 绕管截面 */
   float x = vUv.x;
   float endFade = smoothstep(0.0, 0.07, x) * smoothstep(1.0, 0.93, x);
-  float edge = smoothstep(0.0, 0.3, vUv.y) * smoothstep(1.0, 0.7, vUv.y);
+  /* 截面衰减留 0.45 的底：原来两端收到 0，四棱管有两整条侧棱完全不亮，
+     线在屏幕上就断成几截。留底之后整圈都参与叠加，读作一根圆的发光丝 */
+  float edge = 0.45 + 0.55 * smoothstep(0.0, 0.34, vUv.y) * smoothstep(1.0, 0.66, vUv.y);
   /* 彗头 + 拖在后面的尾：头的位置就是"这一条数据此刻走到哪" */
   float m = fract(x * 2.0 - uTime * uSpeed);
   float head = exp(-pow((m - 0.5) * 8.5, 2.0));
   float tail = smoothstep(0.0, 0.5, m) * (1.0 - m) * 0.45;
   /* 一格一格的短划往前挪：连续的一条亮带读作"这里有一根线"，
      断开行走的短划才读作"有一串数据正在过" */
-  float dash = pow(0.5 + 0.5 * cos((x * 42.0 - uTime * uSpeed * 3.1) * 6.2831), 10.0);
-  float body = 0.03 + dash * 0.20;
+  float dash = pow(0.5 + 0.5 * cos((x * 42.0 - uTime * uSpeed * 3.1) * 6.2831), 6.0);
+  /* 常驻底亮 0.03 → 0.11：彗头之间的线原本几乎看不见，五条链路读作
+     五颗孤立的光点在飘。抬到 0.11 后线本身立得住，又远低于泛光阈值 1.8，
+     不会把整条弧烧成一团白 */
+  float body = 0.11 + dash * 0.26;
   float a = (body + head + tail) * edge * endFade * uOpacity;
-  gl_FragColor = vec4(uColor * (0.42 + (head + tail) * 2.6 + dash * 0.7), a);
+  gl_FragColor = vec4(uColor * (0.55 + (head + tail) * 2.6 + dash * 0.8), a);
 }
 `
 
@@ -459,7 +464,9 @@ const _arcP = new THREE.Vector3()
    这里按 three 的同一条算法只改 position（uv 只由 (i,j) 决定，端点移动不用重算），
    normals 也不动 —— 这条弧的 shader 只读 uv 与 position。 */
 const TUBE_SEG = 30
-const TUBE_RAD = 4
+/* 截面 4 → 6 棱：四棱管的屏幕宽度随扭转在 r 与 √2·r 之间跳，读作一根忽粗忽细的带子；
+   六棱接近圆，宽度稳定。每根弧多 60 个顶点，五条弧合计不到 1k，代价可忽略 */
+const TUBE_RAD = 6
 const _tp = new THREE.Vector3()
 function retube(geo, curve, radius) {
   const frames = curve.computeFrenetFrames(TUBE_SEG, false)

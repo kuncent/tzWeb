@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useInView } from 'motion/react'
-import { Boxes, BookOpen, Compass, FlaskConical, GraduationCap, Handshake } from 'lucide-react'
 import { Reveal } from '../ui'
+import { coBuildNodes, coBuildTitle } from '../../data/coBuild'
+import { useContent, useContentData } from '../../lib/contentStore'
 
 /* ============================================================
  * 专业共建框架 —— 六边形节点围绕「天择」核心展开的共建生态
@@ -42,14 +43,7 @@ const CORE = { x: 500, y: 370, r: 70 }
 const HEX_U = 70 // 六边形半高（用户单位）；节点宽 = 14% × 1000 = 140
 const HEX_PX = 14 // 节点宽度，占画布宽度的百分比
 
-const NODES = [
-  { n: '01', title: '专业建设与评估', sub: '人才培养方案修订', icon: Compass, x: 500, y: 131, side: 'top' },
-  { n: '02', title: '师资提升', sub: '企业顶岗实践', icon: GraduationCap, x: 205, y: 230, side: 'left' },
-  { n: '03', title: '科研及创新', sub: '横向课题', icon: FlaskConical, x: 795, y: 230, side: 'right' },
-  { n: '04', title: '课程建设', sub: '虚拟仿真课程资源', icon: BookOpen, x: 205, y: 510, side: 'left' },
-  { n: '05', title: '实践教学', sub: '实验室建设', icon: Boxes, x: 795, y: 510, side: 'right' },
-  { n: '06', title: '社会服务', sub: '会议联合举办', icon: Handshake, x: 500, y: 605, side: 'bottom' },
-]
+const NODES = coBuildNodes
 
 /* 连线：从核心盘外沿（r=70，藏在圆盘下面）出发，末端落在六边形中心；
    控制点顺着参考稿的手感——0.44 处起弯、0.80 处回正，并朝同一侧偏一点，
@@ -408,7 +402,7 @@ function NodeLabel({ n, className = '' }) {
 }
 
 /* ―――――――――― 桌面：径向生态 ―――――――――― */
-function RadialScene({ reduced, on, inView, sceneRef }) {
+function RadialScene({ reduced, on, inView, sceneRef, nodes }) {
   return (
     <div
       ref={sceneRef}
@@ -475,7 +469,7 @@ function RadialScene({ reduced, on, inView, sceneRef }) {
 
       {/* 六个节点 */}
       <ul className="absolute inset-0 z-[4]">
-        {NODES.map((n, i) => {
+        {nodes.map((n, i) => {
           const Icon = n.icon
           return (
             <li
@@ -533,7 +527,7 @@ function SpineNode({ n, i }) {
   )
 }
 
-function SpineScene({ reduced, on, inView, sceneRef }) {
+function SpineScene({ reduced, on, inView, sceneRef, nodes }) {
   return (
     <div
       ref={sceneRef}
@@ -545,7 +539,7 @@ function SpineScene({ reduced, on, inView, sceneRef }) {
       />
 
       <ul className="relative">
-        {NODES.slice(0, 3).map((n, i) => (
+        {nodes.slice(0, 3).map((n, i) => (
           <SpineNode key={n.n} n={n} i={i} />
         ))}
       </ul>
@@ -555,7 +549,7 @@ function SpineScene({ reduced, on, inView, sceneRef }) {
       </div>
 
       <ul className="relative">
-        {NODES.slice(3).map((n, i) => (
+        {nodes.slice(3).map((n, i) => (
           <SpineNode key={n.n} n={n} i={i + 3} />
         ))}
       </ul>
@@ -572,6 +566,18 @@ export default function CoBuildFramework() {
   const entered = useInView(sceneRef, { once: true, amount: 0.2 })
   const inView = useInView(sceneRef, { amount: 0.06 })
   const [on, setOn] = useState(false)
+
+  /* 后台可编辑面：区块标题 + 六个节点的纯文案（title / sub）。
+     坐标、图标与连线仍吃数据默认，覆盖只做文本合并，不动版式。 */
+  const title = useContent('about.coBuild.title', coBuildTitle)
+  const nodeOverlay = useContentData().about?.coBuild?.nodes
+  const nodes = useMemo(
+    () => NODES.map((n) => {
+      const o = nodeOverlay?.[n.n]
+      return o ? { ...n, ...o } : n
+    }),
+    [nodeOverlay],
+  )
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1280px)')
@@ -740,14 +746,14 @@ export default function CoBuildFramework() {
         <Reveal>
           <p className="font-mono text-caption uppercase tracking-eyebrow text-brand-text">CO-BUILDING FRAMEWORK</p>
           <h2 className="mt-2.5 text-[32px] font-bold leading-[1.04] tracking-tight text-ink-900 sm:text-[38px] lg:text-[46px]">
-            专业共建框架
+            {title}
           </h2>
         </Reveal>
 
         {wide ? (
-          <RadialScene reduced={reduced} on={on} inView={inView} sceneRef={sceneRef} />
+          <RadialScene reduced={reduced} on={on} inView={inView} sceneRef={sceneRef} nodes={nodes} />
         ) : (
-          <SpineScene reduced={reduced} on={on} inView={inView} sceneRef={sceneRef} />
+          <SpineScene reduced={reduced} on={on} inView={inView} sceneRef={sceneRef} nodes={nodes} />
         )}
       </div>
     </section>

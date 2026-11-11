@@ -1,132 +1,169 @@
 /* ============================================================
- * 内容编辑：首屏文案 / 联系方式 / 产品矩阵标题 / 产品卡文案
+ * 内容编辑：按 contentSchema 渲染的可编辑面
  * ------------------------------------------------------------
- * 真相仍是 site.js：这里只把「相对默认改过的叶子」发回，服务端把 content.json
- * 当嵌套 overlay 深合并，官网运行时同样合并覆盖。
- * · 载入：GET /content 拿已发布 overlay，与 site.js 默认合成当前值；
- * · 保存：与默认不同 → 写值；等于默认 / 清空 → 写 null（删该覆盖，回落 site.js）。
- * 首页改版后不再有「首屏之下 N 屏」的开关：可编辑面收敛为首屏三屏文案、
- * 产品矩阵标题（sections.matrix）、联系方式与五张产品卡。
+ * 真相仍是 src/data/*：这里只把「相对默认改过的叶子」发回，服务端把
+ * content.json 当嵌套 overlay 深合并，官网运行时同样合并覆盖。
+ * · 载入：GET /content 拿已发布 overlay，与 schema 默认合成当前值；
+ * · 保存：与默认不同 → 写值；等于默认 / 清空 → 写 null（删该覆盖，回落源码默认）。
+ * 可编辑面分组见 lib/contentSchema.js：首页 / 解决方案 / 关于我们 / 联系方式 / 产品矩阵。
+ * 首页主标题固定，不在可编辑字段内，只作为锁定信息展示。
  * 右侧一栏同域 iframe 实时预览已发布态；Field.focus 时把锁点 id 传进去滚到对应区块。
  * ============================================================ */
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Save, RotateCcw, Eye, EyeOff, Undo2 } from 'lucide-react'
-import { contact, productMatrix, matrixHead } from '../data/site'
-import { heroScenes, heroMeta } from '../data/heroScenes'
+import { Save, RotateCcw, Eye, EyeOff, Undo2, Plus, Trash2 } from 'lucide-react'
 import * as api from '../lib/adminApi'
 import { useAuth } from './AuthContext'
 import { Btn, Card, Input, Textarea, Field, Banner, Spinner, cx, useToast, PageFade } from './ui'
 import ContentPreview from './ContentPreview'
 import { diffContent } from '../lib/diffContent.js'
+import { CONTENT_FIELDS, CONTENT_GROUPS } from '../lib/contentSchema'
+import { honorSlug, honors } from '../data/honors'
+import { newsItems } from '../data/site'
 
-/* 文本型可编辑叶子：联系方式 + 产品矩阵标题 + 产品卡文案。
-   矩阵标题写进 sections.matrix.*（产品体系页 ProductMatrix 运行时读它）。 */
-const TEXT_DEFAULTS = {
-  'contact.phone': contact.phone,
-  'contact.email': contact.email,
-  'contact.address': contact.address,
-  'sections.matrix.title': matrixHead.zh,
-  'sections.matrix.desc': matrixHead.desc,
-  ...Object.fromEntries(
-    productMatrix.flatMap((p) => [
-      [`products.${p.id}.title`, p.title],
-      [`products.${p.id}.tagline`, p.tagline],
-      [`products.${p.id}.desc`, p.desc],
-    ])
-  ),
-}
+/* 分组 → 首页预览的锁点（非首页内容没有对应锚点，不滚动） */
+const GROUP_ANCHOR = { home: 'hero', contact: 'contact', matrix: 'matrix' }
 
-function readPath(obj, path) {
+function readRaw(obj, path) {
   let cur = obj
   for (const seg of path.split('.')) {
     if (cur == null) return undefined
     cur = cur[seg]
   }
-  return typeof cur === 'string' ? cur : undefined
+  return cur
 }
+
+/* schema 叶子 → 表单文本：数组字段按行展开，其余按字符串读取 */
+function rawToText(field, raw) {
+  if (field.type === 'lines') {
+    const arr = Array.isArray(raw) ? raw : field.default
+    return arr.join('\n')
+  }
+  if (field.type === 'pairs') {
+    const arr = Array.isArray(raw) ? raw : field.default
+    return arr.map((s) => `${s.k} | ${s.v}`).join('\n')
+  }
+  return typeof raw === 'string' ? raw : field.default
+}
+
+const textTrim = (v) => (v ?? '').trim()
 
 const overlayToForm = (published) => {
   const f = {}
-  for (const key of Object.keys(TEXT_DEFAULTS)) {
-    const v = readPath(published, key)
-    f[key] = v === undefined ? TEXT_DEFAULTS[key] : v
+  for (const field of CONTENT_FIELDS) {
+    const raw = readRaw(published, field.path)
+    f[field.path] = rawToText(field, raw === undefined ? field.default : raw)
   }
   return f
 }
 
-/* 与默认不同 → 写值；等于默认或清空 → 写 null（删覆盖，回落 site.js）。
+/* 与默认不同 → 写值；等于默认或清空 → 写 null（删覆盖，回落源码默认）。
    叶子 null 携带「删除」语义必须保留，只裁因此变空的纯对象分支由服务端 mergeContent 处理。 */
 function formToPatch(form) {
   const patch = {}
-  for (const [path, def] of Object.entries(TEXT_DEFAULTS)) {
-    const v = (form[path] ?? '').trim()
-    const segs = path.split('.')
+  for (const field of CONTENT_FIELDS) {
+    const v = textTrim(form[field.path])
+    const segs = field.path.split('.')
     let node = patch
     for (let i = 0; i < segs.length - 1; i++) node = node[segs[i]] ??= {}
-    node[segs[segs.length - 1]] = v === '' || v === def ? null : v
-  }
-  return patch
-}
 
-/* ---------- 首屏三屏（heroScenes）的可编辑文案 ----------
-   只编辑纯文本：标题两行 / 屏标签 / 描述 / 看板下小字 / 标签（每行一个）。
-   title / tags 以数组存（整值替换），等于默认则写 null（删覆盖 → 回落 heroScenes）。 */
-const HERO_DEFAULTS = Object.fromEntries(
-  heroScenes.map((s) => [s.id, {
-    l1: s.title?.[0] || '',
-    l2: s.title?.[1] || '',
-    nav: s.nav || '',
-    desc: s.desc || '',
-    hint: s.hint || '',
-    tags: (s.tags || []).join('\n'),
-  }]),
-)
-
-function publishedToHero(pub) {
-  const src = (pub && pub.hero) || {}
-  const out = {}
-  for (const s of heroScenes) {
-    const h = src[s.id] || {}
-    const d = HERO_DEFAULTS[s.id]
-    out[s.id] = {
-      l1: Array.isArray(h.title) && typeof h.title[0] === 'string' ? h.title[0] : d.l1,
-      l2: Array.isArray(h.title) && typeof h.title[1] === 'string' ? h.title[1] : d.l2,
-      nav: typeof h.nav === 'string' ? h.nav : d.nav,
-      desc: typeof h.desc === 'string' ? h.desc : d.desc,
-      hint: typeof h.hint === 'string' ? h.hint : d.hint,
-      tags: Array.isArray(h.tags) ? h.tags.join('\n') : d.tags,
+    if (field.type === 'lines') {
+      const arr = v === '' ? [] : v.split('\n').map((s) => s.trim()).filter(Boolean)
+      node[segs[segs.length - 1]] =
+        arr.length === 0 || JSON.stringify(arr) === JSON.stringify(field.default) ? null : arr
+    } else if (field.type === 'pairs') {
+      const arr =
+        v === ''
+          ? []
+          : v
+              .split('\n')
+              .map((line) => {
+                const at = line.indexOf('|')
+                if (at < 0) return null
+                const k = line.slice(0, at).trim()
+                const val = line.slice(at + 1).trim()
+                return k && val ? { k, v: val } : null
+              })
+              .filter(Boolean)
+      node[segs[segs.length - 1]] =
+        arr.length === 0 || JSON.stringify(arr) === JSON.stringify(field.default) ? null : arr
+    } else {
+      node[segs[segs.length - 1]] = v === '' || v === field.default ? null : v
     }
   }
-  return out
-}
-
-function heroToPatch(hero, brand) {
-  const scenesOut = {}
-  for (const s of heroScenes) {
-    const cur = hero[s.id]
-    if (!cur) continue
-    const d = HERO_DEFAULTS[s.id]
-    const entry = {}
-    const t0 = cur.l1.trim()
-    const t1 = cur.l2.trim()
-    if (t0 !== d.l1 || t1 !== d.l2) entry.title = [t0, t1]
-    const nav = cur.nav.trim()
-    if (nav !== d.nav) entry.nav = nav
-    const desc = cur.desc.trim()
-    if (desc !== d.desc) entry.desc = desc
-    const hint = cur.hint.trim()
-    if (hint !== d.hint) entry.hint = hint
-    const tags = cur.tags.split('\n').map((x) => x.trim()).filter(Boolean)
-    if (tags.join('\n') !== d.tags) entry.tags = tags
-    if (Object.keys(entry).length) scenesOut[s.id] = entry
-  }
-  const patch = {}
-  if (Object.keys(scenesOut).length) patch.hero = scenesOut
-  if ((brand || '').trim() !== heroMeta.brand) patch.heroMeta = { brand: (brand || '').trim() }
   return patch
 }
 
-const textTrim = (v) => (v ?? '').trim()
+/* ============================================================
+ * 荣誉墙：21 块牌匾是稳定有序集合，只覆盖图注。
+ * overlay 形如 honors.<slug>.{org,title}，slug 由牌匾文件名派生；
+ * 图片、材质与顺序仍归 data/honors.js，后台不提供增删与排序。
+ * ============================================================ */
+const HONOR_DEFAULTS = Object.fromEntries(
+  honors.map((h) => [honorSlug(h.file), { org: h.org, title: h.title }]),
+)
+
+const overlayToHonors = (published) =>
+  Object.fromEntries(
+    honors.map((h) => {
+      const key = honorSlug(h.file)
+      const o = published?.honors?.[key]
+      return [
+        key,
+        {
+          org: typeof o?.org === 'string' ? o.org : h.org,
+          title: typeof o?.title === 'string' ? o.title : h.title,
+        },
+      ]
+    }),
+  )
+
+const honorsToPatch = (form) =>
+  Object.fromEntries(
+    honors.map((h) => {
+      const key = honorSlug(h.file)
+      const cur = form[key] || {}
+      const org = textTrim(cur.org)
+      const title = textTrim(cur.title)
+      return [
+        key,
+        {
+          org: org === '' || org === h.org ? null : org,
+          title: title === '' || title === h.title ? null : title,
+        },
+      ]
+    }),
+  )
+
+/* ============================================================
+ * 新闻：整组数组覆盖（新增 / 编辑 / 删除都会写回完整列表）。
+ * 默认值来自 data/site.js 的 newsItems；数组与默认完全一致时写 null，
+ * 回落到源码默认，删除全部则发布空数组并由前端渲染空态。
+ * ============================================================ */
+const NEWS_FIELDS = ['date', 'tag', 'img', 'org', 'title', 'desc', 'url']
+
+const normalizeNews = (n) =>
+  Object.fromEntries(NEWS_FIELDS.map((k) => [k, k === 'img' ? (n?.img ? String(n.img) : null) : String(n?.[k] ?? '')]))
+
+const blankNews = () => normalizeNews({})
+
+const NEWS_DEFAULTS = newsItems.map(normalizeNews)
+
+const newsToForm = (published) =>
+  (Array.isArray(published?.news) ? published.news : newsItems).map(normalizeNews)
+
+const newsToPatch = (items) => {
+  const cur = items.map(normalizeNews)
+  return JSON.stringify(cur) === JSON.stringify(NEWS_DEFAULTS) ? null : cur
+}
+
+const newsErrors = (items) =>
+  items.map((n) => {
+    const e = {}
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(textTrim(n.date))) e.date = '请填写日期'
+    if (!textTrim(n.title)) e.title = '请填写标题'
+    if (!textTrim(n.org)) e.org = '请填写机构 / 合作方'
+    return e
+  })
 
 export default function Content() {
   const { can } = useAuth()
@@ -135,10 +172,9 @@ export default function Content() {
 
   const [published, setPublished] = useState(null) // null=未加载
   const [form, setForm] = useState({})
-  const [hero, setHero] = useState({})
-  const [heroInit, setHeroInit] = useState({})
-  const [brand, setBrand] = useState('')
-  const [brandInit, setBrandInit] = useState('')
+  const [honorsForm, setHonorsForm] = useState({})
+  const [newsForm, setNewsForm] = useState([])
+  const [groupId, setGroupId] = useState('home')
   const [err, setErr] = useState('')
   const [saving, setSaving] = useState(false)
   /* 预览面板：当前锁点 + 发布后递增的 refreshKey + 小屏开关 */
@@ -149,12 +185,8 @@ export default function Content() {
   const applyPub = useCallback((pub) => {
     setPublished(pub)
     setForm(overlayToForm(pub))
-    const h = publishedToHero(pub)
-    setHero(h)
-    setHeroInit(h)
-    const b = pub && pub.heroMeta && typeof pub.heroMeta.brand === 'string' ? pub.heroMeta.brand : heroMeta.brand
-    setBrand(b)
-    setBrandInit(b)
+    setHonorsForm(overlayToHonors(pub))
+    setNewsForm(newsToForm(pub))
   }, [])
 
   const load = useCallback(async () => {
@@ -168,60 +200,134 @@ export default function Content() {
   }, [applyPub])
   useEffect(() => { load() }, [load])
 
-  const textDirty = useMemo(() => {
-    let n = 0
-    for (const key of Object.keys(TEXT_DEFAULTS)) {
-      const cur = textTrim(form[key])
-      const init = published ? readPath(published, key) ?? TEXT_DEFAULTS[key] : TEXT_DEFAULTS[key]
-      if (cur !== textTrim(init)) n++
+  const textDirty = useMemo(
+    () =>
+      CONTENT_FIELDS.reduce((n, field) => {
+        const cur = textTrim(form[field.path])
+        const raw = published ? readRaw(published, field.path) : undefined
+        const init = textTrim(rawToText(field, raw === undefined ? field.default : raw))
+        return cur !== init ? n + 1 : n
+      }, 0),
+    [form, published],
+  )
+
+  const honorDirty = useMemo(
+    () =>
+      honors.reduce((n, h) => {
+        const key = honorSlug(h.file)
+        const cur = honorsForm[key] || {}
+        const pub = published?.honors?.[key]
+        const effOrg = typeof pub?.org === 'string' ? pub.org : h.org
+        const effTitle = typeof pub?.title === 'string' ? pub.title : h.title
+        return (
+          n +
+          (textTrim(cur.org) !== textTrim(effOrg) ? 1 : 0) +
+          (textTrim(cur.title) !== textTrim(effTitle) ? 1 : 0)
+        )
+      }, 0),
+    [honorsForm, published],
+  )
+
+  const newsDirty = useMemo(
+    () => JSON.stringify(newsForm.map(normalizeNews)) !== JSON.stringify(newsToForm(published)),
+    [newsForm, published],
+  )
+
+  const newsInvalid = useMemo(() => newsErrors(newsForm).filter((e) => Object.keys(e).length).length, [newsForm])
+
+  /* 指标卡是「名称 | 数值」逐行编辑，格式不完整的行不能被静默丢弃 */
+  const pairInvalid = useMemo(
+    () =>
+      CONTENT_FIELDS.filter((f) => f.type === 'pairs').reduce((n, field) => {
+        const rows = String(form[field.path] ?? '')
+          .split('\n')
+          .map((line) => line.trim())
+          .filter(Boolean)
+        return (
+          n +
+          rows.filter((line) => {
+            const at = line.indexOf('|')
+            return at < 0 || !line.slice(0, at).trim() || !line.slice(at + 1).trim()
+          }).length
+        )
+      }, 0),
+    [form],
+  )
+
+  const dirtyCount = textDirty + honorDirty + (newsDirty ? 1 : 0)
+
+  /* 分组角标：切换分组前也能看到别处还有未发布调整 */
+  const dirtyByGroup = useMemo(() => {
+    const out = {}
+    for (const group of CONTENT_GROUPS) {
+      if (group.kind === 'honors') {
+        out[group.id] = honorDirty
+        continue
+      }
+      if (group.kind === 'news') {
+        out[group.id] = newsDirty ? 1 : 0
+        continue
+      }
+      out[group.id] = (group.sections || []).reduce(
+        (n, s) =>
+          n +
+          s.fields.reduce((m, field) => {
+            const cur = textTrim(form[field.path])
+            const raw = published ? readRaw(published, field.path) : undefined
+            const init = textTrim(rawToText(field, raw === undefined ? field.default : raw))
+            return cur !== init ? m + 1 : m
+          }, 0),
+        0,
+      )
     }
-    return n
-  }, [form, published])
+    return out
+  }, [form, published, honorDirty, newsDirty])
 
-  const heroDirty = useMemo(() => {
-    let n = 0
-    for (const s of heroScenes) {
-      const a = hero[s.id]
-      const b = heroInit[s.id] || HERO_DEFAULTS[s.id]
-      if (!a) continue
-      if (a.l1.trim() !== b.l1.trim() || a.l2.trim() !== b.l2.trim() || a.nav.trim() !== b.nav.trim() || a.desc.trim() !== b.desc.trim() || a.hint.trim() !== b.hint.trim() || a.tags.trim() !== b.tags.trim()) n++
-    }
-    if ((brand || '').trim() !== (brandInit || '').trim()) n++
-    return n
-  }, [hero, heroInit, brand, brandInit])
+  /* 发布载荷：文本叶子按默认回落；集合只看是否脏，未脏时原样保留已发布 overlay */
+  const buildPatch = useCallback(() => {
+    const patch = formToPatch(form)
+    if (honorDirty > 0) patch.honors = honorsToPatch(honorsForm)
+    if (newsDirty) patch.news = newsToPatch(newsForm)
+    return patch
+  }, [form, honorsForm, newsForm, honorDirty, newsDirty])
 
-  const dirtyCount = textDirty + heroDirty
-
-  /* 待发布变更预览：当前 form+sections 生成的 patch vs 已发布 overlay */
+  /* 待发布变更预览：当前 form 生成的 patch vs 已发布 overlay */
   const pendingDiff = useMemo(() => {
     if (dirtyCount === 0) return []
-    const patch = { ...formToPatch(form), ...heroToPatch(hero, brand) }
+    const patch = buildPatch()
     const after = JSON.parse(JSON.stringify(published || {}))
     // 简易深合并得到 “发布后会变成什么”
-    const merge = (obj, src, prefix = '') => {
+    const merge = (obj, src) => {
       for (const [k, v] of Object.entries(src)) {
         if (v && typeof v === 'object' && !Array.isArray(v)) {
           if (!obj[k]) obj[k] = {}
-          merge(obj[k], v, prefix ? `${prefix}.${k}` : k)
+          merge(obj[k], v)
         } else if (v === null) { delete obj[k] }
         else obj[k] = v
       }
     }
     merge(after, patch)
     return diffContent(published || {}, after)
-  }, [form, hero, brand, published, dirtyCount])
+  }, [published, dirtyCount, buildPatch])
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
-  const setHeroF = (id, key, value) => setHero((h) => ({ ...h, [id]: { ...(h[id] || HERO_DEFAULTS[id]), [key]: value } }))
-  const resetHero = (id) => setHero((h) => ({ ...h, [id]: { ...HERO_DEFAULTS[id] } }))
-  const resetOne = (key) => setForm((f) => ({ ...f, [key]: TEXT_DEFAULTS[key] }))
+  const resetOne = (field) => setForm((f) => ({ ...f, [field.path]: rawToText(field, field.default) }))
+  const focusField = (field) => () => setAnchor(GROUP_ANCHOR[groupId] || '')
 
   const save = async () => {
     if (saving) return
+    if (newsInvalid > 0) {
+      setErr('新闻集合中有未填完的条目，请先补全日期、标题与机构。')
+      return
+    }
+    if (pairInvalid > 0) {
+      setErr('产品指标卡中有格式不正确的行，请按“名称 | 数值”填写。')
+      return
+    }
     setSaving(true)
     setErr('')
     try {
-      await api.publishContent({ ...formToPatch(form), ...heroToPatch(hero, brand) })
+      await api.publishContent(buildPatch())
       const r = await api.getContent()
       applyPub((r && r.content) || {})
       setRefreshKey((n) => n + 1) // 发布后令 iframe 重载，反映新的发布态
@@ -256,6 +362,8 @@ export default function Content() {
     return <div className="grid h-40 place-items-center text-ink-400"><Spinner /></div>
   }
 
+  const group = CONTENT_GROUPS.find((g) => g.id === groupId) || CONTENT_GROUPS[0]
+
   return (
     <PageFade className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -276,7 +384,7 @@ export default function Content() {
             {showPreview ? '隐藏预览' : '展开预览'}
           </Btn>
           {editable && (
-            <Btn size="sm" onClick={save} loading={saving} disabled={dirtyCount === 0}>
+            <Btn size="sm" onClick={save} loading={saving} disabled={dirtyCount === 0 || newsInvalid > 0 || pairInvalid > 0}>
               <Save className="h-4 w-4" />发布更改
             </Btn>
           )}
@@ -302,52 +410,84 @@ export default function Content() {
         </details>
       )}
 
+      {/* 分组：可编辑面按站点区块收拢，脏字段在组角标上提示 */}
+      <div className="flex flex-wrap gap-2">
+        {CONTENT_GROUPS.map((g) => {
+          const on = g.id === group.id
+          const n = dirtyByGroup[g.id] || 0
+          return (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => { setGroupId(g.id); setAnchor(GROUP_ANCHOR[g.id] || '') }}
+              aria-pressed={on}
+              className={cx(
+                'inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition-colors',
+                on
+                  ? 'border-brand bg-brand text-white'
+                  : 'border-ink-900/10 bg-white text-ink-600 hover:border-brand/40 hover:text-brand',
+              )}
+            >
+              {g.label}
+              {n > 0 && (
+                <span className={cx(
+                  'rounded-full px-1.5 py-0.5 text-[10.5px] font-semibold tabular-nums',
+                  on ? 'bg-white/20 text-white' : 'bg-brand/10 text-brand',
+                )}>
+                  {n}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         {/* 左栏：表单 */}
         <div className="space-y-5 min-w-0">
-          <Section title="首屏文案" desc="AI 首屏的标题、描述、标签与看板小字（留空 / 等于默认即不覆盖 heroScenes）">
-            <Field label="品牌行（首屏上方，heroMeta.brand）">
-              <Input
-                value={brand}
-                disabled={!editable}
-                onFocus={() => setAnchor('hero')}
-                onChange={(e) => setBrand(e.target.value)}
-                className={cx(brand.trim() !== heroMeta.brand && editable && 'border-brand/40')}
-              />
-            </Field>
-            <div className="mt-4 space-y-4">
-              {heroScenes.map((scene) => (
-                <HeroRow
-                  key={scene.id}
-                  scene={scene}
-                  value={hero[scene.id] || HERO_DEFAULTS[scene.id]}
-                  editable={editable}
-                  onChange={setHeroF}
-                  onReset={resetHero}
-                  onFocusAnchor={setAnchor}
-                />
-              ))}
-            </div>
-          </Section>
-
-          <Section title="联系方式" desc="联系区与页脚的电话、邮箱、地址">
-            <TextField editable={editable} form={form} set={set} resetOne={resetOne} k="contact.phone" label="咨询电话" anchor="contact" onFocusAnchor={setAnchor} />
-            <TextField editable={editable} form={form} set={set} resetOne={resetOne} k="contact.email" label="邮箱" anchor="contact" onFocusAnchor={setAnchor} />
-            <TextField editable={editable} form={form} set={set} resetOne={resetOne} k="contact.address" label="地址" anchor="contact" onFocusAnchor={setAnchor} />
-          </Section>
-
-          <Section title="产品矩阵标题" desc="产品体系页矩阵区的标题与描述（写 sections.matrix，留空即不覆盖）">
-            <TextField editable={editable} form={form} set={set} resetOne={resetOne} k="sections.matrix.title" label="标题" anchor="matrix" onFocusAnchor={setAnchor} />
-            <AreaField editable={editable} form={form} set={set} resetOne={resetOne} k="sections.matrix.desc" label="描述" rows={3} anchor="matrix" onFocusAnchor={setAnchor} />
-          </Section>
-
-          {productMatrix.map((p) => (
-            <Section key={p.id} title={p.en} desc={`产品：${TEXT_DEFAULTS[`products.${p.id}.title`]}`}>
-              <TextField editable={editable} form={form} set={set} resetOne={resetOne} k={`products.${p.id}.title`} label="标题" anchor="matrix" onFocusAnchor={setAnchor} />
-              <TextField editable={editable} form={form} set={set} resetOne={resetOne} k={`products.${p.id}.tagline`} label="一句话定位" anchor="matrix" onFocusAnchor={setAnchor} />
-              <AreaField editable={editable} form={form} set={set} resetOne={resetOne} k={`products.${p.id}.desc`} label="详细介绍" rows={4} anchor="matrix" onFocusAnchor={setAnchor} />
-            </Section>
-          ))}
+          {group.kind === 'honors' ? (
+            <HonorsEditor form={honorsForm} setForm={setHonorsForm} editable={editable} />
+          ) : group.kind === 'news' ? (
+            <NewsEditor form={newsForm} setForm={setNewsForm} editable={editable} />
+          ) : (
+            (group.sections || []).map((section) => (
+              <Section key={section.id} title={section.title} desc={section.desc}>
+                {section.locked && (
+                  <div className="rounded-xl border border-ink-100 bg-mist-50/70 px-3.5 py-3">
+                    <p className="text-[12px] font-medium text-ink-500">{section.locked.label}</p>
+                    <p className="mt-1.5 text-[15px] font-bold leading-snug text-ink-900">
+                      {section.locked.lines.map((line) => (
+                        <span key={line} className="block">{line}</span>
+                      ))}
+                    </p>
+                  </div>
+                )}
+                {section.fields.map((field) =>
+                  field.type === 'textarea' || field.type === 'lines' || field.type === 'pairs' ? (
+                    <AreaField
+                      key={field.path}
+                      field={field}
+                      editable={editable}
+                      form={form}
+                      set={set}
+                      resetOne={resetOne}
+                      onFocus={focusField(field)}
+                    />
+                  ) : (
+                    <TextField
+                      key={field.path}
+                      field={field}
+                      editable={editable}
+                      form={form}
+                      set={set}
+                      resetOne={resetOne}
+                      onFocus={focusField(field)}
+                    />
+                  ),
+                )}
+              </Section>
+            ))
+          )}
         </div>
 
         {/* 右栏：实时预览（一份 iframe，小屏隐藏、大屏固定顶栏 5rem 下方） */}
@@ -373,35 +513,40 @@ function Section({ title, desc, children }) {
   )
 }
 
-function isChanged(form, key) {
-  return (form[key] ?? '').trim() !== TEXT_DEFAULTS[key]
+function isChanged(form, field) {
+  return textTrim(form[field.path]) !== textTrim(rawToText(field, field.default))
 }
 
-function TextField({ editable, form, set, resetOne, k, label, anchor, onFocusAnchor }) {
+function TextField({ field, editable, form, set, resetOne, onFocus }) {
+  const changed = isChanged(form, field)
   return (
-    <Field label={label} hint={isChanged(form, k) && editable ? <ChangedHint onReset={() => resetOne(k)} /> : undefined}>
+    <Field label={field.label} hint={changed && editable ? <ChangedHint onReset={() => resetOne(field)} /> : undefined}>
       <Input
-        value={form[k] ?? ''}
+        value={form[field.path] ?? ''}
         disabled={!editable}
-        onFocus={() => onFocusAnchor && onFocusAnchor(anchor)}
-        onChange={set(k)}
-        className={cx(isChanged(form, k) && editable && 'border-brand/40')}
+        onFocus={onFocus}
+        onChange={set(field.path)}
+        className={cx(changed && editable && 'border-brand/40')}
       />
     </Field>
   )
 }
 
-function AreaField({ editable, form, set, resetOne, k, label, rows, anchor, onFocusAnchor }) {
+function AreaField({ field, editable, form, set, resetOne, onFocus }) {
+  const changed = isChanged(form, field)
   return (
-    <Field label={label} hint={isChanged(form, k) && editable ? <ChangedHint onReset={() => resetOne(k)} /> : undefined}>
+    <Field label={field.label} hint={changed && editable ? <ChangedHint onReset={() => resetOne(field)} /> : undefined}>
       <Textarea
-        rows={rows}
-        value={form[k] ?? ''}
+        rows={field.rows || 4}
+        value={form[field.path] ?? ''}
         disabled={!editable}
-        onFocus={() => onFocusAnchor && onFocusAnchor(anchor)}
-        onChange={set(k)}
-        className={cx(isChanged(form, k) && editable && 'border-brand/40')}
+        onFocus={onFocus}
+        onChange={set(field.path)}
+        className={cx(changed && editable && 'border-brand/40')}
       />
+      {field.type === 'pairs' && (
+        <p className="mt-1 text-[11px] text-ink-400">每行一条，格式：名称 | 数值</p>
+      )}
     </Field>
   )
 }
@@ -414,52 +559,181 @@ function ChangedHint({ onReset }) {
   )
 }
 
-/* 首屏单屏一行：按场景主色打编号，标题两行 / 屏标签 / 小字 / 描述 / 标签逐项可编辑；
-   任一字段偏离默认即标蓝并给「改回默认」。 */
-function HeroRow({ scene, value, editable, onChange, onReset, onFocusAnchor }) {
-  const d = HERO_DEFAULTS[scene.id]
-  const focus = () => onFocusAnchor && onFocusAnchor('hero')
-  const changed =
-    value.l1.trim() !== d.l1 || value.l2.trim() !== d.l2 || value.nav.trim() !== d.nav ||
-    value.desc.trim() !== d.desc || value.hint.trim() !== d.hint || value.tags.trim() !== d.tags
+/* 荣誉墙：稳定有序集合，只编辑图注。图片与顺序不在后台改动。 */
+function HonorsEditor({ form, setForm, editable }) {
+  const setField = (key, field) => (e) =>
+    setForm((f) => ({ ...f, [key]: { ...f[key], [field]: e.target.value } }))
+
+  const resetAll = () =>
+    setForm(Object.fromEntries(Object.entries(HONOR_DEFAULTS).map(([k, v]) => [k, { ...v }])))
+
   return (
-    <div className="rounded-xl border border-ink-100 bg-white p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="grid h-6 min-w-6 place-items-center rounded-md px-1.5 text-[11px] font-bold text-white" style={{ background: scene.accentDeep || scene.accent }}>{scene.no}</span>
-          <span className="text-[14px] font-semibold text-ink-900">{scene.zh}</span>
-          <span className="truncate text-[11px] uppercase tracking-wider text-ink-400">{scene.en}</span>
+    <Card className="p-5">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-[15px] font-semibold text-ink-900">牌匾图注</h2>
+          <p className="mt-0.5 text-[12.5px] text-ink-400">
+            共 {honors.length} 块 · 顺序与图片绑定；只改机构与图注标题，留空回落默认。
+          </p>
         </div>
-        {changed && editable && (
-          <button type="button" onClick={() => onReset(scene.id)} className="inline-flex shrink-0 items-center gap-1 text-[12px] text-brand hover:underline">
-            <RotateCcw className="h-3 w-3" />改回默认
-          </button>
+        {editable && (
+          <Btn variant="ghost" size="sm" onClick={resetAll}>
+            <RotateCcw className="h-3.5 w-3.5" />恢复默认
+          </Btn>
         )}
       </div>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <Field label="标题·第一行">
-          <Input value={value.l1} disabled={!editable} onFocus={focus} onChange={(e) => onChange(scene.id, 'l1', e.target.value)} className={cx(value.l1.trim() !== d.l1 && editable && 'border-brand/40')} />
-        </Field>
-        <Field label="标题·第二行">
-          <Input value={value.l2} disabled={!editable} onFocus={focus} onChange={(e) => onChange(scene.id, 'l2', e.target.value)} className={cx(value.l2.trim() !== d.l2 && editable && 'border-brand/40')} />
-        </Field>
-        <Field label="屏标签（底部切换短名）">
-          <Input value={value.nav} disabled={!editable} onChange={(e) => onChange(scene.id, 'nav', e.target.value)} className={cx(value.nav.trim() !== d.nav && editable && 'border-brand/40')} />
-        </Field>
-        <Field label="看板下小字提示">
-          <Input value={value.hint} disabled={!editable} onChange={(e) => onChange(scene.id, 'hint', e.target.value)} className={cx(value.hint.trim() !== d.hint && editable && 'border-brand/40')} />
-        </Field>
+
+      <div className="hidden grid-cols-[56px_minmax(0,1.05fr)_minmax(0,0.95fr)] gap-3 px-1 pb-1.5 text-[11px] font-medium text-ink-400 sm:grid">
+        <span>牌匾</span>
+        <span>图注标题</span>
+        <span>机构 / 合作方</span>
       </div>
-      <div className="mt-3">
-        <Field label="段落描述">
-          <Textarea rows={3} value={value.desc} disabled={!editable} onFocus={focus} onChange={(e) => onChange(scene.id, 'desc', e.target.value)} className={cx(value.desc.trim() !== d.desc && editable && 'border-brand/40')} />
-        </Field>
-      </div>
-      <div className="mt-3">
-        <Field label="标签（每行一个）" hint="留空即不覆盖；每行一枚胶囊，顺序即展示顺序">
-          <Textarea rows={4} value={value.tags} disabled={!editable} onChange={(e) => onChange(scene.id, 'tags', e.target.value)} className={cx(value.tags.trim() !== d.tags && editable && 'border-brand/40')} />
-        </Field>
-      </div>
+
+      <ul className="divide-y divide-ink-900/[0.06]">
+        {honors.map((h) => {
+          const key = honorSlug(h.file)
+          const cur = form[key] || {}
+          const changed = textTrim(cur.org) !== h.org || textTrim(cur.title) !== h.title
+          return (
+            <li
+              key={h.file}
+              className="grid grid-cols-[52px_minmax(0,1fr)] items-start gap-3 py-3 sm:grid-cols-[56px_minmax(0,1.05fr)_minmax(0,0.95fr)] sm:items-center"
+            >
+              <img
+                src={h.file}
+                alt=""
+                loading="lazy"
+                className={cx(
+                  'h-9 w-[52px] rounded-md border bg-white object-contain p-0.5',
+                  changed ? 'border-brand/50' : 'border-ink-900/10',
+                )}
+              />
+              <div className="space-y-1.5">
+                <span className="block text-[11px] text-ink-400 sm:hidden">图注标题</span>
+                <Input
+                  aria-label={`${h.org} 图注标题`}
+                  value={cur.title ?? ''}
+                  disabled={!editable}
+                  onChange={setField(key, 'title')}
+                  className={cx(changed && editable && 'border-brand/40')}
+                />
+              </div>
+              <div className="col-start-2 space-y-1.5 sm:col-start-auto">
+                <span className="block text-[11px] text-ink-400 sm:hidden">机构 / 合作方</span>
+                <Input
+                  aria-label={`${h.file} 机构 / 合作方`}
+                  value={cur.org ?? ''}
+                  disabled={!editable}
+                  onChange={setField(key, 'org')}
+                  className={cx(changed && editable && 'border-brand/40')}
+                />
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+    </Card>
+  )
+}
+
+/* 新闻：完整集合编辑，新增 / 编辑 / 删除都在同一份数组里，随发布 / 回滚生效。 */
+function NewsEditor({ form, setForm, editable }) {
+  const errors = newsErrors(form)
+  const invalid = errors.filter((e) => Object.keys(e).length).length
+
+  const setField = (i, field) => (e) =>
+    setForm((f) => f.map((n, idx) => (idx === i ? { ...n, [field]: e.target.value } : n)))
+
+  const add = () => setForm((f) => [blankNews(), ...f])
+
+  const remove = (i) => {
+    if (!confirm('删除这条新闻？发布后官网将不再展示它。')) return
+    setForm((f) => f.filter((_, idx) => idx !== i))
+  }
+
+  const resetAll = () => setForm(NEWS_DEFAULTS.map((n) => ({ ...n })))
+
+  return (
+    <div className="space-y-5">
+      <Card className="p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-[15px] font-semibold text-ink-900">新闻条目</h2>
+            <p className="mt-0.5 text-[12.5px] text-ink-400">
+              共 {form.length} 条 · 官网按日期倒序展示；新增条目需补全日期、标题与机构后才能发布。
+            </p>
+          </div>
+          {editable && (
+            <div className="flex items-center gap-2">
+              <Btn variant="ghost" size="sm" onClick={resetAll}>
+                <RotateCcw className="h-3.5 w-3.5" />恢复默认
+              </Btn>
+              <Btn variant="ghost" size="sm" onClick={add}>
+                <Plus className="h-3.5 w-3.5" />新增新闻
+              </Btn>
+            </div>
+          )}
+        </div>
+        {invalid > 0 && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-[12px] text-amber-700">
+            有 {invalid} 条新闻缺少必填信息，补全后才能发布。
+          </p>
+        )}
+      </Card>
+
+      {form.length === 0 && (
+        <Card className="p-8 text-center text-[13px] text-ink-400">
+          暂无新闻条目，点击“新增新闻”开始。
+        </Card>
+      )}
+
+      {form.map((n, i) => (
+        <Card key={i} className="p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand/10 font-mono text-[11px] font-semibold text-brand">
+                {i + 1}
+              </span>
+              <h3 className="line-clamp-1 text-[14px] font-semibold text-ink-900">{n.title || '未命名新闻'}</h3>
+            </div>
+            {editable && (
+              <Btn variant="ghost" size="sm" onClick={() => remove(i)}>
+                <Trash2 className="h-3.5 w-3.5" />删除
+              </Btn>
+            )}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="日期" hint={errors[i].date && <span className="text-rose-600">{errors[i].date}</span>}>
+              <Input type="date" value={n.date} disabled={!editable} onChange={setField(i, 'date')} />
+            </Field>
+            <Field label="标签">
+              <Input value={n.tag} disabled={!editable} onChange={setField(i, 'tag')} placeholder="课程共建 / 实习基地" />
+            </Field>
+            <Field label="机构 / 合作方" hint={errors[i].org && <span className="text-rose-600">{errors[i].org}</span>}>
+              <Input value={n.org} disabled={!editable} onChange={setField(i, 'org')} />
+            </Field>
+            <Field label="标题" hint={errors[i].title && <span className="text-rose-600">{errors[i].title}</span>}>
+              <Input value={n.title} disabled={!editable} onChange={setField(i, 'title')} />
+            </Field>
+          </div>
+
+          <div className="mt-4 space-y-4">
+            <Field label="摘要">
+              <Textarea rows={3} value={n.desc} disabled={!editable} onChange={setField(i, 'desc')} />
+            </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="原文链接">
+                <Input value={n.url} disabled={!editable} onChange={setField(i, 'url')} placeholder="https://" />
+              </Field>
+              <Field label="配图路径（可空）">
+                <Input value={n.img ?? ''} disabled={!editable} onChange={setField(i, 'img')} placeholder="/images/news/....webp" />
+              </Field>
+            </div>
+          </div>
+        </Card>
+      ))}
     </div>
   )
 }
+

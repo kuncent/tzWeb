@@ -5,6 +5,10 @@
  * org/title 为页面图注，material 记录原牌匾材质，source 指向去重后保留的原图。
  * ============================================================ */
 
+/* 牌匾的稳定键：由 SVG 文件名派生，不含斜杠与点，可直接作为 overlay 路径段。
+   后台按这个键覆盖图注，牌匾顺序与图片文件仍由下方 honors 数组决定。 */
+export const honorSlug = (file) => String(file).split('/').pop().replace(/\.svg$/i, '')
+
 export const honors = [
   {
     file: '/images/honors/nankai-university.svg',

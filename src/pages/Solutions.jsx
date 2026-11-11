@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
 import { PageHero, InnerNav, PageSection, HeroFrame, HeroBackdropIce } from '../components/PageShell'
 import { scrollToId } from '../hooks/useLenis'
 import { solutionPlans } from '../data/pages'
+import { useContentData } from '../lib/contentStore'
 import PlanDetail from '../components/sections/SolutionConsole'
 
 /* ―― 子导航即五大解决方案 ――
@@ -72,6 +73,18 @@ function HeroPlanRail({ plans }) {
 }
 
 export default function Solutions() {
+  /* 后台可编辑面：仅「建设目标」。名称 / 简称 / 定位 / 产业主线已经出现在首屏
+     3D 展板上，那段是刻意不接 overlay 的；这里只覆盖只在本页出现的 goal。 */
+  const content = useContentData()
+  const plans = useMemo(
+    () =>
+      solutionPlans.map((p) => {
+        const goal = content.solutions?.[p.id]?.goal
+        return typeof goal === 'string' && goal ? { ...p, goal } : p
+      }),
+    [content.solutions],
+  )
+
   return (
     <>
       <PageHero
@@ -91,13 +104,13 @@ export default function Solutions() {
           { label: '看产品体系', to: '/products' },
         ]}
       >
-        <HeroPlanRail plans={solutionPlans} />
+        <HeroPlanRail plans={plans} />
       </PageHero>
 
       <InnerNav items={SECTIONS} tone="light" />
 
       {/* ―― 五大方案纵向堆叠：一屏一个方案，各自完整展开 ―― */}
-      {solutionPlans.map((p, i) => (
+      {plans.map((p, i) => (
         <PageSection key={p.id} id={`plan-${p.id}`} tone={i % 2 === 0 ? 'mist' : 'light'}>
           <PlanDetail plan={p} />
         </PageSection>

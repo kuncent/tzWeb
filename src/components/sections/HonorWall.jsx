@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Reveal } from '../ui'
-import { honors } from '../../data/honors'
+import { honorSlug, honors } from '../../data/honors'
+import { useContentData } from '../../lib/contentStore'
 
 /* 荣誉墙：浅色展墙 + 一条横向排开的牌匾展台。
    牌匾图为按实物正面重绘的 1600×1200 SVG（scripts/gen-honors.mjs 生成），
@@ -69,7 +70,7 @@ function Plaque({ h, clone = false }) {
   )
 }
 
-function HonorShelf() {
+function HonorShelf({ items }) {
   const railRef = useRef(null)
   const holdTimer = useRef(0)
   const suppressClick = useRef(false)
@@ -133,7 +134,7 @@ function HonorShelf() {
     if (!rail || paused) return
     const period = () => {
       const first = rail.children[0]
-      const twin = rail.children[honors.length]
+      const twin = rail.children[items.length]
       if (!first || !twin) return 0
       /* 用 rect 差而不是 offsetLeft：前者保留小数，回卷不会差出 1px 的接缝 */
       return twin.getBoundingClientRect().left - first.getBoundingClientRect().left
@@ -270,12 +271,12 @@ function HonorShelf() {
         aria-label="荣誉牌匾列表"
         className="no-scrollbar flex gap-3 overflow-x-auto py-3 sm:gap-4 lg:gap-5"
       >
-        {honors.map((h) => (
+        {items.map((h) => (
           <Plaque key={h.file} h={h} />
         ))}
         {/* 尾部复制整排：回卷时画面无缝衔接；副本对读屏与 Tab 隐藏，避免重复朗读 */}
         {!reduced &&
-          honors.map((h) => <Plaque key={`clone-${h.file}`} h={h} clone />)}
+          items.map((h) => <Plaque key={`clone-${h.file}`} h={h} clone />)}
       </div>
 
       {edge.left && (
@@ -303,6 +304,23 @@ function HonorShelf() {
 }
 
 export default function HonorWall() {
+  /* 后台只覆盖图注（org / title），按牌匾文件名派生的稳定 slug 合并；
+     图片、材质与顺序仍完全由 honors.js 决定。 */
+  const captions = useContentData().honors
+  const items = useMemo(
+    () =>
+      honors.map((h) => {
+        const o = captions?.[honorSlug(h.file)]
+        if (!o) return h
+        return {
+          ...h,
+          ...(typeof o.org === 'string' ? { org: o.org } : null),
+          ...(typeof o.title === 'string' ? { title: o.title } : null),
+        }
+      }),
+    [captions],
+  )
+
   return (
     <section id="honors" className="sec-y relative isolate scroll-mt-24 overflow-hidden bg-mist-100">
       {/* 背景：与上一屏同一张纸 —— 不画分界线，也不在接缝处铺蓝光晕。
@@ -338,7 +356,7 @@ export default function HonorWall() {
 
         {/* 牌匾展台：一条横向牌位，共底排列；下方一道细光当地面接缝 */}
         <Reveal delay={0.1} className="mt-10 md:mt-12">
-          <HonorShelf />
+          <HonorShelf items={items} />
           <div aria-hidden className="mt-2 h-px w-full bg-gradient-to-r from-transparent via-ink-900/12 to-transparent" />
         </Reveal>
       </div>

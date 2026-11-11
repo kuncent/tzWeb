@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { PageHero } from '../components/PageShell'
 import RippleHero from '../components/RippleHero'
 import Contact from '../components/sections/Contact'
@@ -8,6 +8,7 @@ import CopyrightGrid from '../components/sections/CopyrightGrid'
 import { Reveal } from '../components/ui'
 import { scrollToId } from '../hooks/useLenis'
 import { advisorStats, newsItems } from '../data/site'
+import { useContentData } from '../lib/contentStore'
 
 
 /* 首屏背景：光明科技金融大厦三张 2304×1296 外观（远景天际线 / 航拍俯瞰 /
@@ -43,12 +44,23 @@ function pageList(total, cur) {
 }
 
 function NewsSection() {
+  /* 后台新闻集合：发布时按整组数组覆盖，这里只做防御性排序与空态；
+     默认值仍来自 site.js 的 newsItems。 */
+  const data = useContentData()
+  const news = useMemo(() => {
+    const raw = Array.isArray(data.news) ? data.news : newsItems
+    return [...raw]
+      .filter((n) => n && typeof n === 'object')
+      .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
+  }, [data.news])
   const [page, setPage] = useState(1)
-  const [featured, ...rest] = newsItems
+  const [featured, ...rest] = news
   const totalPages = Math.max(1, Math.ceil(rest.length / NEWS_LIST_SIZE))
   const cur = Math.min(page, totalPages)
   const slice = rest.slice((cur - 1) * NEWS_LIST_SIZE, cur * NEWS_LIST_SIZE)
-  const years = `${newsItems[newsItems.length - 1].date.slice(0, 4)}—${newsItems[0].date.slice(0, 4)}`
+  const years = news.length
+    ? `${String(news[news.length - 1].date || '').slice(0, 4)}—${String(news[0].date || '').slice(0, 4)}`
+    : '—'
   const goto = (p) => { setPage(p); scrollToId('news', -96) }
 
   return (
@@ -65,18 +77,31 @@ function NewsSection() {
         </div>
       </Reveal>
 
+      {!featured ? (
+        <Reveal delay={0.06} className="mt-5">
+          <div className="rounded-2xl border border-dashed border-ink-900/12 bg-white/60 px-6 py-14 text-center text-ui-sm text-ink-400">
+            暂无新闻，发布后会显示在这里。
+          </div>
+        </Reveal>
+      ) : (
       <div className="mt-5 grid gap-5 lg:grid-cols-12 lg:gap-6">
         <Reveal className="lg:col-span-5">
           <a
-            href={featured.url}
+            href={featured.url || undefined}
             target="_blank"
             rel="noopener noreferrer"
             className="group flex h-full flex-col overflow-hidden rounded-2xl bg-night text-white shadow-card transition-shadow duration-300 hover:shadow-lg"
           >
             <div className="relative aspect-[2/1] overflow-hidden">
-              <img src={featured.img} alt={featured.title} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.05]" />
+              {featured.img ? (
+                <img src={featured.img} alt={featured.title} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.05]" />
+              ) : (
+                <div aria-hidden className="h-full w-full bg-[radial-gradient(120%_120%_at_20%_10%,#1b3a6b_0%,#0b1220_58%,#06080d_100%)]" />
+              )}
               <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-night/70 via-transparent to-transparent" />
-              <span className="absolute left-4 top-4 rounded-full border border-white/20 bg-black/30 px-3 py-1 text-[11px] font-medium backdrop-blur">{featured.tag}</span>
+              {featured.tag && (
+                <span className="absolute left-4 top-4 rounded-full border border-white/20 bg-black/30 px-3 py-1 text-[11px] font-medium backdrop-blur">{featured.tag}</span>
+              )}
             </div>
             <div className="flex flex-1 flex-col p-4 md:p-5">
               <div className="flex items-center gap-2.5">
@@ -96,10 +121,10 @@ function NewsSection() {
         <Reveal delay={0.06} className="lg:col-span-7">
           <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-ink-900/[0.07] bg-white shadow-card">
             <div className="flex flex-1 flex-col divide-y divide-ink-900/[0.07] px-5 md:px-6">
-              {slice.map((n) => (
+              {slice.map((n, i) => (
                 <a
-                  key={n.date}
-                  href={n.url}
+                  key={`${n.date}-${i}`}
+                  href={n.url || undefined}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group -mx-5 flex flex-1 items-center gap-4 px-5 py-2 transition-colors hover:bg-brand/[0.04] md:-mx-6 md:px-6"
@@ -108,7 +133,9 @@ function NewsSection() {
                   <div className="min-w-0 flex-1">
                     <h3 className="line-clamp-1 text-[14px] font-semibold tracking-tight text-ink-900 transition-colors group-hover:text-brand">{n.title}</h3>
                     <p className="mt-0.5 line-clamp-1 text-[11px] text-ink-500">
-                      <span className="mr-2 inline-block rounded bg-brand/10 px-1.5 py-px align-[1px] text-[10px] font-medium text-brand">{n.tag}</span>
+                      {n.tag && (
+                        <span className="mr-2 inline-block rounded bg-brand/10 px-1.5 py-px align-[1px] text-[10px] font-medium text-brand">{n.tag}</span>
+                      )}
                       {n.org}
                     </p>
                   </div>
@@ -167,6 +194,7 @@ function NewsSection() {
           </div>
         </Reveal>
       </div>
+      )}
     </section>
   )
 }

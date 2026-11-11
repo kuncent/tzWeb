@@ -89,8 +89,8 @@ export default function ProductMatrix() {
   const outerRef = useRef(null)
   const [idx, setIdx] = useState(0)
 
-  /* 后台可编辑字段的产品叠加：按 id 合并 title/tagline/desc（只覆盖这几个叶子），
-     icon / rich / stats / bullets 等结构与默认值仍来自 site.js。拉到空（未配置/离线）
+  /* 后台可编辑字段的产品叠加：按 id 合并 title/tagline/desc/bullets/stats（只覆盖这些叶子），
+     icon / rich / intent 等结构与默认值仍来自 site.js。拉到空（未配置/离线）
      就是原样。 */
   const data = useContentData()
   const P = productMatrix.map((p) => {

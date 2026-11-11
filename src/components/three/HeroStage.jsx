@@ -107,6 +107,10 @@ const AB = DEV && QUERY
   : null
 const showRig = (name) => !AB || AB.rigs.includes(name)
 
+/* 首屏的全局转角定义在下面 CameraRig 附近的 VIEW_YAW（+π/6）。
+   它是「镜头绕场景右转 30°」，场景自身的坐标保持不变 ——
+   房间、展板、地面字标都是被同一台转过的相机看，不是各自转一次。 */
+
 /* 起始画质档：探测一次、结果模块级缓存。
    绝不能在每次调用里都 getContext —— HeroStage 在 React 18 并发渲染下，
    commit 前会被反复 render（子树挂起 → 丢弃 → 重试），而 useState 的惰性初始化器
@@ -152,17 +156,20 @@ function FrameDriver({ cap, active = true }) {
   useEffect(() => {
     let raf = 0
     let last = 0
-    /* 遮罩还在上面时只画开头三帧：three 的程序链接与后处理合成都发生在
-       前几帧（实测首个 getProgramInfoLog 在挂载后 ~300ms），这三帧足够让
-       它编完；再多画的全是遮罩下面的死像素，还会跟开屏收口抢主线程。
-       等 #intro 移除（active=true）才恢复正常节拍。 */
+    /* 遮罩还在上面时只画到「舞台报就绪」为止：three 的程序链接与后处理合成都
+       发生在前几帧，这几帧足够让它编完；再多画的全是遮罩下面的死像素，
+       还会跟开屏收口抢主线程。等 #intro 移除（active=true）才恢复正常节拍。 */
     let warm = 0
     const VSYNC = 1000 / 60
     const step = Math.max(1, Math.floor(1000 / cap / VSYNC))
     const min = step * VSYNC - 2
     const loop = (now) => {
       raf = requestAnimationFrame(loop)
-      if (!live.current && warm >= 3) return
+      /* 遮罩还在上面时只推必要的帧：StageReady 报「已就绪」就停；
+         万一它还要再核一两帧（程序还没链接完），最多补到 8 帧。
+         旧写法写死 3 帧 —— 若第三帧还有程序在编，StageReady 永远等不到
+         下一帧，遮罩只能吃 5.2s 的兜底。 */
+      if (!live.current && (window.__heroReadyArmed || warm >= 8)) return
       if (now - last < min) return
       last = now
       if (!live.current) warm += 1
@@ -194,6 +201,14 @@ function FrameGauge({ onWindow }) {
   })
   return null
 }
+
+/* ―― 观看方向的基准偏转 ――
+   首屏不是正对场景，而是镜头绕看点水平右移 30°（球坐标 theta +π/6）。
+   这是「把相机绕场景转了 30°」：场景自己的坐标一个都不动 —— 房间、展板、
+   地面字标、地格作为刚体一起被同一台相机看，牌位间距、牌面尺寸、40px 台位
+   偏移、链路端点全部保持原值。不改成「转某一个 group」是因为那样牌与房间
+   会各转一次，端点和牌边就会错开。 */
+const VIEW_YAW = Math.PI / 6
 
 const _look = new THREE.Vector3()
 const _want = new THREE.Vector3()
@@ -353,6 +368,11 @@ function CameraRig({ idx, cmd, still = false }) {
     if (still) {
       _look.set(...s.cam.look)
       _want.set(...s.cam.pos)
+      /* 降级动效里也要带上这次全局转角：量测与截图走的就是这一支 */
+      _off.copy(_want).sub(_look)
+      _sph.setFromVector3(_off)
+      _sph.theta += VIEW_YAW
+      _want.copy(_look).add(_off.setFromSpherical(_sph))
       camera.position.copy(_want)
       camera.lookAt(_look)
       const f = s.cam.fov || 42
@@ -435,14 +455,14 @@ function CameraRig({ idx, cmd, still = false }) {
     if (!drag.current && el.style.cursor !== (orbitOn.current ? 'grab' : '')) el.style.cursor = orbitOn.current ? 'grab' : ''
     yaw.current = damp(yaw.current, yawT.current, 5, dt)
     pitch.current = damp(pitch.current, pitchT.current, 5, dt)
-    if (Math.abs(yaw.current) > 1e-4 || Math.abs(pitch.current) > 1e-4) {
-      _off.copy(_want).sub(_look)
-      _sph.setFromVector3(_off)
-      _sph.theta += yaw.current
-      _sph.phi = clamp(_sph.phi - pitch.current, 0.9, 1.62)
-      _off.setFromSpherical(_sph)
-      _want.copy(_look).add(_off)
-    }
+    /* 基准转角 + 用户拖拽：两者都绕同一个 look 点做球坐标偏转，
+       所以首屏看到的是「相机整体右转 30° 后的那一个刚体场景」，
+       用户再拖也还是在这台相机的轨道上继续加角 */
+    _off.copy(_want).sub(_look)
+    _sph.setFromVector3(_off)
+    _sph.theta += VIEW_YAW + yaw.current
+    _sph.phi = clamp(_sph.phi - pitch.current, 0.9, 1.62)
+    _want.copy(_look).add(_off.setFromSpherical(_sph))
 
     /* 飞行速度：聚焦切换要“拍住”（快而带脉冲），普通切屏仍是慢阻尼 */
     const flyK = trans ? 3.4 : focus ? 2.4 : 1.7
@@ -462,33 +482,78 @@ function CameraRig({ idx, cmd, still = false }) {
   return null
 }
 
-/* ―― 舞台「在画」的凭据：启动遮罩在这儿收口 ――
+/* ―― 舞台「真就绪」的凭据：启动遮罩在这儿收口 ――
    界放在哪儿有讲究：不是 Canvas 建好（onCreated 那时着色器一行还没编，
    实测那是入口之后最长的一次长任务，~1.2s），也不是模型到位（GLB 还要一跳
-   网络，等于让用户等一个他看不见的下载）。放在「画出第三帧且帧距回到正常」：
-   useFrame 跑在本帧 render 之前 —— 第一帧的 render 把编译那笔最贵的账付掉，
-   所以它的 delta 就是那次卡顿；第三帧还连着卡，说明画面是冻住的空场，
-   不该在此刻收遮罩。0.25 是 4fps 地板：真跑不到这个帧率的机器，等下去也不会
-   变好，交给 main.jsx 那个兜底定时器 */
+   网络，等于让用户等一个他看不见的下载）。放在「画出第三帧 + 全部 GL 程序
+   链接成功 + 主线程空闲一拍」，三个条件缺一不可：
+   1) 首帧已画：第一帧 render 把编译那笔最贵的账付掉，n≥3 说明画面不是空的；
+   2) 程序链接：遍历 gl.info.programs 逐个确认 LINK_STATUS，失败的 program
+      会静默画出空场 —— 只是“有帧”并不等于“画面成”；
+   3) 没有长任务在排队：改走 requestIdleCallback，等主线程真空下来再报；
+      timeout 300 兜底，不会被别人的长任务无限拖住。
+   只报一次；遮罩侧有自己的硬兜底，不依赖这里一定成功。 */
 function StageReady({ onPainted }) {
   const n = useRef(0)
   const done = useRef(false)
+  const armed = useRef(false)
+  const gl = useThree((s) => s.gl)
+  /* 每次重新挂载都把这组量测/预热标记清零：舞台会在路由往返时重建，
+     留着上一轮的 __heroReadyArmed 会让帧驱动器一帧都不预热 */
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.__heroFrames = 0
+    window.__heroReadyArmed = false
+    window.__heroWarmFrames = 0
+  }, [])
   /* 首帧就绪回调走 ref：onPainted 是父级内联箭头，useFrame 只挂一次不能跟着换 */
   const cb = useRef(onPainted)
   cb.current = onPainted
-  useFrame((state, delta) => {
-    if (done.current) return
+  useFrame(() => {
+    if (done.current || armed.current) return
     n.current += 1
     /* 帧数写到窗上：tmp/boot-verify.mjs 拿它断“遮罩确实在画面活了之后才收”，
        而不是断一个时刻 —— 后者会把“收得早”与“收得晚但刚好那个数”混为一谈 */
     if (typeof window !== 'undefined') window.__heroFrames = n.current
-    if (n.current >= 3 && delta < 0.25) {
+    /* 首帧已画：前三帧里第一帧 render 已经把编译那笔最贵的账付掉。
+       不再用帧距门槛（旧逻辑要求第三帧 delta < 0.25）：三帧预热到点就
+       不再推帧，卡一下就永远等不到第四帧；而“主线程空没空”由下面的
+       requestIdleCallback 直接判断，比帧距更准。 */
+    if (n.current < 3) return
+    let programs = []
+    try {
+      /* useThree 的 gl 是 WebGLRenderer，不是 WebGL 上下文：
+         info.programs 在 renderer 上，LINK_STATUS 要拿 getContext() 的上下文问 */
+      const ctx = gl.getContext()
+      programs = gl.info.programs || []
+      if (!programs.length) return
+      for (let i = 0; i < programs.length; i++) {
+        const raw = programs[i].program
+        if (!raw) return
+        if (!ctx.getProgramParameter(raw, ctx.LINK_STATUS)) return
+      }
+    } catch (e) {
+      /* 取不到程序信息就当还没成，下一帧再核 */
+      return
+    }
+    armed.current = true
+    if (typeof window !== 'undefined') {
+      window.__heroPrograms = programs.length
+      /* 帧驱动器看到这个标记就不再往下预热：后面多画的都是遮罩下的死像素 */
+      window.__heroReadyArmed = true
+    }
+    const finish = () => {
+      if (done.current) return
       done.current = true
+      if (typeof window !== 'undefined') window.__heroWarmFrames = n.current
+      if (window.__tzT) window.__tzT.heroReady = Math.round(performance.now())
       markHeroReady('stage')
       /* 通知父层“画布真的在画了”：CSS 动底要等这一刻之后才拆，
          不能拿一个盲定时器去赌帧会不会来 */
       cb.current?.()
     }
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(finish, { timeout: 300 })
+    else setTimeout(finish, 0)
   })
   return null
 }
@@ -560,13 +625,16 @@ function Scene({ idx, cmd, tier, panelLayout, still }) {
       <directionalLight position={[-4.5, 2.6, -2]} intensity={0.52} color="#5FA8FF" />
       <KeyLight accent={accent} />
 
-      {(AB ? AB.floor : true) && (
-        <>
-          <Floor accent={accent} />
-          <FloorBrand variant={heroScenes[idx].id} />
-        </>
-      )}
-      {(AB ? AB.lab : true) && <LabEnvironment variant={heroScenes[idx].id} lite={tier === 0} />}
+      {/* ―― 场景刚体：房间与展板都不带自己的初始转角 ――
+          30° 只在相机那一侧（CameraRig 的 VIEW_YAW）：地台 / 实验室 / 展板 /
+          地面字标都保持原来的世界坐标，由同一台转过的相机去看。
+          这样牌位、牌面尺寸、链路端点（牌边局部坐标算出来的）与 40px 台位偏移
+          全部原样，画面却整体右转 30°。 */}
+      <group name="lab-room">
+        {(AB ? AB.floor : true) && <Floor accent={accent} />}
+        {(AB ? AB.lab : true) && <LabEnvironment variant={heroScenes[idx].id} lite={tier === 0} />}
+      </group>
+      {(AB ? AB.floor : true) && <FloorBrand variant={heroScenes[idx].id} />}
 
       {showRig('neural') && (
         <NeuralRig active cmd={cmd} accent={heroScenes[idx].accent} panelLayout={panelLayout} still={still} />

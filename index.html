@@ -523,19 +523,24 @@
         opacity: 0;
         animation: it-copy-in 0.46s cubic-bezier(0.22, 1, 0.36, 1) 0.83s forwards;
       }
+      /* 品牌两行整体上调三级（Tailwind 标尺）：
+         天择科技 text-xl 20px → text-4xl 36px（xl→2xl→3xl→4xl），
+         英文 10px → text-base 16px（10→xs 12→sm 14→base 16）。
+         窄屏用 vw 回退，保证英文那行在 360 宽上也不顶到边框；
+         字号放大后字距略收，仍是同一套疏排气质 */
       #intro .it-cn {
-        font-size: clamp(20px, 2.2vmin, 23px);
+        font-size: clamp(30px, 9vw, 36px);
         font-weight: 700;
         letter-spacing: 0.2em;
         text-indent: 0.2em;
         color: #0b0f17;
       }
       #intro .it-en {
-        margin-top: 9px;
-        font-size: 10px;
+        margin-top: 10px;
+        font-size: clamp(13px, 4.2vw, 16px);
         font-weight: 600;
-        letter-spacing: 0.3em;
-        text-indent: 0.3em;
+        letter-spacing: 0.24em;
+        text-indent: 0.24em;
         color: #1677ff;
       }
       #intro .it-track {
@@ -560,6 +565,28 @@
         border-radius: 999px;
         background: linear-gradient(90deg, #1677ff, #25d4ff);
         animation: it-fill 1.7s cubic-bezier(0.34, 0.62, 0.24, 1) 0.15s forwards;
+      }
+      /* 等 3D 就绪时的“还在干活”提示：进度条已经走满，但场景还没点亮。
+         .it-wait 由脚本在进度条 animationend 且尚未收口时挂上，一条柔光
+         沿着轨道往复扫过；只动 transform，不新增文案、不改变构图。 */
+      #intro.it-wait .it-track::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 46%;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, transparent, rgba(37, 212, 255, 0.9), transparent);
+        animation: it-scan 1.25s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+      }
+      @keyframes it-scan {
+        from {
+          transform: translateX(-110%);
+        }
+        to {
+          transform: translateX(330%);
+        }
       }
 
       /* ―― 四角小字：只做信息密度，不做主角 ―― */
@@ -986,11 +1013,16 @@
     </div>
     <script>
       /* ―― 开屏遮挡页的收口控制 ――
-         时间轴路径：T_MIN 一到就收 —— 遮罩的每一帧都由主线程驱动，等外部信号
-         等得越久，越容易被别人的长任务冻住（3D 启动已经排到 Z 画完之后）；
-         用户路径：滚轮/触摸/按键/点击 —— ARMED 之后任意一个手势直接揭开，
-         但事件被 capture 拦下并 preventDefault，避免 Lenis 把页面先滚走半屏。
-         跳过手势不受 T_MIN 限制，用户想进就进。 */
+         时间轴改成“跟着画面走”，不再自己掐表：
+         1) Z 最后一笔落完（b5 的 animationend，约 1.45s）→ 派发 tz:draw-end，
+            StoryHero 收到后才开始取 3D；
+         2) 遮罩保持完整，等舞台的“真就绪”信号（首帧已画 + 全部 GL program
+            链接成功 + 主线程空闲一拍，见 HeroStage 的 StageReady）；
+         3) 等待期间进度条走满后切到不定量柔光扫描（.it-wait），不新增文案；
+         4) 兜底：HARD_MS 内没等到就照原时间轴掀开；3D 报错/无 WebGL/无舞台
+            同样立即放行；手势跳过（ARMED 之后）永远有效，不受等待影响。
+         用户路径：滚轮/触摸/按键/点击 —— 事件被 capture 拦下并 preventDefault，
+         避免 Lenis 把页面先滚走半屏。 */
       (function () {
         var intro = document.getElementById('intro')
         if (!intro) return
@@ -1001,9 +1033,20 @@
 
         var T_MIN = 1740
         var ARMED = 666
+        /* 等 3D 就绪的硬上限：从开屏脚本开始算 5.2s（落笔 1.45s + 挂载/下载/
+           编译各留余量）。到点无论 3D 在干什么都掀开，别把人关在门外。 */
+        var HARD_MS = 5200
         var t0 = performance.now()
         var done = false
         var timer = 0
+
+        /* 量测用时间轴：drawEnd / stageStart / heroReady / apertureStart /
+           curtainGone 全部是 performance.now() 的绝对值，方便和 FPS 采样对齐 */
+        var T = (window.__tzT = window.__tzT || {})
+        T.t0 = t0
+        function at() {
+          return Math.round(performance.now())
+        }
 
         function unlock() {
           window.removeEventListener('wheel', onGesture, true)
@@ -1015,17 +1058,20 @@
           if (done) return
           done = true
           clearTimeout(timer)
-          clearTimeout(timeline)
+          clearTimeout(deadline)
+          intro.classList.remove('it-wait')
           /* 先量几何再上 it-open：此刻中央内容还没开始放大，量出来的
              六边形位置/尺寸才和屏幕上那枚对齐 */
           runWipe()
           intro.classList.add('it-open')
           /* 给量测脚本留一个「白幕演了多久 / 从哪条出口走的」的凭据 */
+          T.apertureStart = at()
           window.__introExitAt = Math.round(performance.now() - t0)
           window.__introExitReason = reason
           unlock()
           setTimeout(function () {
             intro.parentNode && intro.parentNode.removeChild(intro)
+            T.curtainGone = at()
           }, 1332)
         }
 
@@ -1060,8 +1106,13 @@
           intro.style.setProperty('--it-s1', s1.toFixed(4))
         }
 
-        function leave(reason) {
+        /* 收到“舞台真就绪”（或明确的“没有 3D 可等”：nostage / dead / inner）
+           之后，补足最短展示时间 T_MIN 再掀：就绪得早也不能让开屏一闪而过。 */
+        function ready(reason) {
           if (done) return
+          T.ready = at()
+          T.readyReason = reason
+          clearTimeout(deadline)
           var wait = T_MIN - (performance.now() - t0)
           if (wait > 0) {
             clearTimeout(timer)
@@ -1074,21 +1125,52 @@
           exit(reason)
         }
 
-        /* main.jsx 在首屏就绪时调进来；只用来把收口提前到「已经演够 T_MIN」那一拍，
-           不再承担「必须等舞台画出第三帧」的职责 */
+        /* main.jsx 在首屏就绪时调进来；user = 用户手势，立刻走，不等 T_MIN */
         window.__introExit = function (reason) {
-          leave(reason || 'hero')
+          var r = reason || 'hero'
+          if (r === 'user') {
+            exit('skip')
+            return
+          }
+          ready(r)
         }
 
-        /* 收口按时间轴推进：T_MIN 一到就掀，不再「等舞台画出第三帧」才动。
-           实测（真 Chrome 153 / Intel UHD 770 / prod build，performance trace）
-           3D 启动是三次同步的 GL 程序链接（最长 307ms），而遮罩的动画全是主
-           线程驱动的 —— 旧的 exit = max(T_MIN, stageReady) 把这段时间整个圈进
-           了遮罩的表演窗口，整段开屏因此只有 ~21fps。现在 3D 整体排到 Z 画完
-           之后启动（见 StoryHero 的 stage 挂载），遮罩没有理由再为它多等。 */
-        var timeline = setTimeout(function () {
-          exit('timeline')
-        }, T_MIN)
+        /* 硬兜底：到点没等到就绪，照原时间轴掀开。5100ms 之后主线程上要等的
+           东西都已经等过了；继续挂着只会让“没冻住”变成“真的卡住了”。 */
+        var deadline = setTimeout(function () {
+          if (done) return
+          T.fallback = at()
+          exit('fallback')
+        }, HARD_MS)
+
+        /* ―― 落笔结束 → 通知 StoryHero 挂 3D ――
+           b5 是 Z 的最后一笔（1.29s 起笔 + 0.16s）。用 animationend 而不是
+           再写一个 1450ms：动画的时长/延迟改了，3D 的启动点会自己跟上。
+           __tzDrawEnd 同时置真，防止模块脚本比动画晚到、错过这一次事件。 */
+        var brush = intro.querySelector('.it-z-brush.b5')
+        function drawDone(e) {
+          if (e && e.animationName !== 'it-draw') return
+          brush.removeEventListener('animationend', drawDone)
+          T.drawEnd = at()
+          window.__tzDrawEnd = true
+          var ev
+          try {
+            ev = new CustomEvent('tz:draw-end', { detail: { at: T.drawEnd } })
+          } catch (_) {
+            ev = document.createEvent('Event')
+            ev.initEvent('tz:draw-end', false, false)
+          }
+          window.dispatchEvent(ev)
+        }
+        if (brush) brush.addEventListener('animationend', drawDone)
+
+        /* 进度条走满而遮罩还没收：切到不定量扫描，别让等待看起来像冻住 */
+        var bar = intro.querySelector('.it-track i')
+        if (bar)
+          bar.addEventListener('animationend', function (e) {
+            if (e.animationName !== 'it-fill' || done) return
+            intro.classList.add('it-wait')
+          })
 
         function onGesture(e) {
           if (done) return

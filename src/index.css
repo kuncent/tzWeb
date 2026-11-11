@@ -765,6 +765,74 @@ html.lenis body {
   scroll-behavior: auto !important;
 }
 
+/* ============================================================
+ * 首屏标题量尺（.hero-copy）
+ * ------------------------------------------------------------
+ * 断行固定为四行：天择科技，/ AI 与 / 数字产教的 / 创新实践者。
+ * 每行都不超过 6 个字（5 / 4 / 5 / 5），「数字产教」「创新实践者」整词不拆，
+ * 全角逗号只出现在首行行尾。字号取 /solutions 页那套（60/52/38px，行高 1.06/1.1），
+ * 60px 下最长一行 292.5px，桌面量尺 350px 装得下 —— 不再按量尺反解字号。
+ * 桌面量尺上限 350px —— 1440 上第一块展板从 x≈391 起，再宽就压到牌上。
+ * 纵向：桌面文案块实测 728.4px，900 高里 64 导航 + 64 底部条之间还剩 772px，
+ * 用对称留白把它垂直居中（上下各约 22px）。
+ * 短窗（高度 ≤740px，如 1280×600）放不下四行 60px + 15.5px 段落 + 8 块色块：
+ * 字号一分不降，改压行高与间距，并把色块收成一行纯图标的调色条（8 个入口全在），
+ * 使整块落在导航下沿与底部条之间、上下都不贴边。
+ * ============================================================ */
+.hero-copy {
+  --colw: min(342px, 88vw);
+}
+@media (min-width: 1024px) {
+  .hero-copy {
+    --colw: min(350px, 32vw);
+  }
+}
+@media (min-width: 1024px) and (max-height: 740px) {
+  .hero-copy {
+    --colw: min(350px, 32vw);
+  }
+  .hero-copy.hero-col {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+  .hero-copy h1 {
+    margin-top: 6px;
+    /* 60px 字形仍完整落在行盒里（CJK 没有下伸部），只是把行距压到 1.0 */
+    line-height: 1;
+  }
+  .hero-copy .hero-desc {
+    margin-top: 6px;
+    line-height: 1.45;
+  }
+  /* 色块收成一行：8 个入口全部保留，只把名称 / 英文 / 箭头收起来，图标仍在 */
+  .hero-copy .hero-grid {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .hero-copy .hero-tile {
+    flex: 1 1 0;
+    justify-content: center;
+    gap: 0;
+    padding: 5px 0;
+  }
+  .hero-copy .hero-tile-icon {
+    width: 22px;
+    height: 22px;
+  }
+  .hero-copy .hero-tile-copy,
+  .hero-copy .hero-tile-arrow {
+    display: none;
+  }
+  .hero-copy .hero-cta {
+    margin-top: 8px;
+  }
+  .hero-copy .hero-cta-btn {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

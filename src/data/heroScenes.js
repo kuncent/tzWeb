@@ -12,9 +12,11 @@ import { Sparkles, MessagesSquare, Filter, Library } from 'lucide-react'
  * ============================================================ */
 
 export const heroMeta = {
-  eyebrow: 'TIANZE EDU INFRASTRUCTURE',
+  eyebrow: 'TIANZE EDU TECHNOLOGY',
   /** 首屏走马灯上方的品牌行 */
   brand: '天择科技 · 未来教育基础设施',
+  /** 首屏公司简介段落（主标题三行固定，不在此处；此段可在后台覆盖） */
+  intro: '天择科技（TIANZE）面向高校与职业院校，把 AI 多智能体、数字孪生与真实链路实训做成能直接开课的人才培养基础设施——产品体系一体交付，让前沿产业能力变成学生上手的能力。',
 }
 
 export const heroScenes = [

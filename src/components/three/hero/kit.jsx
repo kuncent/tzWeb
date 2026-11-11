@@ -236,12 +236,21 @@ const BRAND_QUAD = { w: 2.125, d: 0.531 } // 1360×340 画布的不拉伸字框�
    整体回退一档：两轴同缩，掠射压缩的比例不动，字形不会变扁 */
 const BRAND_SIZE = 0.8
 /* pos = 字框中心 (x, z)；scale = [宽, 深度]，深度方向那一档就是反拉伸量。
-   具身屏那一处落在演示岛上（岛面 y 0.03），所以 y 另给一档：漆在岛面以下会被抹掉 */
+   具身屏那一处落在演示岛上（岛面 y 0.03），所以 y 另给一档：漆在岛面以下会被抹掉。
+   这一组是把原来左半屏那三处按世界 x = 0 镜像过来的（x 取反、z / y / 缩放不动）：
+   字标仍平铺在同一块地板上，字面朝向（沿 x 阅读、深度方向反拉伸）不变，
+   只是从文案那一侧换到右侧。 */
 const BRAND_PLACE = {
-  embodied: { pos: [-1.14, 0.47], scale: [0.694, 2.732], y: 0.05 },
-  chain: { pos: [-1.53, 2.04], scale: [1.019, 2.337], y: 0.02 },
-  ai: { pos: [-1.45, 1.5], scale: [0.823, 2.939], y: 0.02 },
+  embodied: { pos: [1.14, 0.47], scale: [0.694, 2.732], y: 0.05 },
+  chain: { pos: [1.53, 2.04], scale: [1.019, 2.337], y: 0.02 },
+  /* AI 屏这一处不再写死坐标：anchored 到算力区黄黑虚线框的内角（见 OUTLINE_AI），
+     由字墨盒反推字框中心 —— 框一动、字跟着动，不会出现“差不多在那儿” */
+  ai: { anchor: 'ai', scale: [0.823, 2.939], y: 0.02 },
 }
+/* 算力区黄黑虚线框（LabEnvironment 的 ai 地面贴花）：世界 x ∈ [-2.7, 2.7]、
+   z ∈ [-2.4, 2.4]。线宽 12 canvas px，贴图 24m 铺 2048px → 12px = 0.140625m；
+   内沿要退半个线宽，「贴齐」贴的是这条内沿而不是线心。 */
+const OUTLINE_AI = { x: 2.7, z: 2.4, stroke: (12 * 24) / 2048 }
 /* 具身与 AI 的 z 在反解值上又往相机方向推了十几公分：反解只保证出厂机位下那一条
    屏幕空带，而镜头常驻漂移（±十几像素）。tmp/floor-live.mjs 量到原位的上缘离
    copy 那一列最后那行状态字只剩 2~7px —— 漂移再大一点就上脸了。往下让到 15~20px
@@ -259,6 +268,21 @@ const BRAND_REVEAL = 5.9
 const BRAND_GEO = new THREE.PlaneGeometry(BRAND_QUAD.w, BRAND_QUAD.d)
 const _fb = new THREE.Vector3()
 let _brandTex = null
+let _brandInk = null
+/* 字框中心：带 anchor 的那一屏从「虚线框内角 − 墨盒右沿/基线」反推，
+   其余屏仍用反解好的世界坐标 */
+function brandPos(p) {
+  if (!p.anchor) return p.pos
+  if (!_brandInk) return [0, 0]
+  const w = BRAND_QUAD.w * p.scale[0] * BRAND_SIZE
+  const d = BRAND_QUAD.d * p.scale[1] * BRAND_SIZE
+  return [
+    OUTLINE_AI.x - OUTLINE_AI.stroke / 2 - (_brandInk.r - 0.5) * w,
+    /* 用「基线」而不是墨盒下沿：基线在画布 63.6% 处，墨盒下沿还带着 0.45m
+       的透明留白 —— 拿它去贴角，字会离虚线半个身位，正是要避免的“浮在附近” */
+    OUTLINE_AI.z - OUTLINE_AI.stroke / 2 - (_brandInk.base - 0.5) * d,
+  ]
+}
 function brandTex() {
   if (_brandTex) return _brandTex
   const c = document.createElement('canvas')
@@ -273,6 +297,18 @@ function brandTex() {
      吃不到它，但 AGX 会把近白往中性灰里抽，反而脏在辉光地板上 */
   g.fillStyle = 'rgba(203,224,250,0.62)'
   g.fillText('天择科技', c.width / 2, c.height / 2)
+  /* 字墨盒（画布比例 0..1）：贴角要对齐的是「字的右沿 + 基线」，不是那块
+     带透明留白的字框。middle 基线 = 画布中线 + (上伸-下伸)/2，
+     再往外取实际墨迹的上/下/左/右 —— 值只在 DEV/PROD 首次建纹理时算一次 */
+  const m = g.measureText('天择科技')
+  const base = c.height / 2 + ((m.fontBoundingBoxAscent || 0) - (m.fontBoundingBoxDescent || 0)) / 2
+  _brandInk = {
+    l: (c.width / 2 - m.actualBoundingBoxLeft) / c.width,
+    r: (c.width / 2 + m.actualBoundingBoxRight) / c.width,
+    t: (base - m.actualBoundingBoxAscent) / c.height,
+    b: (base + m.actualBoundingBoxDescent) / c.height,
+    base: base / c.height,
+  }
   _brandTex = new THREE.CanvasTexture(c)
   _brandTex.colorSpace = THREE.SRGBColorSpace
   _brandTex.anisotropy = 8 // 掠射角下各向异性就是远处那半个字的命
@@ -300,7 +336,8 @@ export function FloorBrand({ variant = 'embodied' }) {
       }
       placed.current = variant
       const p = BRAND_PLACE[variant] || BRAND_PLACE.embodied
-      g.position.set(p.pos[0], p.y, p.pos[1])
+      const pos = brandPos(p)
+      g.position.set(pos[0], p.y, pos[1])
       g.scale.set(p.scale[0] * BRAND_SIZE, p.scale[1] * BRAND_SIZE, 1)
     }
     /* 分镜没走完就不浮现：只挡具身屏那一段曲线机位，链 / AI 屏不受影响，
@@ -314,6 +351,7 @@ export function FloorBrand({ variant = 'embodied' }) {
        多挂这个全局；分镜期间不报，免得把已经门控掉的机位算进包络 */
     if (import.meta.env.DEV && !cine) {
       const p = BRAND_PLACE[variant] || BRAND_PLACE.embodied
+      const pos = brandPos(p)
       const hw = (BRAND_QUAD.w / 2) * g.scale.x
       const hd = (BRAND_QUAD.d / 2) * g.scale.y
       let x0 = 1e9
@@ -321,7 +359,7 @@ export function FloorBrand({ variant = 'embodied' }) {
       let y0 = 1e9
       let y1 = -1e9
       for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
-        _fb.set(p.pos[0] + sx * hw, p.y, p.pos[1] + sz * hd).project(state.camera)
+        _fb.set(pos[0] + sx * hw, p.y, pos[1] + sz * hd).project(state.camera)
         const px = (_fb.x * 0.5 + 0.5) * state.size.width
         const py = (-_fb.y * 0.5 + 0.5) * state.size.height
         if (px < x0) x0 = px
@@ -332,7 +370,13 @@ export function FloorBrand({ variant = 'embodied' }) {
       window.__floorBrand = [Math.round(x0), Math.round(y0), Math.round(x1), Math.round(y1), +mat.opacity.toFixed(2)]
     }
   })
-  return <mesh ref={ref} name="floor-brand" rotation-x={-Math.PI / 2} geometry={BRAND_GEO} material={mat} />
+  return (
+    /* 字框只做平移：朝向由全局镜头那一次 30° 转交代（见 HeroStage 的 VIEW_YAW），
+       这里再叠一次就是转两次了。内层 rotation-x 把平面放平，法线朝上、贴地不翘 */
+    <group ref={ref} name="floor-brand">
+      <mesh rotation-x={-Math.PI / 2} geometry={BRAND_GEO} material={mat} />
+    </group>
+  )
 }
 
 /* ============================================================

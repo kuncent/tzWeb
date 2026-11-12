@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, useInView } from 'motion/react'
 import { ArrowUpRight, ExternalLink, Maximize2, Pause, Play, RotateCcw, X } from 'lucide-react'
 import { blockchainProducts, productMatrix } from '../../data/site'
+import { hasDetail } from '../../data/productDetails'
 import { requestTrial, requestProductContact } from '../../lib/aiEngine'
 import { ClipRail } from './ClipRail'
 
@@ -219,7 +221,17 @@ function Surface({ clip, product, live, playing, t, dur, at, chapters, index, th
           >
             <div className="flex flex-col items-center gap-3">
               <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-ice">体验项目 · {product.name}</p>
-              <div className="flex items-center gap-2.5">
+              <div className="flex flex-wrap items-center justify-center gap-2.5">
+                {hasDetail(product) && (
+                  <Link
+                    to={`/products/${product.slug}`}
+                    data-trial="detail"
+                    className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xl border border-accent/35 bg-accent/[0.08] px-4 py-2 text-[13.5px] font-medium text-accent-sky transition-colors hover:border-accent/60 hover:bg-accent/20 hover:text-white"
+                  >
+                    查看详情
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </Link>
+                )}
                 <button
                   type="button"
                   data-trial="apply"

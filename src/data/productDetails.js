@@ -1,6 +1,7 @@
 /* 产品详情文案：取自客户《产品简介.docx》原文（逐字摘录，未改写）。
-   按产品 slug 索引，只有文档里给出详细介绍的产品才有条目；
-   播放器 hover 时出现「查看详情」入口，详情页 = 产品配图 + 这段原文。 */
+   按产品 slug 索引，只有文档里给出详细介绍的产品才有条目。
+   文档没覆盖到的产品不另写文案，退回 site.js 里该产品自己的 desc —— 判据见下方
+   hasDetail：有配图 + 有简介才开详情入口，两者缺一就不摆按钮。 */
 export const productDetails = {
   "fisco-chain": {
     intro: [
@@ -210,3 +211,10 @@ export const productDetails = {
 }
 
 export default productDetails
+
+/* 详情正文：文档原文优先，缺文档时用产品自己的简介，两者都没有才返回 null */
+export const detailIntroOf = (p) => productDetails[p?.slug]?.intro || (p?.desc ? [p.desc] : null)
+
+/* 详情入口的唯一判据：有配图且有简介。列表底栏、hover 蒙版、详情页路由共用它，
+   免得出现「按钮在但页面跳回列表」或「页面能开但找不到入口」的半截状态。 */
+export const hasDetail = (p) => !!(p?.shots?.length || p?.thumb) && !!detailIntroOf(p)

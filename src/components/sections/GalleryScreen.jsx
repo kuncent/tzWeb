@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, useInView } from 'motion/react'
 import { ArrowUpRight, ChevronLeft, ChevronRight, ImageOff, Maximize2, Pause, Play, X } from 'lucide-react'
 import { galleryProducts, productMatrix, embodiedSystem } from '../../data/site'
-import { productDetails } from '../../data/productDetails'
+import { hasDetail } from '../../data/productDetails'
 import { requestTrial, requestProductContact } from '../../lib/aiEngine'
 import { ImageRail } from './ImageRail'
 import { FilmStage } from './ChainScreen'
@@ -192,7 +192,7 @@ function Surface({ product, shots, shot, playing, running, theater, onToggle, on
             <div className="flex flex-col items-center gap-3">
               <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-ice">体验项目 · {product.name}</p>
               <div className="flex flex-wrap items-center justify-center gap-2.5">
-                {productDetails[product.slug] && (
+                {hasDetail(product) && (
                   <Link
                     to={`/products/${product.slug}`}
                     data-trial="detail"
@@ -259,7 +259,7 @@ function PlaceholderSurface({ product }) {
           <p className="text-[17px] font-semibold text-white">{product.name}</p>
           <p className="text-[12.5px] leading-relaxed text-ink-400">{product.tag} · 真实界面截图整理中，欢迎索取演示与实训方案。</p>
           <div className="mt-1 flex flex-wrap items-center justify-center gap-2.5">
-            {productDetails[product.slug] && (
+            {hasDetail(product) && (
               <Link
                 to={`/products/${product.slug}`}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-accent/35 bg-accent/[0.08] px-4 py-2 text-[13.5px] font-medium text-accent-sky transition-colors hover:border-accent/60 hover:bg-accent/20 hover:text-white"
@@ -447,10 +447,10 @@ export default function GalleryScreen({ p, i, withIndex }) {
           <ImageRail products={products} active={active} onPick={setActive} />
         </div>
 
-        {/* 说明占满整宽第一行，适用专业与咨询并列第二行 */}
-        <div className="mt-3 grid shrink-0 grid-cols-[1fr_auto] items-center gap-x-5 gap-y-2 border-t border-white/[0.07] pt-2.5">
+        {/* 说明占满整宽第一行，适用专业与两个出口并列第二行；窄屏拆成两行避免挤压 */}
+        <div className="mt-3 grid shrink-0 grid-cols-1 items-center gap-x-5 gap-y-2 border-t border-white/[0.07] pt-2.5 sm:grid-cols-[1fr_auto]">
           <p
-            className="col-span-2 line-clamp-2 min-w-0 text-[13px] leading-[1.65] text-ink-400 [@media(max-height:820px)]:line-clamp-1"
+            className="col-span-full line-clamp-2 min-w-0 text-[13px] leading-[1.65] text-ink-400 [@media(max-height:820px)]:line-clamp-1"
             title={cur.desc}
           >
             <span className="font-medium text-white/85">{cur.tag}</span>
@@ -461,17 +461,30 @@ export default function GalleryScreen({ p, i, withIndex }) {
             适用专业
             <span className="ml-1.5 text-[13px] font-medium text-white/85">{cur.majors || '金融科技 · 数字经济'}</span>
           </p>
-          <a
-            href="/about#contact"
-            onClick={(e) => {
-              e.preventDefault()
-              requestProductContact({ name: cur.name, code: cur.code, intent: cur.intent || p.intent, source: `gallery-scheme-${cur.code}`, cta: `索取 ${cur.name} 实训方案` })
-            }}
-            className="group ml-auto inline-flex shrink-0 items-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2 text-[13px] font-medium text-accent-sky transition-colors hover:bg-brand hover:text-white"
-          >
-            索取 {cur.code} 实训方案
-            <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </a>
+          {/* 查看详情常驻这里，不只藏在画面 hover 蒙版里：触屏没有 hover，
+              而且看完简介正是想读全文的时候。判据与详情页路由共用 hasDetail。 */}
+          <div className="flex flex-wrap items-center gap-2 sm:ml-auto sm:shrink-0">
+            {hasDetail(cur) && (
+              <Link
+                to={`/products/${cur.slug}`}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-accent/45 bg-accent/10 px-4 py-2 text-[13px] font-medium text-accent-sky transition-colors hover:border-accent/70 hover:bg-accent/20 hover:text-white"
+              >
+                查看详情
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            )}
+            <a
+              href="/about#contact"
+              onClick={(e) => {
+                e.preventDefault()
+                requestProductContact({ name: cur.name, code: cur.code, intent: cur.intent || p.intent, source: `gallery-scheme-${cur.code}`, cta: `索取 ${cur.name} 实训方案` })
+              }}
+              className="group inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/20 bg-white/[0.05] px-4 py-2 text-[13px] font-medium text-white/85 transition-colors hover:border-accent/50 hover:bg-accent hover:text-white"
+            >
+              索取 {cur.code} 实训方案
+              <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+          </div>
         </div>
       </div>
       </div>

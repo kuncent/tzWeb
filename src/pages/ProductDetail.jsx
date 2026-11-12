@@ -1,18 +1,19 @@
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowUpRight, ImageOff } from 'lucide-react'
 import { PageHero, PageSection } from '../components/PageShell'
 import { Reveal } from '../components/ui'
 import { galleryProducts } from '../data/site'
 import { PRODUCTS } from '../data/vocabulary'
-import { productDetails } from '../data/productDetails'
+import { detailIntroOf, hasDetail } from '../data/productDetails'
 import { requestTrial, requestProductContact } from '../lib/aiEngine'
 
 /* ============================================================
  * 产品详情页 /products/:slug
  * ------------------------------------------------------------
- * 入口来自产品矩阵播放器 hover 时的「查看详情」，只对《产品简介.docx》
- * 里有详细正文的产品开放（productDetails 按 slug 索引）。
- * 页面只做两件事：配图 + 原文介绍；不重写、不扩写客户文案。
+ * 入口来自产品矩阵的「查看详情」（底栏常驻 + 播放器 hover 蒙版）。
+ * 开放判据与入口共用 hasDetail：有配图 + 有简介。正文优先用《产品简介.docx》
+ * 原文，文档未覆盖的产品退回 site.js 里它自己的 desc；不重写、不扩写客户文案。
  * ============================================================ */
 
 const systemOf = (slug) => {
@@ -26,13 +27,17 @@ const systemOf = (slug) => {
 export default function ProductDetail() {
   const { slug } = useParams()
   const found = systemOf(slug)
-  const detail = productDetails[slug]
+  const [shot, setShot] = useState(0)
 
-  if (!found || !detail) return <Navigate to="/products" replace />
+  /* 同一路由换 slug 时组件不重挂，选中的幕要跟着回到第一张 */
+  useEffect(() => setShot(0), [slug])
+
+  if (!found || !hasDetail(found.p)) return <Navigate to="/products" replace />
 
   const { p, id } = found
   const system = PRODUCTS.find((x) => x.id === id)
-  const cover = p.shots[0]?.src || p.thumb
+  const intro = detailIntroOf(p)
+  const cover = p.shots[shot]?.src || p.shots[0]?.src || p.thumb
 
   return (
     <>
@@ -71,9 +76,28 @@ export default function ProductDetail() {
               <span className="pointer-events-none absolute bottom-3 left-3 h-4 w-4 border-b border-l border-brand/30" />
               <span className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 border-b border-r border-brand/30" />
             </div>
+            {/* 多幕产品：其余界面截图挂在封面下方，点一张换封面 */}
+            {p.shots.length > 1 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {p.shots.map((s, k) => (
+                  <button
+                    key={s.src}
+                    type="button"
+                    onClick={() => setShot(k)}
+                    aria-label={`查看第 ${k + 1} 张界面截图`}
+                    aria-current={k === shot}
+                    className={`relative w-[104px] overflow-hidden rounded-lg border transition-colors ${
+                      k === shot ? 'border-brand' : 'border-ink-900/[0.09] hover:border-brand/45'
+                    }`}
+                  >
+                    <img src={s.src} alt="" loading="lazy" decoding="async" className="aspect-video w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </Reveal>
 
-          {/* 介绍：正文逐字取自《产品简介.docx》 */}
+          {/* 介绍：文档原文优先，缺文档时用产品自己的简介 */}
           <Reveal delay={0.06}>
             <div className="flex h-full flex-col">
               <p className="font-mono text-caption uppercase tracking-eyebrow text-brand">{p.en}</p>
@@ -81,7 +105,7 @@ export default function ProductDetail() {
               <p className="mt-2 text-ui font-medium text-brand">{p.tag}</p>
 
               <div className="mt-5 space-y-4 border-t border-ink-900/[0.07] pt-5">
-                {detail.intro.map((text, i) => (
+                {intro.map((text, i) => (
                   <p key={i} className="text-[14px] leading-[1.9] text-ink-600">{text}</p>
                 ))}
               </div>

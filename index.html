@@ -401,6 +401,19 @@
         height: 86%;
         overflow: visible;
       }
+      /* 落笔之后（脚本挂 .it-turn）：只让 Z 字标自身绕 Y 轴转一整圈，转回
+         正面定格，随后一条高光沿字形扫过 —— 旋转 0.58s + 定格扫光 0.46s，
+         合计约 1s。六边形轮廓、辐条与节点都不跟着转。
+         这 1s 同时压住六边形孔径：脚本里的 TURN_MS 不让它提前掀幕。
+         轴心必须按 view-box 钉在 (120,120)：这个组里除了字形还有扫光那条
+         280 高的矩形，fill-box 会把矩形也算进包围盒（getBBox 不受 clip 影响），
+         盒子被撑成 189×280、中心漂到 (94.9,140)，转起来就甩出六边形外。 */
+      #intro.it-turn .it-z-turn {
+        transform-box: view-box;
+        transform-origin: 120px 120px;
+        will-change: transform;
+        animation: it-y-turn 0.58s cubic-bezier(0.5, 0.05, 0.2, 1) forwards;
+      }
       #intro .it-mark .it-hex {
         fill: none;
         stroke: rgba(22, 119, 255, 0.4);
@@ -453,6 +466,30 @@
       #intro .it-mark .it-z {
         fill: url(#itg);
         fill-rule: evenodd;
+      }
+      /* 定格扫光：字形刀口里掠过的一条窄渐变带（见 defs 的 itSheenClip）。
+         扫完透明度归零，不参与后面的收口。只在 .it-turn（落笔之后）跑：
+         0.52s 起 + 0.46s = 0.98s，压在 TURN_MS(1000) 之内；旋转 0.58s
+         落定，光正好在正面停稳时掠过。 */
+      #intro .it-mark .it-sheen {
+        opacity: 0;
+      }
+      #intro.it-turn .it-mark .it-sheen {
+        animation: it-sheen-on 0.46s linear 0.52s forwards;
+      }
+      #intro.it-turn .it-mark .it-sheen-run {
+        transform: translateX(40px);
+        will-change: transform;
+        animation: it-sheen-run 0.46s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.52s forwards;
+      }
+      /* 掠光过去之后字面不回到平涂：这层顶光在扫光收尾的同时淡入并留住，
+         读作「光扫过去了，字被抛亮了」，而不是「光走了，字又扁回去」。
+         0.64s 起 + 0.34s = 0.98s，和扫光同一刻收口。 */
+      #intro .it-mark .it-z-gloss {
+        opacity: 0;
+      }
+      #intro.it-turn .it-mark .it-z-gloss {
+        animation: it-gloss-on 0.34s ease-out 0.64s forwards;
       }
       /* 平头笔刷（butt）：起笔/收笔的截面是垂直于笔画的一条直线，起点又都
          放在字标剪影之外，不会像圆头刷那样用半个圆先啃出字标的一角。
@@ -700,6 +737,49 @@
       @keyframes it-spin {
         to {
           transform: rotate(360deg);
+        }
+      }
+      /* 一圈转回原样（0→360）：起止画面相同，定格时不会有半度偏移 */
+      @keyframes it-y-turn {
+        from {
+          transform: perspective(760px) rotateY(0deg);
+        }
+        to {
+          transform: perspective(760px) rotateY(360deg);
+        }
+      }
+      /* 行程按字形边界算死：斜带在字标高度上横向铺开 ±42.56 单位，
+         字形 x∈[89.2,150.8]，所以 40→200 这 160 单位里有 147（92%）
+         真的落在字上。上一版 0→380 只有 47% 有效，两头都在空扫，
+         可见时间被压到 180ms，那才是「闪一下」的根因。
+         匀速偏一点点缓入缓出：光是掠过去的，不是弹过去的。 */
+      @keyframes it-sheen-run {
+        from {
+          transform: translateX(40px);
+        }
+        to {
+          transform: translateX(200px);
+        }
+      }
+      /* 几何已经把首尾填满了，透明度只做很短的软起软收，
+         不再像上一版那样在带子还没进字形时就升到 0.95 平推 */
+      @keyframes it-sheen-on {
+        0% {
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        86% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      @keyframes it-gloss-on {
+        to {
+          opacity: 1;
         }
       }
       @keyframes it-draw {
@@ -973,6 +1053,50 @@
                   <path class="it-z-brush b5" pathLength="100" d="M132.9 118 V150" />
                 </g>
               </mask>
+              <!-- 定格扫光：一条斜 20° 的窄光带从字标左侧掠到右侧。
+                   开屏是白幕，所以「加白」不等于「打光」—— 上一版 92 单位宽、
+                   峰值 0.95 的纯白带比字形（62 单位宽）还宽，整枚 Z 同时被抹向
+                   背景色，读作一道竖向脏污而不是光。
+                   这一版反过来用压深造对比：白热镜面芯只有约 4px 宽，一侧压到
+                   深蓝、一侧偏青回落 —— 深→亮→青的明暗交替才是金属箔被掠过的
+                   样子，且两端都收在品牌蓝青里，不跑色。带子往右走，所以青肩在前
+                   先探进字形，深蓝肩在后拖出一道压深的尾迹，把芯衬成一道光。
+                   带宽 56 < 字形 62，所以任一时刻只有一部分被照亮，是扫不是闪。 -->
+              <linearGradient id="itSheenGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop stop-color="#0B4AD0" stop-opacity="0" />
+                <stop offset="0.2" stop-color="#0B4AD0" stop-opacity="0.26" />
+                <stop offset="0.4" stop-color="#0A42C0" stop-opacity="0.44" />
+                <stop offset="0.47" stop-color="#E8F4FF" stop-opacity="0.86" />
+                <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.96" />
+                <stop offset="0.53" stop-color="#EAFBFF" stop-opacity="0.86" />
+                <stop offset="0.62" stop-color="#25D4FF" stop-opacity="0.42" />
+                <stop offset="0.8" stop-color="#25D4FF" stop-opacity="0.15" />
+                <stop offset="1" stop-color="#25D4FF" stop-opacity="0" />
+              </linearGradient>
+              <!-- 用字形当刀直接裁渐变，而不是拿渐变当 mask 去裁一份白色副本：
+                   SVG mask 取的是亮度×alpha，深蓝肩在 mask 里只会变成「更淡的白」，
+                   压深根本画不出来。裁切则让渐变自己的颜色落到字上，深/亮/青都成立，
+                   而且刀是静态的，每帧只有里面那组矩形在平移，不用重算亮度缓冲。
+                   clip-rule 要跟字形一致用 evenodd，否则三角字怀会被填死。 -->
+              <clipPath id="itSheenClip" clipPathUnits="userSpaceOnUse">
+                <path
+                  clip-rule="evenodd"
+                  d="M89.2 80 H150.8 V93.5 L103.4 147.7 H127.4 V132.3 L138.4 120 V147.7 H150.8 V160 H89.2 V147.7 L101.5 132.9 V89.8 H89.2 Z M111.4 89.8 H137.2 L111.4 120.6 Z"
+                />
+              </clipPath>
+              <!-- 扫光掠过之后留在字面上的常驻光泽：顶光白 → 中段收干净 →
+                   底部压一点深蓝当背光面。掠光是「动」的高光，这层是「静」的
+                   高光，扫完不回到平涂，字一直是抛过光的。
+                   竖直方向按字形自己的包围盒（y80–160）铺，所以顶横最亮、
+                   下横收在暗面，和品牌渐变左上蓝→右下青的方向不打架。 -->
+              <linearGradient id="itGloss" x1="0" y1="0" x2="0.22" y2="1">
+                <stop stop-color="#FFFFFF" stop-opacity="0.34" />
+                <stop offset="0.18" stop-color="#FFFFFF" stop-opacity="0.15" />
+                <stop offset="0.36" stop-color="#FFFFFF" stop-opacity="0.03" />
+                <stop offset="0.48" stop-color="#FFFFFF" stop-opacity="0" />
+                <stop offset="0.74" stop-color="#0A3E9E" stop-opacity="0.06" />
+                <stop offset="1" stop-color="#0A3E9E" stop-opacity="0.18" />
+              </linearGradient>
             </defs>
             <g class="it-spokes">
               <line x1="120" y1="120" x2="120" y2="58" />
@@ -998,11 +1122,34 @@
                  整体按 logo 的 100×130 比例缩放后居中放进六边形。
                  笔顺由 itZBrush 里五支笔刷的 delay 决定：
                  上横 → 斜笔 → 下横（Z）→ 前竖 → 后竖。 -->
-            <path
-              class="it-z"
-              mask="url(#itZBrush)"
-              d="M89.2 80 H150.8 V93.5 L103.4 147.7 H127.4 V132.3 L138.4 120 V147.7 H150.8 V160 H89.2 V147.7 L101.5 132.9 V89.8 H89.2 Z M111.4 89.8 H137.2 L111.4 120.6 Z"
-            />
+            <!-- Z 字标单独成一个组：落笔后的绕 Y 轴旋转只作用于它，
+                 六边形与外圈保持不动 -->
+            <g class="it-z-turn">
+              <path
+                class="it-z"
+                mask="url(#itZBrush)"
+                d="M89.2 80 H150.8 V93.5 L103.4 147.7 H127.4 V132.3 L138.4 120 V147.7 H150.8 V160 H89.2 V147.7 L101.5 132.9 V89.8 H89.2 Z M111.4 89.8 H137.2 L111.4 120.6 Z"
+              />
+              <!-- 常驻光泽：扫光收尾时淡入，之后一直留在字面上 -->
+              <path
+                class="it-z-gloss"
+                fill="url(#itGloss)"
+                fill-rule="evenodd"
+                d="M89.2 80 H150.8 V93.5 L103.4 147.7 H127.4 V132.3 L138.4 120 V147.7 H150.8 V160 H89.2 V147.7 L101.5 132.9 V89.8 H89.2 Z M111.4 89.8 H137.2 L111.4 120.6 Z"
+              />
+              <!-- 扫光本体：字形刀口里平移的那条渐变带。
+                   外层 .it-sheen-run 管水平位移，内层 skewX 把带子压斜 ——
+                   CSS 动画会覆盖元素自身的 transform，所以两层各管一件事。
+                   translate(43.68) = tan(20°)×120，把斜带中心对回字标中线
+                   y=120，行程两端才算得准（见 it-sheen-run）。 -->
+              <g class="it-sheen" clip-path="url(#itSheenClip)">
+                <g class="it-sheen-run">
+                  <g transform="skewX(-20) translate(43.68)">
+                    <rect x="-28" y="-20" width="56" height="280" fill="url(#itSheenGrad)" />
+                  </g>
+                </g>
+              </g>
+            </g>
             <circle class="it-node" cx="120" cy="58" r="3.2" style="animation-delay: 0.44s" />
             <circle class="it-node" cx="173.7" cy="89" r="3.2" style="animation-delay: 0.5s" />
             <circle class="it-node cyan" cx="173.7" cy="151" r="3.2" style="animation-delay: 0.56s" />
@@ -1027,10 +1174,12 @@
          时间轴改成“跟着画面走”，不再自己掐表：
          1) Z 的最后一笔收笔（后竖 b5 的 it-draw animationend，约 1.46s）→ 派发
             tz:draw-end，StoryHero 收到后才开始取 3D；
-         2) 遮罩保持完整，等舞台的“真就绪”信号（首帧已画 + 全部 GL program
+         2) 同一时刻整枚字标绕 Y 轴转一圈并定格扫光（.it-turn，约 1s），
+            这 1s 里遮罩一直完整，孔径不会提前掀开；
+         3) 转完再等舞台的“真就绪”信号（首帧已画 + 全部 GL program
             链接成功 + 主线程空闲一拍，见 HeroStage 的 StageReady）；
-         3) 等待期间进度条走满后切到不定量柔光扫描（.it-wait），不新增文案；
-         4) 兜底：HARD_MS 内没等到就照原时间轴掀开；3D 报错/无 WebGL/无舞台
+         4) 等待期间进度条走满后切到不定量柔光扫描（.it-wait），不新增文案；
+         5) 兜底：HARD_MS 内没等到就照原时间轴掀开；3D 报错/无 WebGL/无舞台
             同样立即放行；手势跳过（ARMED 之后）永远有效，不受等待影响。
          用户路径：滚轮/触摸/按键/点击 —— 事件被 capture 拦下并 preventDefault，
          避免 Lenis 把页面先滚走半屏。 */
@@ -1044,6 +1193,9 @@
 
         var T_MIN = 1740
         var ARMED = 666
+        /* 笔顺收笔后的「绕 Y 轴一圈 + 定格扫光」时长：孔径要等这一秒走完 */
+        var TURN_MS = 1000
+        var turnEnd = 0
         /* 等 3D 就绪的硬上限：从开屏脚本开始算 5.2s（落笔 1.45s + 挂载/下载/
            编译各留余量）。到点无论 3D 在干什么都掀开，别把人关在门外。 */
         var HARD_MS = 5200
@@ -1124,7 +1276,10 @@
           T.ready = at()
           T.readyReason = reason
           clearTimeout(deadline)
-          var wait = T_MIN - (performance.now() - t0)
+          var now = performance.now()
+          /* 最短展示时间与「转字标 + 扫光」两把尺子取大：就绪来得再早，
+             也要等落笔后的那 1s 走完，孔径才不会切在半圈上 */
+          var wait = Math.max(T_MIN - (now - t0), turnEnd ? turnEnd - now : 0)
           if (wait > 0) {
             clearTimeout(timer)
             timer = setTimeout(function () {
@@ -1167,7 +1322,24 @@
              半像素的浅缝。写完之后再遮着没有任何意义，摘掉就是一次干净填充 */
           var z = intro.querySelector('.it-z')
           if (z) z.removeAttribute('mask')
+          /* 落笔即起转：整枚字标绕 Y 轴一圈 + 定格扫光，1s 后才允许掀幕 */
+          intro.classList.add('it-turn')
+          turnEnd = performance.now() + TURN_MS
           T.drawEnd = at()
+          T.turnEnd = Math.round(turnEnd)
+          /* 就绪信号有可能在落笔之前就到了（无 WebGL / 直接放行的那几条出口），
+             那时还没有 turnEnd 可参考。这里补一次：已经排队的掀幕如果早于
+             旋转结束，就重排到转完之后，别把 1s 的转场切在半圈上 */
+          if (T.ready && !done) {
+            clearTimeout(timer)
+            timer = setTimeout(
+              function () {
+                timer = 0
+                exit(T.readyReason)
+              },
+              Math.max(0, turnEnd - performance.now()),
+            )
+          }
           window.__tzDrawEnd = true
           var ev
           try {

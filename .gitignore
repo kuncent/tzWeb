@@ -29,3 +29,4 @@ server/leads.jsonl
 .DS_Store
 Thumbs.db
 *.log
+*.qoder.site

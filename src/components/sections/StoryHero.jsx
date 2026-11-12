@@ -304,7 +304,7 @@ export default function StoryHero() {
   }, [])
 
   /* 舞台挂载：跟着开屏的“落笔结束”信号走，不再是碰巧对齐的 1450ms。
-     开屏脚本在 Z 墨色漫入落定的 animationend 里派发 tz:draw-end，并把
+     开屏脚本在 Z 最后一笔（后竖）收笔的 animationend 里派发 tz:draw-end，并把
      window.__tzDrawEnd 置真（模块脚本比动画晚到时，事件已经过去了，靠这个
      标记补上）。为什么等笔画：开屏那几秒里被丢掉的帧全部来自 3D 首帧的
      三次同步 GL 程序链接（最长 307ms），而遮罩动画是主线程驱动的 ——

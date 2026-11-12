@@ -439,42 +439,63 @@
       }
       /* Z 字标＝品牌标记（/images/brand-mark.svg）的真实字形：实心 fill +
          evenodd 挖出上横与斜笔之间那枚三角孔。
-         落笔改成「一笔描边 → 墨色漫入 → 高光扫过」三段：
-           · it-z-trace 沿字形外轮廓一笔画完（单条 dash，0.40–1.22s）；
-           · it-z 实心字形随后淡入（纯 opacity，1.14–1.45s），描边同时退场；
-           · it-z-sheen 一道白光斜扫过已落定的字形（1.30–1.92s）收笔。
-         上一版是 mask 里五支笔刷逐笔扫出：每帧都在改 dashoffset、让被遮罩的
-         复杂字形整块重新栅格化，而主线程同时在解析入口 JS / 编译着色器。
-         更要命的是中间态根本不是字 —— 起笔先冒出一枚小蓝方块，斜笔半程带
-         台阶与尖角（实拍 tmp/audit/zb-*.png）。描边没有这个问题：任何时刻
-         画面上都只是一条干净的细线，直到墨色一次漫满。
-         不挂 drop-shadow：模糊光晕叠在锐利字形上就是一圈毛边，光晕交给
+         落笔按写字的笔顺来：mask 里五支平头笔刷依次扫出
+         「上横 → 斜笔 → 下横」（这三笔合成 Z）→「前竖」→「后竖」，
+         0.36s 起笔、1.46s 收笔，五笔首尾相接，每帧只有一支在动。
+         每支笔刷各配一把刀（defs 里的 itClip*），刀口就是这笔笔画自己的边界：
+         上一版只裁了上横与下横，斜笔那支 16.6 宽的刷子不裁，扫到 y≈118 时
+         会蹭出前竖右缘一条 2 单位宽的竖丝、扫到 y>147.7 时又提前点亮下横左端
+         —— 那正是「Z 上多出来一点竖笔」和收笔前的台阶。这一版五笔全裁，
+         任何一帧画面上都只有已经写过的那几笔。
+         不挂 drop-shadow：模糊光晕叠在锐利字形上就是一圈毛边，而且它让被
+         mask 遮罩、每帧都在改 dashoffset 的元素整块重绘滤镜；光晕交给
          舞台里的 .it-glow。 */
       #intro .it-mark .it-z {
         fill: url(#itg);
         fill-rule: evenodd;
-        opacity: 0;
-        animation: it-ink 0.31s cubic-bezier(0.28, 0.86, 0.32, 1) 1.14s forwards;
       }
-      #intro .it-mark .it-z-trace {
+      /* 平头笔刷（butt）：起笔/收笔的截面是垂直于笔画的一条直线，起点又都
+         放在字标剪影之外，不会像圆头刷那样用半个圆先啃出字标的一角。
+         宽度只保证盖满自己那条笔画，越界的部分由各自的刀剪掉。 */
+      #intro .it-mark .it-z-brush {
         fill: none;
-        stroke: url(#itg);
-        stroke-width: 1.7;
-        stroke-linejoin: round;
-        stroke-linecap: round;
+        stroke: #fff;
+        stroke-linecap: butt;
         stroke-dasharray: 100;
         stroke-dashoffset: 100;
-        animation:
-          it-draw 0.82s cubic-bezier(0.42, 0.02, 0.24, 1) 0.4s forwards,
-          it-trace-out 0.26s ease 1.2s forwards;
+        animation: it-draw 0.22s cubic-bezier(0.42, 0.05, 0.22, 1) 0.36s forwards;
       }
-      /* 高光扫过：静态 clip 把光带锁在字形里，动的只有 rect 自己的 transform。
-         1.20–1.62s：墨色 1.45s 落定，光带正好在那一刻扫到字中央，
-         1.62s 收干净 —— 比 T_MIN(1740ms) 早 120ms，不会被收口动作切掉尾巴 */
-      #intro .it-mark .it-z-sheen {
-        opacity: 0;
-        transform-box: view-box;
-        animation: it-sheen 0.42s linear 1.2s forwards;
+      /* b1 上横（y80–89.8） */
+      #intro .it-mark .it-z-brush.b1 {
+        stroke-width: 12;
+      }
+      /* b2 斜笔：26 宽。字怀底端（y120.6）以下带身左缘一下子从 x111.4 跳到
+         x101.5，19 宽的刷子在那一行只够到 x101.9，会在前竖脚下留一枚没写上
+         的小三角（逐像素比对 tmp/zcheck.cjs 量出来的）。越界蹭到前竖 / 下横
+         的部分由 itClipDiag 剪掉，所以宽一点没有副作用 */
+      #intro .it-mark .it-z-brush.b2 {
+        stroke-width: 26;
+        animation-delay: 0.58s;
+        animation-duration: 0.34s;
+      }
+      /* b3 下横（y147.7–160） */
+      #intro .it-mark .it-z-brush.b3 {
+        stroke-width: 13;
+        animation-delay: 0.92s;
+        animation-duration: 0.18s;
+      }
+      /* b4 前竖（x101.5–111.4，y89.8–120.6）：字怀底端以下并入斜笔，
+         所以刀口就压在 y=120.6，再往下那截归 b2 */
+      #intro .it-mark .it-z-brush.b4 {
+        stroke-width: 13;
+        animation-delay: 1.1s;
+        animation-duration: 0.18s;
+      }
+      /* b5 后竖（x127.4–138.4）：顶上那道斜切由刀口还原 */
+      #intro .it-mark .it-z-brush.b5 {
+        stroke-width: 13;
+        animation-delay: 1.28s;
+        animation-duration: 0.18s;
       }
       #intro .it-mark .it-node {
         fill: #1677ff;
@@ -717,36 +738,6 @@
           transform: scaleX(1);
         }
       }
-      @keyframes it-ink {
-        to {
-          opacity: 1;
-        }
-      }
-      @keyframes it-trace-out {
-        to {
-          opacity: 0;
-        }
-      }
-      /* 光带只走 transform + opacity；skew 让它斜着掠过字形，
-         读作一道高光而不是一个平移的白方块。
-         行程 112 是量出来的：光带 x=52 宽 42，字形横跨 89.2–150.8，
-         走到 98.8 就已经完全出字 —— 再远都是空跑，白占半条时间轴 */
-      @keyframes it-sheen {
-        0% {
-          opacity: 0;
-          transform: translateX(0) skewX(-16deg);
-        }
-        14% {
-          opacity: 0.9;
-        }
-        80% {
-          opacity: 0.9;
-        }
-        100% {
-          opacity: 0;
-          transform: translateX(112px) skewX(-16deg);
-        }
-      }
       @keyframes it-beat {
         0%,
         100% {
@@ -939,17 +930,49 @@
                 <stop offset="0.52" stop-color="#4FA9FF" />
                 <stop offset="1" stop-color="#25D4FF" />
               </linearGradient>
-              <!-- 落笔用的两样东西：字形外轮廓（描边走它、高光裁在它里面）
-                   与一条透明→白→透明的光带渐变。轮廓与下面 .it-z 的外环
-                   逐点一致，所以描边收笔时墨色正好漫满同一枚剪影。 -->
-              <clipPath id="itZClip" clipPathUnits="userSpaceOnUse">
-                <path d="M89.2 80 H150.8 V93.5 L103.4 147.7 H127.4 V132.3 L138.4 120 V147.7 H150.8 V160 H89.2 V147.7 L101.5 132.9 V89.8 H89.2 Z" />
+              <!-- 五支笔刷各自的刀口＝这笔笔画自己的边界（240 viewBox 里
+                   按字形轮廓量出来）。五把刀互不重叠、合起来正好铺满字形，
+                   所以任何一支刷子越界都蹭不到还没写到的那一笔。 -->
+              <clipPath id="itClipTop" clipPathUnits="userSpaceOnUse">
+                <!-- 上横：刀口压在上横底边 y=89.8 -->
+                <rect x="80" y="70" width="80" height="19.8" />
               </clipPath>
-              <linearGradient id="itSheen" x1="0" y1="0" x2="1" y2="0">
-                <stop stop-color="#fff" stop-opacity="0" />
-                <stop offset="0.5" stop-color="#fff" stop-opacity="0.92" />
-                <stop offset="1" stop-color="#fff" stop-opacity="0" />
-              </linearGradient>
+              <clipPath id="itClipDiag" clipPathUnits="userSpaceOnUse">
+                <!-- 斜笔：左上避开前竖（x111.4 / y120.6 那两级台阶），
+                     左下顺着斜笔自己的斜切脚走，右侧避开后竖顶上那道斜切，
+                     底边压在 y=147.7 —— 下横归 b3 -->
+                <path d="M111.4 89.8 H160 V120 H138.4 L127.4 132.3 V147.7 H89.2 L101.5 132.9 V120.6 H111.4 Z" />
+              </clipPath>
+              <clipPath id="itClipBar" clipPathUnits="userSpaceOnUse">
+                <!-- 下横：刀口压在下横顶边 y=147.7 -->
+                <rect x="80" y="147.7" width="80" height="20" />
+              </clipPath>
+              <clipPath id="itClipFront" clipPathUnits="userSpaceOnUse">
+                <!-- 前竖：字怀左缘 x111.4 到 y120.6，再往下并入斜笔 -->
+                <rect x="101.5" y="89.8" width="9.9" height="30.8" />
+              </clipPath>
+              <clipPath id="itClipBack" clipPathUnits="userSpaceOnUse">
+                <!-- 后竖：顶上那道斜切 (127.4,132.3)→(138.4,120) 原样还原 -->
+                <path d="M138.4 120 V147.7 H127.4 V132.3 Z" />
+              </clipPath>
+              <mask id="itZBrush" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="240">
+                <rect x="0" y="0" width="240" height="240" fill="#000" />
+                <g clip-path="url(#itClipTop)">
+                  <path class="it-z-brush b1" pathLength="100" d="M87.8 84.9 H152.2" />
+                </g>
+                <g clip-path="url(#itClipDiag)">
+                  <path class="it-z-brush b2" pathLength="100" d="M155.6 78 L88.6 153.85" />
+                </g>
+                <g clip-path="url(#itClipBar)">
+                  <path class="it-z-brush b3" pathLength="100" d="M87.8 153.85 H152.2" />
+                </g>
+                <g clip-path="url(#itClipFront)">
+                  <path class="it-z-brush b4" pathLength="100" d="M106.45 88 V122.5" />
+                </g>
+                <g clip-path="url(#itClipBack)">
+                  <path class="it-z-brush b5" pathLength="100" d="M132.9 118 V150" />
+                </g>
+              </mask>
             </defs>
             <g class="it-spokes">
               <line x1="120" y1="120" x2="120" y2="58" />
@@ -973,19 +996,13 @@
             <!-- Z 字标＝品牌标记的真实字形（public/images/brand-mark.svg）：
                  外轮廓 15 点 + 上横与斜笔之间那枚封闭三角孔，
                  整体按 logo 的 100×130 比例缩放后居中放进六边形。
-                 先描边（it-z-trace，与外环逐点一致），再让实心字形淡入。 -->
-            <path
-              class="it-z-trace"
-              pathLength="100"
-              d="M89.2 80 H150.8 V93.5 L103.4 147.7 H127.4 V132.3 L138.4 120 V147.7 H150.8 V160 H89.2 V147.7 L101.5 132.9 V89.8 H89.2 Z"
-            />
+                 笔顺由 itZBrush 里五支笔刷的 delay 决定：
+                 上横 → 斜笔 → 下横（Z）→ 前竖 → 后竖。 -->
             <path
               class="it-z"
+              mask="url(#itZBrush)"
               d="M89.2 80 H150.8 V93.5 L103.4 147.7 H127.4 V132.3 L138.4 120 V147.7 H150.8 V160 H89.2 V147.7 L101.5 132.9 V89.8 H89.2 Z M111.4 89.8 H137.2 L111.4 120.6 Z"
             />
-            <g clip-path="url(#itZClip)">
-              <rect class="it-z-sheen" x="52" y="66" width="42" height="112" fill="url(#itSheen)" />
-            </g>
             <circle class="it-node" cx="120" cy="58" r="3.2" style="animation-delay: 0.44s" />
             <circle class="it-node" cx="173.7" cy="89" r="3.2" style="animation-delay: 0.5s" />
             <circle class="it-node cyan" cx="173.7" cy="151" r="3.2" style="animation-delay: 0.56s" />
@@ -1008,7 +1025,7 @@
     <script>
       /* ―― 开屏遮挡页的收口控制 ――
          时间轴改成“跟着画面走”，不再自己掐表：
-         1) Z 的墨色漫入落定（.it-z 的 it-ink animationend，约 1.45s）→ 派发
+         1) Z 的最后一笔收笔（后竖 b5 的 it-draw animationend，约 1.46s）→ 派发
             tz:draw-end，StoryHero 收到后才开始取 3D；
          2) 遮罩保持完整，等舞台的“真就绪”信号（首帧已画 + 全部 GL program
             链接成功 + 主线程空闲一拍，见 HeroStage 的 StageReady）；
@@ -1138,14 +1155,18 @@
         }, HARD_MS)
 
         /* ―― 落笔结束 → 通知 StoryHero 挂 3D ――
-           墨色漫入（.it-z 的 it-ink，1.14s 起 + 0.31s）是字标落定的那一刻。
-           用 animationend 而不是再写一个 1450ms：动画的时长/延迟改了，
+           最后一笔（后竖 b5，1.28s 起 + 0.18s）收笔就是字标落定的那一刻。
+           用 animationend 而不是再写一个 1460ms：笔顺的时长/延迟改了，
            3D 的启动点会自己跟上。
            __tzDrawEnd 同时置真，防止模块脚本比动画晚到、错过这一次事件。 */
-        var ink = intro.querySelector('.it-z')
+        var lastBrush = intro.querySelector('.it-z-brush.b5')
         function drawDone(e) {
-          if (e && e.animationName !== 'it-ink') return
-          ink.removeEventListener('animationend', drawDone)
+          if (e && e.animationName !== 'it-draw') return
+          lastBrush.removeEventListener('animationend', drawDone)
+          /* 收笔即摘 mask：五把刀各自抗锯齿，拼起来的字形在刀口上会留一道
+             半像素的浅缝。写完之后再遮着没有任何意义，摘掉就是一次干净填充 */
+          var z = intro.querySelector('.it-z')
+          if (z) z.removeAttribute('mask')
           T.drawEnd = at()
           window.__tzDrawEnd = true
           var ev
@@ -1157,7 +1178,7 @@
           }
           window.dispatchEvent(ev)
         }
-        if (ink) ink.addEventListener('animationend', drawDone)
+        if (lastBrush) lastBrush.addEventListener('animationend', drawDone)
 
         /* 进度条走满而遮罩还没收：切到不定量扫描，别让等待看起来像冻住 */
         var bar = intro.querySelector('.it-track i')

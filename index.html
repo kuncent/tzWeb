@@ -684,7 +684,7 @@
          it-gone 仍是兜底：孔径没跑起来时，白幕也会自己淡掉。 */
       #intro.it-open {
         pointer-events: none;
-        animation: it-gone 0.22s linear 1.11s forwards;
+        animation: it-gone 0.3s linear 1.4s forwards;
       }
       #intro.it-open .it-bg,
       #intro.it-open .it-grid {
@@ -692,10 +692,14 @@
       }
       /* 孔径与两条轮廓共用同一条缩放曲线；transform-box/view-box + 原点 0,0
          等价于原来 SVG 属性里的 translate(cx cy) scale(s)。
-         只用 forwards、不用 both：延迟那 600ms 里必须停在标记自带的
+         只用 forwards、不用 both：延迟那 300ms 里必须停在标记自带的
          transform="scale(0)" 上（白幕完整不露底），到点才从轮廓尺寸起跳。
          轮廓同一帧起跳，但 opacity 从 0 渐亮，读作“轮廓亮起并外扩”，
-         不会出现先在 scale(0) 处淡入再“啪”地跳到位 */
+         不会出现先在 scale(0) 处淡入再“啪”地跳到位。
+         曲线用正弦式缓入缓出（.37,0,.63,1）而不是原来的 (.65,0,.35,1)：
+         后者峰值速度是均速的 2.86 倍，整屏其实是在中间那一小段被“甩”开的，
+         10%→94% 的可见行程只占 48% 时长。正弦峰值 1.59 倍、可见行程占 63%，
+         边缘推进接近匀速；再配合 0.67s→1.1s，峰值边缘速度降到原来的三分之一。 */
       #intro .it-hole,
       #intro .it-outline,
       #intro .it-outline-glow {
@@ -703,22 +707,24 @@
         transform-origin: 0 0;
       }
       #intro.it-open .it-hole {
-        animation: it-wipe 0.67s cubic-bezier(0.65, 0, 0.35, 1) 0.44s forwards;
+        animation: it-wipe 1.1s cubic-bezier(0.37, 0, 0.63, 1) 0.3s forwards;
       }
       #intro.it-open .it-outline {
         animation:
-          it-wipe 0.67s cubic-bezier(0.65, 0, 0.35, 1) 0.44s forwards,
-          it-line-in 0.22s ease 0.44s forwards,
-          it-line-out 0.25s ease 1.11s forwards;
+          it-wipe 1.1s cubic-bezier(0.37, 0, 0.63, 1) 0.3s forwards,
+          it-line-in 0.3s ease 0.3s forwards,
+          it-line-out 0.3s ease 1.4s forwards;
       }
       #intro.it-open .it-outline-glow {
         animation:
-          it-wipe 0.67s cubic-bezier(0.65, 0, 0.35, 1) 0.44s forwards,
-          it-line-in 0.3s ease 0.46s forwards,
-          it-line-out 0.3s ease 1.08s forwards;
+          it-wipe 1.1s cubic-bezier(0.37, 0, 0.63, 1) 0.3s forwards,
+          it-line-in 0.36s ease 0.32s forwards,
+          it-line-out 0.32s ease 1.36s forwards;
       }
+      /* 中央内容淡出与孔径起跳留 200ms 重叠：淡完再扩是两个动作，
+         叠着走才读作同一个动作的两段 */
       #intro.it-open .it-center {
-        animation: it-center-out 0.44s cubic-bezier(0.4, 0, 0.7, 1) forwards;
+        animation: it-center-out 0.5s cubic-bezier(0.4, 0, 0.5, 1) forwards;
       }
       #intro.it-open .it-meta,
       #intro.it-open .it-skip {
@@ -1235,7 +1241,7 @@
           setTimeout(function () {
             intro.parentNode && intro.parentNode.removeChild(intro)
             T.curtainGone = at()
-          }, 1332)
+          }, 1760)
         }
 
         /* 六边形扩散：孔径不是从小圆点开始的，而是从中央那枚六边形自身的
@@ -1244,8 +1250,8 @@
            六边形里露出来；描边两条跟它同步，读作“轮廓在向外扩散”。
            这里只量一次几何、把四个值写进 #intro 的 CSS 变量，补间交给
            it-wipe 关键帧在 CSS 时间轴上跑 —— 不再在这个回调里逐帧拼字符串、
-           改 SVG 属性和 mask。起点留 600ms 让中央内容先淡出，再让轮廓接上
-           （与 CSS 里的延迟一致）。 */
+           改 SVG 属性和 mask。起点留 300ms 让中央内容先淡下去一截，再让轮廓
+           接上（与 CSS 里的延迟一致）。 */
         function runWipe() {
           var mark = intro.querySelector('.it-mark')
           var mr = mark.getBoundingClientRect()

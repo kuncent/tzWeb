@@ -1,50 +1,91 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Users, BookOpenCheck, Microscope, GraduationCap, Award, Images, X, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react'
+import { Users, BookOpenCheck, Microscope, GraduationCap, Award, Images, X, ChevronLeft, ChevronRight, Play, Pause, Maximize2, Projector, Medal } from 'lucide-react'
 import { coopCategories } from '../../data/cooperation'
+import { BrandMark } from '../Brand'
 
 const ICONS = { conference: Users, textbook: BookOpenCheck, project: Microscope, training: GraduationCap, competition: Award }
 
-/* 学术会议：画卷式胶卷。左端竖立卷筒把右侧胶片像手卷一样缓缓收起，
-   左筒越卷越粗、右筒越放越细，沿时间线推进，走完一圈自动 loop。
-   位移用 rAF 直接写 transform/width（不逐帧 setState），只有「卷到第几帧」变化时才更新 React。 */
+/* 学术会议：双片盘收卷。右盘放片、左盘收片，胶片从两盘之间横向走过；
+   左盘越收越粗、右盘越放越细，转速按各自当前卷径反比算（粗盘转得慢），
+   齿孔与片边印字跟着胶片一起位移，走完一圈自动 loop。
+   位移与转角由 rAF 直接写样式，只有「卷到第几帧」变化时才更新 React。
+   窄屏两盘并排在上、胶片整宽在下；宽屏两盘左右夹住胶片。 */
 function FilmReel({ items, onOpen }) {
   const n = items.length
-  const W = 320
-  const total = n * W
-  const SPEED = 40
+  /* 帧宽跟着片门实际宽度走，窄屏才不会只剩一帧半；off 是像素量，改帧宽时按比例换算保住当前帧。 */
+  const [fw, setFw] = useState(236)
+  const fwRef = useRef(236)
+  const gateEl = useRef(null)
+  const total = n * fw
+  const SPEED = 46
+  /* 名义卷径（px）：只用来把线速度换算成角速度，窄屏盘小一点不影响观感 */
+  const NOMINAL_R = 58
   const reduced = useRef(window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   const [paused, setPaused] = useState(reduced.current)
   const [gate, setGate] = useState(0)
   const off = useRef(0)
+  const angL = useRef(0)
+  const angR = useRef(0)
   const track = useRef(null)
-  const rollL = useRef(null)
-  const rollR = useRef(null)
+  const woundL = useRef(null)
+  const woundR = useRef(null)
+  const spinL = useRef(null)
+  const spinR = useRef(null)
   const prog = useRef(null)
-  const yearOf = (it) => it.caption.match(/^\d{4}/)?.[0] ?? '··'
+  const yearOf = (it) => it?.caption.match(/^\d{4}/)?.[0] ?? '··'
 
-  const apply = useCallback(() => {
+  const apply = useCallback((dt) => {
     const o = off.current
     const p = o / total
+    const fL = 0.5 + p * 0.42
+    const fR = 0.92 - p * 0.42
     if (track.current) track.current.style.transform = `translate3d(${-o}px,0,0)`
-    if (rollL.current) {
-      rollL.current.style.width = `${26 + p * 38}px`
-      rollL.current.children[0].style.backgroundPosition = `${-o * 0.35}px 0, 0 0`
+    if (woundL.current) {
+      woundL.current.style.width = `${fL * 100}%`
+      woundL.current.style.height = `${fL * 100}%`
     }
-    if (rollR.current) rollR.current.style.width = `${26 + (1 - p) * 38}px`
+    if (woundR.current) {
+      woundR.current.style.width = `${fR * 100}%`
+      woundR.current.style.height = `${fR * 100}%`
+    }
+    if (dt) {
+      const k = (dt * SPEED * 180) / Math.PI / NOMINAL_R
+      angL.current += k / fL
+      angR.current += k / fR
+      if (spinL.current) spinL.current.style.transform = `rotate(${angL.current}deg)`
+      if (spinR.current) spinR.current.style.transform = `rotate(${angR.current}deg)`
+    }
     if (prog.current) prog.current.style.width = `${p * 100}%`
-    const g = Math.floor(o / W) % n
+    const g = Math.floor(o / fw) % n
     setGate((prev) => (prev === g ? prev : g))
-  }, [n, total])
+  }, [n, total, fw])
+
+  useEffect(() => {
+    const el = gateEl.current
+    if (!el) return
+    const ro = new ResizeObserver(() => {
+      const next = Math.round(Math.max(172, Math.min(248, el.clientWidth / 2.6)))
+      const prev = fwRef.current
+      if (next === prev) return
+      off.current = (off.current / prev) * next
+      fwRef.current = next
+      setFw(next)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   useEffect(() => {
     if (paused) return
     let raf = 0
     let last = performance.now()
     const tick = (t) => {
-      const dt = Math.min(0.05, (t - last) / 1000)
+      /* 首帧的 rAF 时间戳可能早于 effect 里取的 performance.now()，
+         dt 不夹到 0 就会把 off 推成负数，取模后帧号变 -1 直接读崩 items[-1] */
+      const dt = Math.max(0, Math.min(0.05, (t - last) / 1000))
       last = t
-      off.current = (off.current + dt * SPEED) % total
-      apply()
+      off.current = (((off.current + dt * SPEED) % total) + total) % total
+      apply(dt)
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
@@ -52,32 +93,48 @@ function FilmReel({ items, onOpen }) {
   }, [paused, total, apply])
 
   const jump = (i) => {
-    off.current = i * W
-    apply()
+    off.current = i * fw
+    apply(0)
   }
 
-  /* 卷筒：竖立画轴，上下铜轴头；端面用同色金属渐变收圆，避免小尺寸下螺旋纹读成图标 */
-  const capStyle = { background: 'linear-gradient(90deg,#20242c,#6a7180_50%,#20242c)' }
-  const skinStyle = {
-    backgroundImage:
-      'repeating-linear-gradient(90deg,rgba(255,255,255,0.10)_0_2px,transparent_2px_12px),linear-gradient(90deg,#20242c,#4a505c_30%,#6a7180_50%,#4a505c_70%,#20242c)',
-    backgroundSize: '12px 100%, 100% 100%',
-    boxShadow: 'inset 0 0 12px rgba(0,0,0,0.6), 0 0 14px rgba(0,0,0,0.5)',
-  }
-  const roller = (ref, w) => (
-    <div ref={ref} className="relative shrink-0 self-stretch" style={{ width: w }}>
-      <span className="absolute inset-x-0 bottom-1 top-1 rounded-[3px]" style={skinStyle} />
-      <span className="absolute inset-x-0 top-0 h-3 rounded-[50%]" style={capStyle} />
-      <span className="absolute inset-x-0 bottom-0 h-3 rounded-[50%]" style={capStyle} />
-      <span className="absolute -top-2 left-1/2 h-3 w-2 -translate-x-1/2 rounded-full bg-[#c9a24b]" />
-      <span className="absolute -bottom-2 left-1/2 h-3 w-2 -translate-x-1/2 rounded-full bg-[#c9a24b]" />
+  /* 片盘：卷绕的胶片在下、三根盘辐在上，透过辐条空隙能看见胶片涨缩 */
+  const reel = (woundRef, spinRef, label) => (
+    <div className="flex shrink-0 flex-col items-center gap-1.5">
+      <div className="relative aspect-square w-[92px] sm:w-[116px] md:w-[108px] lg:w-[128px] xl:w-[164px]">
+        <span aria-hidden className="absolute inset-[5px] rounded-full bg-[#080a0f]" />
+        <span
+          ref={woundRef}
+          aria-hidden
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            width: '50%',
+            height: '50%',
+            backgroundImage: 'repeating-radial-gradient(circle, #191d25 0 2px, #3d4655 2px 4px)',
+            boxShadow: 'inset 0 0 12px rgba(0,0,0,0.8), 0 0 0 1px rgba(198,212,236,0.28)',
+          }}
+        />
+        <span
+          ref={spinRef}
+          aria-hidden
+          className="absolute inset-0 rounded-full will-change-transform"
+          style={{
+            backgroundImage:
+              'conic-gradient(from 0deg,#79839a 0deg 20deg,transparent 20deg 120deg,#79839a 120deg 140deg,transparent 140deg 240deg,#79839a 240deg 260deg,transparent 260deg 360deg)',
+          }}
+        />
+        <span aria-hidden className="absolute inset-0 rounded-full border-[3px] border-[#8d97ab] shadow-[inset_0_0_10px_rgba(0,0,0,0.7),0_8px_22px_rgba(0,0,0,0.6)]" />
+        <span aria-hidden className="absolute inset-0 rounded-full bg-[linear-gradient(135deg,rgba(255,255,255,0.26),transparent_46%)]" />
+        <span aria-hidden className="absolute left-1/2 top-1/2 h-[24%] w-[24%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-black/50 bg-[radial-gradient(circle_at_34%_30%,#e8cd90,#a8813a_62%,#5c4418)]" />
+        <span aria-hidden className="absolute left-1/2 top-1/2 h-[7%] w-[7%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70" />
+      </div>
+      <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/35">{label}</span>
     </div>
   )
 
   return (
     <div className="flex h-full flex-col justify-center gap-3" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(reduced.current)}>
       <div className="flex items-center justify-between px-1">
-        <p className="font-mono text-micro uppercase tracking-label text-white/40">胶卷手卷 · 2019 — 2026</p>
+        <p className="font-mono text-micro uppercase tracking-label text-white/40">35mm 收卷 · 2019 — 2026</p>
         <div className="flex items-center gap-2">
           <span className="font-mono text-caption tabular-nums text-amber-300/80">卷至 {yearOf(items[gate])}</span>
           <button type="button" onClick={() => setPaused((p) => !p)} aria-label={paused ? '播放' : '暂停'} className="grid h-7 w-7 place-items-center rounded-full bg-white/10 text-white/70 transition-colors hover:bg-white/20 hover:text-white">
@@ -86,33 +143,35 @@ function FilmReel({ items, onOpen }) {
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 items-center">
-        <div className="flex w-full items-stretch">
-        {roller(rollL, 26)}
-        {/* 展开的胶片：齿孔与片边印字随胶片一起走，两端阴影暗示 wrap 进卷筒 */}
-        <div className="relative min-w-0 flex-1 overflow-hidden">
-          <div ref={track} className="relative flex w-max py-3 will-change-transform">
-            <span aria-hidden className="absolute inset-x-0 top-0 h-2.5 [background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.85)_0_12px,transparent_12px_26px)]" />
-            <span aria-hidden className="absolute inset-x-0 bottom-0 h-2.5 [background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.85)_0_12px,transparent_12px_26px)]" />
+      <div className="flex min-h-0 flex-1 flex-wrap items-center justify-between gap-2 md:flex-nowrap md:gap-3">
+        <div className="order-1">{reel(woundL, spinL, '收片 take-up')}</div>
+        <div className="order-2 md:order-3">{reel(woundR, spinR, '放片 supply')}</div>
+
+        {/* 展开的胶片：齿孔与片边印字随胶片一起走，两端压暗暗示绕进片盘 */}
+        <div ref={gateEl} className="relative order-3 w-full min-w-0 overflow-hidden rounded-[3px] bg-[#0a0c10] md:order-2 md:w-auto md:flex-1">
+          <div ref={track} className="relative flex w-max py-3.5 will-change-transform">
+            <span aria-hidden className="absolute inset-x-0 top-[3px] h-2 [background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.8)_0_10px,transparent_10px_24px)]" />
+            <span aria-hidden className="absolute inset-x-0 bottom-[3px] h-2 [background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.8)_0_10px,transparent_10px_24px)]" />
             {[...items, ...items].map((it, i) => (
-              <button key={`${it.src}-${i}`} type="button" onClick={() => onOpen(i % n)} style={{ width: W }} className="group shrink-0 px-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand">
-                <span className="mb-1 block truncate font-mono text-[9px] tracking-[0.18em] text-amber-200/40">TZ-5247 · {yearOf(it)} · {String((i % n) + 1).padStart(2, '0')}A</span>
+              <button key={`${it.src}-${i}`} type="button" onClick={() => onOpen(i % n)} style={{ width: fw }} className="group shrink-0 px-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand">
+                <span className="mb-1 block truncate font-mono text-[9px] tracking-[0.18em] text-amber-200/45">TZ-5247 · {yearOf(it)} · {String((i % n) + 1).padStart(2, '0')}A</span>
                 <span className="relative block overflow-hidden">
-                  <img src={it.src} alt={it.caption} loading={i < 2 ? 'eager' : 'lazy'} decoding="async" className="aspect-[4/3] w-full object-cover contrast-[1.05] sepia-[0.28] transition-[filter,transform] duration-500 group-hover:scale-[1.04] group-hover:sepia-0" />
+                  <img src={it.src} alt={it.caption} loading={i < 3 ? 'eager' : 'lazy'} decoding="async" className="aspect-[4/3] w-full object-cover contrast-[1.05] sepia-[0.28] transition-[filter,transform] duration-500 group-hover:scale-[1.04] group-hover:sepia-0" />
                   <span className="absolute left-1.5 top-1.5 rounded-sm bg-black/70 px-1.5 py-0.5 font-mono text-[10px] tracking-[0.14em] text-amber-300/90">{yearOf(it)}</span>
                 </span>
-                <span className="mt-1.5 block truncate text-caption text-white/60 transition-colors group-hover:text-white">{it.caption}</span>
               </button>
             ))}
           </div>
-          <span aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-black/80 to-transparent" />
-          <span aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-black/80 to-transparent" />
-        </div>
-        {roller(rollR, 64)}
+          <span aria-hidden className="pointer-events-none absolute inset-y-0 left-1/2 w-1/3 -translate-x-1/2 bg-[linear-gradient(90deg,transparent,rgba(255,236,190,0.07),transparent)]" />
+          <span aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-7 bg-gradient-to-r from-black/85 to-transparent" />
+          <span aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-7 bg-gradient-to-l from-black/85 to-transparent" />
         </div>
       </div>
 
-      {/* 时间线：琥珀色进度随卷片推进，点哪年就把胶片拨到那一帧 */}
+      {/* 当前帧字幕：胶片本身只留片边印字，标题放在片门外，画面才够大 */}
+      <p key={gate} className="coop-swap truncate px-1 text-caption text-white/70">{items[gate]?.caption}</p>
+
+      {/* 时间线：琥珀色进度随收卷推进，点哪年就把胶片拨到那一帧 */}
       <div className="relative px-2 pt-1">
         <span aria-hidden className="absolute inset-x-2 top-[5px] h-px bg-white/15" />
         <span ref={prog} aria-hidden className="absolute left-2 top-[5px] h-px bg-amber-300/70" style={{ width: 0 }} />
@@ -129,44 +188,89 @@ function FilmReel({ items, onOpen }) {
   )
 }
 
-/* 出版教材：木质双层书架，8 部书高矮错落立在板上，一部斜倚，悬停抽出。 */
+/* 出版教材：仿真书架。背板 + 侧板 + 两层带厚度的层板，书立在板上、右侧露书口、
+   脚下有接触阴影；架顶铜牌与每本书封面都打上品牌标记，悬停把书抽出来一点。 */
 function Bookshelf({ items, onOpen }) {
-  const BOOK_H = [196, 178, 204, 186, 192, 174, 200, 182]
-  const WOOD = '[background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.10)_0_2px,transparent_2px_9px),linear-gradient(180deg,#7a5230,#5a3b21)]'
+  const H = [0.96, 0.87, 1, 0.91, 0.94, 0.85, 0.98, 0.89]
   const rows = [items.slice(0, 4), items.slice(4)]
+  /* 内联 style 里的渐变必须用真空格：Tailwind 的 `_` 占位只在类名里生效，
+     写进 style 会被 CSS 解析器整条丢弃，木纹和金属色会静默变成透明。 */
+  const BACK =
+    'repeating-linear-gradient(90deg, rgba(0,0,0,0.18) 0 2px, transparent 2px 11px), linear-gradient(180deg, #4a3018, #2e1e0e)'
+  const BOARD =
+    'repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 2px, transparent 2px 9px), linear-gradient(180deg, #96653a, #6b4526 52%, #432b15)'
+
+  const board = (key) => (
+    <div key={key} aria-hidden className="relative h-3.5 shrink-0 rounded-[2px] shadow-[0_10px_16px_rgba(0,0,0,0.55)]" style={{ backgroundImage: BOARD }}>
+      <span className="absolute inset-x-0 top-0 h-[3px] rounded-t-[2px] bg-white/20" />
+      <span className="absolute inset-x-0 bottom-0 h-[4px] rounded-b-[2px] bg-black/35" />
+    </div>
+  )
+
   return (
-    <div className={`relative h-full rounded-lg border border-black/40 px-4 pb-4 pt-3 md:px-7 ${WOOD}`}>
-      <span aria-hidden className="absolute inset-y-0 left-0 w-2 rounded-l-lg bg-black/25" />
-      <span aria-hidden className="absolute inset-y-0 right-0 w-2 rounded-r-lg bg-black/25" />
-      <span className="mx-auto mb-3 block w-fit rounded-sm bg-[#c9a24b] px-3 py-1 font-mono text-[11px] tracking-[0.2em] text-[#3a2c10] shadow-[0_1px_3px_rgba(0,0,0,0.5)]">已出版教材 · 8 部</span>
-      <div className="flex h-[calc(100%-44px)] flex-col justify-evenly">
-        {rows.map((row, r) => (
-          <div key={r}>
-            <div className="flex items-end justify-center gap-4 md:gap-7">
-              {row.map((it, j) => {
-                const idx = r * 4 + j
-                const lean = idx === 5
-                return (
-                  <button
-                    key={it.src}
-                    type="button"
-                    onClick={() => onOpen(idx)}
-                    style={{ height: BOOK_H[idx] }}
-                    className={`group relative h-[104px] shrink-0 transition-transform duration-500 ease-out hover:-translate-y-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300 md:h-auto ${
-                      lean ? 'origin-bottom-left rotate-[7deg] hover:rotate-0' : ''
-                    }`}
-                  >
-                    <img src={it.src} alt={it.caption} loading="lazy" decoding="async" className="h-full w-auto rounded-r-[3px] object-cover shadow-[8px_10px_18px_rgba(0,0,0,0.55)]" />
-                    <span aria-hidden className="absolute inset-y-0 left-0 w-[7px] rounded-l-[2px] bg-gradient-to-r from-black/55 to-transparent" />
-                    <span aria-hidden className="absolute inset-y-0 right-0 w-[3px] bg-white/25" />
-                    <span className="pointer-events-none absolute -bottom-6 left-1/2 z-20 w-max max-w-[180px] -translate-x-1/2 truncate rounded bg-black/85 px-2 py-0.5 text-[11px] text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">{it.caption}</span>
-                  </button>
-                )
-              })}
+    <div className="relative h-full overflow-hidden rounded-lg border border-black/50 p-2.5 md:p-3.5" style={{ backgroundImage: BACK }}>
+      {/* 侧板：内侧压暗，让架子读起来有进深 */}
+      <span aria-hidden className="absolute inset-y-0 left-0 w-3 rounded-l-lg bg-[linear-gradient(90deg,#6b4526,#2a1b0c)] shadow-[inset_-3px_0_6px_rgba(0,0,0,0.6)]" />
+      <span aria-hidden className="absolute inset-y-0 right-0 w-3 rounded-r-lg bg-[linear-gradient(270deg,#6b4526,#2a1b0c)] shadow-[inset_3px_0_6px_rgba(0,0,0,0.6)]" />
+      <span aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_-10%,rgba(255,226,170,0.16),transparent_62%)]" />
+
+      <div className="relative flex h-full flex-col px-1.5 md:px-2.5">
+        {board('top')}
+
+        {/* 铜牌：品牌标记 + 共建教材铭牌 */}
+        <div className="my-2 flex shrink-0 justify-center">
+          <span className="flex items-center gap-2 rounded-[3px] border border-[#8a6a24] bg-[linear-gradient(180deg,#e2c079,#c9a24b_55%,#a5822f)] px-2.5 py-1 shadow-[0_2px_5px_rgba(0,0,0,0.55)]">
+            <BrandMark size={15} />
+            <span className="text-[11px] font-semibold tracking-[0.14em] text-[#3a2c10]">天择教育 · 校企共建教材</span>
+            <span className="hidden font-mono text-[10px] tracking-[0.16em] text-[#5a4517] sm:inline">已出版 8 部</span>
+          </span>
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col justify-evenly gap-2">
+          {rows.map((row, r) => (
+            <div key={r} className="shrink-0">
+              <div className="relative flex h-[104px] items-end justify-center gap-1.5 sm:h-[150px] sm:gap-4 md:h-[150px] lg:h-[170px] xl:h-[186px] xl:gap-6">
+                <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/50 to-transparent" />
+                {row.map((it, j) => {
+                  const idx = r * 4 + j
+                  const lean = idx === 5
+                  return (
+                    <button
+                      key={it.src}
+                      type="button"
+                      onClick={() => onOpen(idx)}
+                      style={{ height: `${H[idx] * 100}%` }}
+                      aria-label={`${it.caption} · 天择教育校企共建教材`}
+                      className={`group relative shrink-0 transition-transform duration-500 ease-out hover:-translate-y-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300 ${
+                        lean ? 'origin-bottom-left rotate-[7deg] hover:rotate-0' : ''
+                      }`}
+                    >
+                      <span aria-hidden className="absolute -bottom-1 left-1/2 h-2 w-[88%] -translate-x-1/2 rounded-[50%] bg-black/65 blur-[3px] transition-all duration-500 group-hover:w-[64%] group-hover:opacity-50" />
+                      <span className="relative block h-full">
+                        <img src={it.src} alt={it.caption} loading="lazy" decoding="async" className="h-full w-auto rounded-r-[2px] object-cover shadow-[6px_8px_16px_rgba(0,0,0,0.55)]" />
+                        {/* 书口：右侧纸页叠层 */}
+                        <span aria-hidden className="absolute inset-y-[3px] -right-[5px] w-[5px] rounded-r-[2px] bg-[repeating-linear-gradient(180deg,#f4ede1_0_2px,#c9bea9_2px_3px)] shadow-[2px_2px_4px_rgba(0,0,0,0.5)]" />
+                        <span aria-hidden className="absolute inset-y-0 left-0 w-[7px] rounded-l-[1px] bg-gradient-to-r from-black/60 to-transparent" />
+                        <span aria-hidden className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.22),transparent_38%)]" />
+                        {/* 共建钢印 */}
+                        <span className="absolute bottom-1 left-1 grid h-4 w-4 place-items-center rounded-full bg-white/92 shadow-[0_1px_3px_rgba(0,0,0,0.5)] ring-1 ring-black/10 transition-transform duration-500 group-hover:scale-110 md:h-5 md:w-5">
+                          <BrandMark size={13} />
+                        </span>
+                      </span>
+                      <span className="pointer-events-none absolute -bottom-6 left-1/2 z-20 w-max max-w-[180px] -translate-x-1/2 truncate rounded bg-black/85 px-2 py-0.5 text-[11px] text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">{it.caption}</span>
+                    </button>
+                  )
+                })}
+                {/* 书立：L 形铁件抵住最后一本 */}
+                <span aria-hidden className="relative ml-0.5 h-[42%] w-3 shrink-0 self-end">
+                  <span className="absolute inset-y-0 left-0 w-[3px] rounded-t-sm bg-[linear-gradient(180deg,#aab3c2,#5b6472)]" />
+                  <span className="absolute bottom-0 left-0 h-[3px] w-3 rounded-r-sm bg-[#6b7482]" />
+                </span>
+              </div>
+              {board(`shelf-${r}`)}
             </div>
-            <div aria-hidden className={`mt-0 h-2.5 rounded-[2px] shadow-[0_6px_12px_rgba(0,0,0,0.5)] ${WOOD}`} />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -203,97 +307,259 @@ function PinBoard({ items, onOpen }) {
   )
 }
 
-/* 师资培训：一叠培训现场照片卡，点下一张翻牌，后面两张斜叠着待翻。 */
-function CardDeck({ items, onOpen }) {
-  const [cur, setCur] = useState(0)
+/* 师资培训：研修课堂。左侧是课程表节次，右侧是教室里的投影幕 ——
+   幕布卷轴、幕面纹理、幕光洒向阶梯座位，讲台上压着品牌标记。
+   自动按节次推进，悬停停住；点节次即跳，点幕面放大看现场。 */
+function LectureHall({ items, onOpen }) {
   const n = items.length
-  const step = (d) => setCur((c) => (c + d + n) % n)
+  const DWELL = 5200
+  const reduced = useRef(window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const [cur, setCur] = useState(0)
+  const [paused, setPaused] = useState(reduced.current)
+
+  useEffect(() => {
+    if (paused) return
+    const t = setInterval(() => setCur((c) => (c + 1) % n), DWELL)
+    return () => clearInterval(t)
+  }, [paused, n, cur])
+
+  const at = items[cur]
+  const title = (it) => it.short || it.caption
+
   return (
-    <div className="relative h-[380px] md:h-full">
-      <p className="absolute left-3 top-2 font-mono text-micro uppercase tracking-label text-white/40">FACULTY TRAINING DECK</p>
-      {items.map((it, i) => {
-        const k = (i - cur + n) % n
-        const style =
-          k === 0 ? { transform: 'translate(-50%,-50%) rotate(0deg) scale(1)', zIndex: 30, opacity: 1 }
-          : k === 1 ? { transform: 'translate(-44%,-46%) rotate(5deg) scale(0.94)', zIndex: 20, opacity: 1 }
-          : k === 2 ? { transform: 'translate(-38%,-42%) rotate(10deg) scale(0.88)', zIndex: 10, opacity: 0.9 }
-          : { transform: 'translate(-50%,-50%) scale(0.85)', zIndex: 0, opacity: 0 }
-        return (
+    <div
+      className="relative h-full min-h-[430px] overflow-hidden rounded-md bg-[radial-gradient(120%_90%_at_50%_0%,#1b2233,#0a0d14_70%)]"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(reduced.current)}
+    >
+      <span aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:46px_100%]" />
+
+      <div className="relative grid h-full grid-cols-1 gap-3 p-3 md:grid-cols-[170px_minmax(0,1fr)] md:gap-4 md:p-4">
+        {/* 课程表：节次即导航，当前节次走一条 dwell 进度 */}
+        <div className="flex min-w-0 flex-col">
+          <p className="mb-2 shrink-0 font-mono text-micro uppercase tracking-label text-white/40">研修课程表 · syllabus</p>
+          <div className="flex gap-1.5 overflow-x-auto pb-1 md:min-h-0 md:flex-1 md:flex-col md:overflow-visible md:pb-0">
+            {items.map((it, i) => {
+              const on = i === cur
+              return (
+                <button
+                  key={it.src}
+                  type="button"
+                  onClick={() => setCur(i)}
+                  aria-current={on ? 'true' : undefined}
+                  className={`group relative shrink-0 overflow-hidden rounded-md px-2.5 py-2 text-left transition-colors md:w-full ${
+                    on ? 'bg-white/[0.10]' : 'hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <span className={`absolute inset-y-1 left-0 w-[2px] rounded-full bg-brand transition-opacity ${on ? 'opacity-100' : 'opacity-0'}`} />
+                  <span className={`block font-mono text-[10px] tabular-nums tracking-[0.14em] ${on ? 'text-brand-300' : 'text-white/35'}`}>
+                    第 {String(i + 1).padStart(2, '0')} 讲
+                  </span>
+                  <span className={`mt-0.5 block max-w-[150px] truncate text-[12.5px] md:max-w-none ${on ? 'font-medium text-white' : 'text-white/55 group-hover:text-white/80'}`}>
+                    {title(it)}
+                  </span>
+                  {on && (
+                    <span
+                      key={cur}
+                      aria-hidden
+                      className="absolute bottom-0 left-0 h-[2px] bg-brand/70"
+                      style={{ animation: `hallDwell ${DWELL}ms linear forwards`, animationPlayState: paused ? 'paused' : 'running' }}
+                    />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* 教室：幕布 + 幕光 + 阶梯座位 */}
+        <div className="flex min-h-0 min-w-0 flex-col items-center justify-center">
+          {/* 幕布卷轴 */}
+          <div aria-hidden className="relative h-3 w-full max-w-[640px] shrink-0">
+            <span className="absolute inset-x-2 inset-y-0 rounded-full bg-[linear-gradient(180deg,#8d97ab,#3c4453)]" />
+            <span className="absolute left-0 top-1/2 h-4 w-2.5 -translate-y-1/2 rounded-sm bg-[#aab3c2]" />
+            <span className="absolute right-0 top-1/2 h-4 w-2.5 -translate-y-1/2 rounded-sm bg-[#aab3c2]" />
+          </div>
+
           <button
-            key={it.src}
             type="button"
-            onClick={() => (k === 0 ? onOpen(i) : setCur(i))}
-            style={style}
-            className="absolute left-1/2 top-1/2 w-[82%] rounded-md bg-white p-2 pb-9 shadow-[0_16px_36px_rgba(0,0,0,0.55)] transition-all duration-500 ease-out md:w-[52%]"
+            onClick={() => onOpen(cur)}
+            aria-label={`放大查看：${at.caption}`}
+            className="group relative mt-1.5 block h-[188px] w-full max-w-[640px] shrink-0 overflow-hidden border-x-2 border-b-2 border-white/25 bg-black shadow-[0_0_70px_rgba(170,200,255,0.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand sm:h-[250px] md:h-[318px]"
           >
-            <img src={it.src} alt={it.caption} loading="lazy" decoding="async" className="aspect-[16/10] w-full rounded-sm object-cover" />
-            <span className="absolute inset-x-3 bottom-2 truncate text-left text-caption text-ink-700">{it.caption}</span>
+            <img key={at.src} src={at.src} alt={at.caption} decoding="async" className="hall-cut h-full w-full object-cover" />
+            {/* 幕面纹理与边缘压暗：投影幕不是相框 */}
+            <span aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.16] [background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.6)_0_1px,transparent_1px_3px)]" />
+            <span aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(110%_80%_at_50%_35%,transparent_45%,rgba(0,0,0,0.5))]" />
+            <span className="pointer-events-none absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-[11px] text-white/80 opacity-0 transition-opacity group-hover:opacity-100">
+              <Maximize2 className="h-3 w-3" />
+              放大
+            </span>
           </button>
-        )
-      })}
-      <div className="absolute bottom-2 right-3 z-40 flex items-center gap-2">
-        <span className="font-mono text-caption tabular-nums text-white/60">{cur + 1} / {n}</span>
-        <button type="button" onClick={() => step(-1)} aria-label="上一张" className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20">
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <button type="button" onClick={() => step(1)} aria-label="下一张" className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20">
-          <ChevronRight className="h-4 w-4" />
-        </button>
+
+          <div className="mt-2 flex w-full max-w-[640px] shrink-0 items-center gap-2">
+            <span className="h-3 w-[2px] shrink-0 rounded-full bg-brand" />
+            <p key={cur} className="coop-swap min-w-0 flex-1 truncate text-caption text-white/80">{at.caption}</p>
+            <span className="shrink-0 font-mono text-caption tabular-nums text-white/40">{cur + 1} / {n}</span>
+          </div>
+
+          {/* 幕光洒向座位 + 讲台 + 三排阶梯剪影 */}
+          <div aria-hidden className="relative mt-1 h-[88px] w-full max-w-[640px] shrink-0">
+            <span className="absolute inset-x-0 top-0 h-12 bg-[linear-gradient(180deg,rgba(180,208,255,0.22),transparent)] [clip-path:polygon(2%_0,98%_0,84%_100%,16%_100%)]" />
+            <span className="absolute bottom-0 left-1 h-11 w-8 rounded-t-[3px] bg-[linear-gradient(180deg,#38445c,#141a26)] [clip-path:polygon(18%_0,82%_0,100%_100%,0_100%)]">
+              <span className="absolute inset-x-1 top-2 h-[2px] rounded-full bg-brand/70" />
+            </span>
+            {[0, 1, 2].map((r) => (
+              <div
+                key={r}
+                className="absolute inset-x-9 flex justify-center gap-[7px]"
+                style={{ bottom: (2 - r) * 21, transform: `scale(${0.82 + r * 0.09})`, opacity: 0.4 + r * 0.26 }}
+              >
+                {Array.from({ length: 16 }).map((_, i) => (
+                  <span key={i} className="relative block h-4 w-[18px] rounded-t-[6px] bg-[linear-gradient(180deg,#4a5772,#0d121b)]">
+                    <span className="absolute -top-[7px] left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,#5a6884,#161d29)]" />
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+
+      <span className="pointer-events-none absolute bottom-2 right-3 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-white/35">
+        <Projector className="h-3.5 w-3.5" />
+        {paused ? '已暂停' : '放映中'}
+      </span>
     </div>
   )
 }
 
-/* 学科竞赛：环形 3D 转台，获奖现场绕圈慢转，悬停暂停，正对的那张最亮。 */
-function RingStage({ items, onOpen }) {
+/* 以赛促学：奖牌墙。挂杆上垂下六枚奖牌，绶带带动牌面轻轻摆动（相位错开）；
+   点一枚即选中，下方铭牌换字幕、聚光落到领奖台上，「查看大图」进灯箱。
+   领奖台与规模数字取自本板块 lead 里的真实口径（400 余所院校 / 18000 余支队伍 / 第十届）。 */
+function MedalWall({ items, onOpen }) {
   const n = items.length
-  const [angle, setAngle] = useState(0)
-  const [paused, setPaused] = useState(false)
-  useEffect(() => {
-    if (paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const t = setInterval(() => setAngle((a) => a - 360 / n), 3800)
-    return () => clearInterval(t)
-  }, [paused, n])
-  const front = ((Math.round(-angle / (360 / n)) % n) + n) % n
-  const step = (d) => setAngle((a) => a - d * (360 / n))
+  const reduced = useRef(window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const [cur, setCur] = useState(0)
+  const METAL = [
+    'conic-gradient(from 210deg, #f9e7ab, #c9a24b 25%, #8a6a24 50%, #e8d193 75%, #f9e7ab)',
+    'conic-gradient(from 210deg, #f4f7fb, #aab4c2 25%, #6d7889 50%, #dfe5ec 75%, #f4f7fb)',
+    'conic-gradient(from 210deg, #f3cea6, #cd7f32 25%, #8a4f1c 50%, #e3ac7e 75%, #f3cea6)',
+    'conic-gradient(from 210deg, #d3e3ff, #5b86d6 25%, #274a86 50%, #a3c3f2 75%, #d3e3ff)',
+  ]
+  const at = items[cur]
+  /* 聚光从选中的那枚奖牌斜落到领奖台，点哪枚就跟着摆过去 */
+  const beamX = ((cur + 0.5) / n) * 100
+
   return (
-    <div className="relative h-[340px] overflow-hidden md:h-full" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <div aria-hidden className="absolute left-1/2 top-0 h-[70%] w-[70%] -translate-x-1/2 bg-gradient-to-b from-white/[0.10] to-transparent [clip-path:polygon(38%_0,62%_0,100%_100%,0_100%)]" />
-      <div aria-hidden className="absolute bottom-6 left-1/2 h-10 w-[70%] -translate-x-1/2 rounded-[50%] bg-black/60 blur-lg" />
-      <div
-        className="absolute left-1/2 top-1/2 -ml-[125px] -mt-[105px] h-[210px] w-[250px] [--rz:210px] [transform-style:preserve-3d] transition-transform duration-[900ms] ease-in-out md:-ml-[165px] md:-mt-[125px] md:h-[250px] md:w-[330px] md:[--rz:300px]"
-        style={{ transform: `rotateY(${angle}deg)` }}
-      >
-        {items.map((it, i) => (
-          <button
-            key={it.src}
-            type="button"
-            onClick={() => onOpen(i)}
-            style={{ transform: `rotateY(${i * (360 / n)}deg) translateZ(var(--rz))` }}
-            className={`group absolute inset-0 overflow-hidden rounded-lg border [backface-visibility:hidden] transition-opacity duration-700 ${i === front ? 'border-white/25 opacity-100' : 'border-white/10 opacity-60'}`}
-          >
-            <img src={it.src} alt={it.caption} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-            <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-night/70 to-transparent" />
-          </button>
-        ))}
+    <div className="relative h-full min-h-[430px] overflow-hidden rounded-md bg-[radial-gradient(90%_70%_at_50%_-10%,#243049,#080b12_72%)]">
+      <span aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-[62%] w-[74%] -translate-x-1/2 bg-[linear-gradient(180deg,rgba(255,236,190,0.13),transparent_72%)] [clip-path:polygon(34%_0,66%_0,100%_100%,0_100%)]" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-[19%] top-[44%] hidden md:block">
+        <div className="relative mx-auto h-full w-full max-w-[820px] blur-[7px]">
+          <span
+            className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,228,168,0.17),rgba(255,228,168,0.03))] transition-[clip-path] duration-700 ease-out"
+            style={{ clipPath: `polygon(${beamX - 4}% 0, ${beamX + 4}% 0, 63% 100%, 37% 100%)` }}
+          />
+        </div>
       </div>
-      <div className="absolute inset-x-0 bottom-2 flex flex-col items-center gap-1.5">
-        <p className="max-w-[80%] truncate text-caption text-white/85">{items[front].caption}</p>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => step(-1)} aria-label="上一个" className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20">
-            <ChevronLeft className="h-4 w-4" />
+
+      <div className="relative flex h-full flex-col items-center gap-3 px-3 py-3 md:px-5 md:py-4">
+        {/* 挂杆 */}
+        <div aria-hidden className="relative h-2.5 w-full max-w-[820px] shrink-0 rounded-full bg-[linear-gradient(180deg,#9aa4b6,#39404e)] shadow-[0_3px_8px_rgba(0,0,0,0.6)]">
+          <span className="absolute -left-1 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_34%_30%,#cfd6e2,#5b6472)]" />
+          <span className="absolute -right-1 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_34%_30%,#cfd6e2,#5b6472)]" />
+        </div>
+
+        {/* 奖牌：绶带 + 牌面，整枚以挂点为轴摆动 */}
+        <div className="flex w-full max-w-[820px] shrink-0 flex-wrap items-start justify-center gap-x-2 gap-y-3 sm:gap-x-4">
+          {items.map((it, i) => {
+            const on = i === cur
+            return (
+              <button
+                key={it.src}
+                type="button"
+                onClick={() => setCur(i)}
+                title={it.caption}
+                aria-label={`选中 ${it.caption}`}
+                aria-current={on ? 'true' : undefined}
+                className="group relative w-[30%] max-w-[112px] origin-top focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand sm:w-[15%] md:max-w-[124px]"
+                style={
+                  reduced.current
+                    ? undefined
+                    : { animation: `medalSwing ${4.2 + (i % 3) * 0.7}s ease-in-out ${-i * 0.8}s infinite` }
+                }
+              >
+                <span aria-hidden className="mx-auto block h-9 w-6 bg-[linear-gradient(90deg,#0b4fb8,#1677ff_45%,#0b4fb8)] [clip-path:polygon(10%_0,90%_0,64%_100%,36%_100%)] md:h-12 md:w-7" />
+                <span
+                  className={`relative mx-auto -mt-1 block aspect-square w-[78%] rounded-full p-[5px] transition-transform duration-500 group-hover:scale-[1.07] ${
+                    on ? 'shadow-[0_0_26px_rgba(255,222,150,0.45)]' : 'shadow-[0_8px_18px_rgba(0,0,0,0.6)]'
+                  }`}
+                  style={{ backgroundImage: METAL[i % METAL.length] }}
+                >
+                  <span className="relative block h-full w-full overflow-hidden rounded-full ring-1 ring-black/40">
+                    <img src={it.src} alt={it.caption} loading="lazy" decoding="async" className={`h-full w-full object-cover transition-[filter] duration-500 ${on ? '' : 'brightness-[0.62] saturate-[0.7] group-hover:brightness-90 group-hover:saturate-100'}`} />
+                    <span aria-hidden className="absolute inset-0 rounded-full bg-[linear-gradient(140deg,rgba(255,255,255,0.34),transparent_44%)]" />
+                  </span>
+                  <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full px-1.5 font-mono text-[9px] tabular-nums transition-colors ${on ? 'bg-amber-300 text-[#3a2c10]' : 'bg-black/70 text-white/60'}`}>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* 铭牌：当前选中项的字幕与放大出口 */}
+        <div className="flex w-full max-w-[820px] shrink-0 items-center gap-2 rounded-md border border-white/12 bg-white/[0.05] px-3 py-2">
+          <Medal className="h-4 w-4 shrink-0 text-amber-300/80" />
+          <p key={cur} className="coop-swap min-w-0 flex-1 truncate text-caption text-white/85">{at.caption}</p>
+          <button
+            type="button"
+            onClick={() => onOpen(cur)}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/20 px-2.5 py-1 text-[12px] text-white/80 transition-colors hover:border-amber-300/60 hover:bg-amber-300/15 hover:text-white"
+          >
+            <Maximize2 className="h-3 w-3" />
+            查看大图
           </button>
-          <span className="font-mono text-caption tabular-nums text-white/50">{front + 1} / {n}</span>
-          <button type="button" onClick={() => step(1)} aria-label="下一个" className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20">
-            <ChevronRight className="h-4 w-4" />
-          </button>
+        </div>
+
+        {/* 领奖台 + 真实规模 */}
+        <div className="flex w-full max-w-[820px] min-h-0 flex-1 flex-col items-center justify-center gap-2.5">
+          <div aria-hidden className="relative flex h-[96px] w-full max-w-[340px] items-end justify-center gap-2">
+            <span className="absolute -top-3 left-1/2 h-20 w-28 -translate-x-1/2 rounded-[50%] bg-amber-200/14 blur-xl" />
+            {[
+              { h: 64, t: '银', c: 'linear-gradient(180deg,#dfe5ec,#8d97a8)' },
+              { h: 92, t: '金', c: 'linear-gradient(180deg,#f3dda0,#b8912f)' },
+              { h: 50, t: '铜', c: 'linear-gradient(180deg,#e6b98f,#a2612a)' },
+            ].map((s) => (
+              <span key={s.t} className="relative flex w-[30%] items-start justify-center rounded-t-[3px] pt-2 shadow-[0_-2px_10px_rgba(0,0,0,0.4)]" style={{ height: s.h, backgroundImage: s.c }}>
+                <span className="text-[14px] font-bold text-black/55">{s.t}</span>
+                <span className="absolute inset-x-0 bottom-0 h-2 bg-black/25" />
+              </span>
+            ))}
+          </div>
+          <div className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-1 border-t border-white/10 pt-2">
+            {[
+              { k: '参与院校', v: '400+' },
+              { k: '参赛队伍', v: '18000+' },
+              { k: '全国大赛', v: '第 10 届' },
+            ].map((s) => (
+              <span key={s.k} className="flex items-baseline gap-1.5">
+                <span className="font-mono text-[15px] font-bold tabular-nums text-amber-200">{s.v}</span>
+                <span className="text-[11.5px] text-white/45">{s.k}</span>
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-const VIEWS = { conference: FilmReel, textbook: Bookshelf, project: PinBoard, training: CardDeck, competition: RingStage }
+const VIEWS = { conference: FilmReel, textbook: Bookshelf, project: PinBoard, training: LectureHall, competition: MedalWall }
+/* 胶卷是横向长条，跟其余四个展陈共用 516 会在上下留出大片空台；
+   帧宽随片门缩放，台高也跟着视口收放，窄屏才不会又空出一截。 */
+const STAGE_H = { conference: 'clamp(356px, 32vw, 420px)', textbook: '516px', project: '516px', training: '516px', competition: '516px' }
 
 function Lightbox({ cat, index, onClose, onStep }) {
   const item = cat.items[index]
@@ -430,7 +696,7 @@ export default function CoopShowcase() {
               </button>
             </div>
             <div key={cat.id} className="coop-swap p-2 md:p-3">
-              <div className="md:h-[516px]">
+              <div className="transition-[height] duration-500 ease-out md:h-[var(--stage-h)]" style={{ '--stage-h': STAGE_H[cat.id] }}>
                 <View items={cat.items} onOpen={open} />
               </div>
             </div>

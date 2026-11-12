@@ -211,6 +211,49 @@
     animation: none;
   }
 }
+/* 师资培训研修课堂：当前节次的停留进度条，时长由组件按 DWELL 内联指定。 */
+@keyframes hallDwell {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+/* 投影幕换片：短暂过曝再落回，像投影机切信号源。 */
+@keyframes hallCut {
+  0% {
+    opacity: 0;
+    filter: brightness(1.9);
+    transform: scale(1.015);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+    transform: scale(1);
+  }
+}
+.hall-cut {
+  animation: hallCut 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+/* 以赛促学奖牌墙：绶带带动牌面绕挂点轻摆，各枚相位由组件错开。 */
+@keyframes medalSwing {
+  0%,
+  100% {
+    transform: rotate(-2.6deg);
+  }
+  50% {
+    transform: rotate(2.6deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hall-cut {
+    animation: none;
+  }
+}
 @keyframes floaty {
   0%,
   100% {

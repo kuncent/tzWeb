@@ -439,6 +439,7 @@ function Terminal({ plan, hue, live, still }) {
   ]
   return (
     <div style={screenBox(hue)}>
+      <Motes hue={hue} />
       {rows.map((r, i) => (
         <div key={i} style={{ display: 'flex', gap: 4, minWidth: 0, alignItems: 'baseline' }}>
           <span style={{ fontFamily: MONO, fontSize: 9.5, color: r.p === '$' ? hue : `${hue}aa`, flexShrink: 0 }}>{r.p}</span>
@@ -459,6 +460,7 @@ function Display({ kind, plan, hue, b, live, still, idx }) {
   if (kind === 'trend') {
     return (
       <div style={screenBox(hue)}>
+        <Motes hue={hue} />
         <Trend hue={hue} b={b} uid={idx} live={live} />
         <Tag hue={hue} t="INDICATIVE" />
       </div>
@@ -467,6 +469,7 @@ function Display({ kind, plan, hue, b, live, still, idx }) {
   if (kind === 'bars') {
     return (
       <div style={screenBox(hue)}>
+        <Motes hue={hue} />
         <Bars hue={hue} b={b} live={live} />
         <Tag hue={hue} t="INDICATIVE" />
       </div>
@@ -475,6 +478,7 @@ function Display({ kind, plan, hue, b, live, still, idx }) {
   if (kind === 'radial') {
     return (
       <div style={screenBox(hue)}>
+        <Motes hue={hue} />
         <Radial hue={hue} b={b} live={live} />
         <Tag hue={hue} t="INDICATIVE" />
       </div>
@@ -515,6 +519,41 @@ function HeroBody({ plan, hue, b, live, still, kind, idx }) {
 const THK = 26
 export { THK }
 
+/* 屏幕内漂浮数据粒子：4 枚错峰小点，给屏幕区「数据在流动」的体感。
+   位置/尺寸/节拍各不相同，避免读作整齐点阵。全部走 transform + opacity。 */
+const MOTE_LIST = [
+  { left: '16%', bottom: '10%', size: 2, delay: 0, dur: 4.2 },
+  { left: '40%', bottom: '6%', size: 1.6, delay: 1.1, dur: 3.7 },
+  { left: '64%', bottom: '18%', size: 2.6, delay: 2.4, dur: 4.6 },
+  { left: '84%', bottom: '8%', size: 1.4, delay: 0.6, dur: 4.0 },
+]
+function Motes({ hue }) {
+  return (
+    <>
+      {MOTE_LIST.map((m, i) => (
+        <span
+          key={i}
+          aria-hidden
+          className="ap-mote"
+          style={{
+            position: 'absolute',
+            left: m.left,
+            bottom: m.bottom,
+            width: m.size,
+            height: m.size,
+            borderRadius: '50%',
+            background: hue,
+            boxShadow: `0 0 6px ${hue}, 0 0 12px ${hue}66`,
+            animationDelay: `${m.delay}s`,
+            animationDuration: `${m.dur}s`,
+            pointerEvents: 'none',
+          }}
+        />
+      ))}
+    </>
+  )
+}
+
 export default function AgentPanel({ index, beat, live, still = false, yaw = 0, pitch = 0 }) {
   const hue = HUES[index]
   const plan = planAt(index)
@@ -526,6 +565,22 @@ export default function AgentPanel({ index, beat, live, still = false, yaw = 0, 
   const ty = -Math.sin(pitch) * THK
   return (
     <div data-plate={index} style={{ position: 'relative', width: w, height: h }}>
+      {/* 聚焦背板光晕：只在 live 时挂，一圈柔色呼吸光把中央那块从背景里托出来。
+          放在背板之前（z 最低），不参与切角裁剪，光晕要溢出牌边才有体积感 */}
+      {live && !still && (
+        <span
+          aria-hidden
+          className="ap-halo"
+          style={{
+            position: 'absolute',
+            inset: '-18px',
+            borderRadius: 18,
+            background: `radial-gradient(closest-side, ${hue}55, ${hue}14 55%, transparent 78%)`,
+            filter: 'blur(6px)',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       {/* 背板：先画，永远在玻璃面之下。只从近侧棱溢出几 px，其余藏在半透面板面后面 */}
       <span
         aria-hidden
@@ -575,8 +630,10 @@ export default function AgentPanel({ index, beat, live, still = false, yaw = 0, 
             `inset -1px 0 0 ${hue}2e`,
             `inset 0 -1px 0 ${hue}66`,
             `inset 0 0 22px ${hue}1a`,
-            /* 只有正在聚焦的那一块往外发光：五块一起发光就等于没有一块发光 */
-            live ? `0 0 24px ${hue}40, 0 0 58px ${hue}1a` : '0 0 0 rgba(0,0,0,0)',
+            /* 只有正在聚焦的那一块往外发光：五块一起发光就等于没有一块发光。
+               两层 —— 近圈实色勾出轮廓边、远圈柔色把它从背景里托出来，
+               再加一圈同色大半径氛围光，让中央那块读作「正在工作的核心」 */
+            live ? `0 0 18px ${hue}66, 0 0 44px ${hue}33, 0 0 90px ${hue}1f` : '0 0 0 rgba(0,0,0,0)',
           ].join(','),
           opacity: live ? 1 : 0.95,
           /* 这里挂过一枚 filter: saturate()/brightness() 给非聚焦牌压色 —— 摘掉了。
@@ -596,8 +653,47 @@ export default function AgentPanel({ index, beat, live, still = false, yaw = 0, 
           opacity: 0.5,
         }}
       />
+      {/* 全息扫光：一道斜向高光从左扫到右，给玻璃面一层「活的」质感。
+          只在 live 时挂 —— 五块一起扫会把视线撕成碎片。走 transform，
+          不触发重绘；skewX 把光带拉成斜条，与切角方向一致 */}
+      {live && !still && (
+        <span
+          aria-hidden
+          className="ap-sheen"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            background: `linear-gradient(105deg,rgba(255,255,255,0) 40%,rgba(255,255,255,0.16) 48%,${hue}33 52%,rgba(255,255,255,0.14) 56%,rgba(255,255,255,0) 64%)`,
+          }}
+        />
+      )}
+      {/* 能量描边：沿切角内缘跑一圈通道色光流，只有聚焦的那块在跑 ——
+          一圈静止的虚线只是装饰，一圈流动的虚线读作「这块界面正在通电」。
+          SVG 用与面板同尺寸的 viewBox，path 按 inset 3px 描切角轮廓，
+          stroke-dasharray 让一段 80px 光在 900 总长的虚线上循环 */}
+      {live && !still && (
+        <svg
+          aria-hidden
+          className="ap-perimeter"
+          viewBox="0 0 288 178"
+          preserveAspectRatio="none"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+        >
+          <path
+            d="M 3 3 L 271 3 L 285 17 L 285 175 L 3 175 Z"
+            fill="none"
+            stroke={hue}
+            strokeWidth="1.5"
+            strokeDasharray="80 820"
+            strokeLinecap="round"
+          />
+        </svg>
+      )}
       {/* 三枚 L 形刻线（右上角是切角，不放）：一块仪表盘的「仪器感」不在花边，
-          在这几道角标 —— 零动画成本，缩放后也不会糊 */}
+          在这几道角标 —— 零动画成本，缩放后也不会糊。
+          聚焦的那块给角标加一圈同色发光 + 呼吸脉冲，让"正在被选中"的体感
+          不靠整块发光，而靠这四个角同时亮起来 */}
       {[
         { box: { left: 0, top: 0 }, edges: ['left', 'top'] },
         { box: { left: 0, bottom: 0 }, edges: ['left', 'bottom'] },
@@ -606,6 +702,7 @@ export default function AgentPanel({ index, beat, live, still = false, yaw = 0, 
         <span
           key={i}
           aria-hidden
+          className={live && !still ? 'ap-bracket-live' : undefined}
           style={{
             position: 'absolute',
             ...p.box,
@@ -617,6 +714,7 @@ export default function AgentPanel({ index, beat, live, still = false, yaw = 0, 
             borderTop: p.edges.includes('top') ? `1.5px solid ${hue}cc` : undefined,
             borderRight: p.edges.includes('right') ? `1.5px solid ${hue}cc` : undefined,
             borderBottom: p.edges.includes('bottom') ? `1.5px solid ${hue}cc` : undefined,
+            boxShadow: live ? `0 0 6px ${hue}, 0 0 10px ${hue}66` : 'none',
           }}
         />
       ))}

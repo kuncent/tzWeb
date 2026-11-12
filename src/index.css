@@ -445,6 +445,110 @@
   will-change: transform;
 }
 
+/* 聚焦展板的能量描边：一段亮色沿切角矩形周长流动，只读「这块界面在通流」。
+   stroke-dashoffset 在合成层跑，整圈走 3.6s，线性循环，首尾无缝。
+   周长按内切路径估算 ~900，分段 80 + 间隔 820，亮段短而拖影长。 */
+.ap-perimeter {
+  animation: ap-perimeter 3.6s linear infinite;
+  will-change: stroke-dashoffset;
+}
+@keyframes ap-perimeter {
+  to {
+    stroke-dashoffset: -900;
+  }
+}
+
+/* 屏幕内的漂浮数据粒子：4 枚小点自下而上飘，各自错峰，循环时淡入淡出。
+   全部走 transform + opacity，落在合成层，不触发重排。 */
+@keyframes ap-mote {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-70px) scale(0.4);
+    opacity: 0;
+  }
+}
+.ap-mote {
+  animation: ap-mote 4.2s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* 全息扫光：一条斜向高光带周期性横扫板面，与静态斜反射叠加后
+   读作「玻璃表面有光划过」而不是一张静止贴图。走 transform。 */
+@keyframes ap-sheen {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.75;
+  }
+  82% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateX(120%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+.ap-sheen {
+  animation: ap-sheen 5.4s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* 聚焦背板后的柔光晕：缓慢呼吸，给中央那块一个「被照亮」的纵深，
+   比纯 box-shadow 多一层体积感。只在 live 时挂。 */
+@keyframes ap-halo {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.04);
+  }
+}
+.ap-halo {
+  animation: ap-halo 3.2s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* 聚焦时角标呼吸：L 形刻线的亮度脉冲，比常亮更像仪器在自检。 */
+@keyframes ap-bracket {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.ap-bracket-live {
+  animation: ap-bracket 1.7s ease-in-out infinite;
+  will-change: opacity;
+}
+
+/* reduced-motion：把所有新加的逐帧动画一步停到终态，
+   与全局 prefers-reduced-motion 规则保持一致。 */
+@media (prefers-reduced-motion: reduce) {
+  .ap-perimeter,
+  .ap-mote,
+  .ap-sheen,
+  .ap-halo,
+  .ap-bracket-live {
+    animation: none !important;
+  }
+}
+
 /* ============================================================
  * RippleHero 地标标注：钉在大厦上的 光点 → 引线 → 名牌。
  * 进场次序：dot 0s → line .3s → chip .55s；

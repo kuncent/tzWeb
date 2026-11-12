@@ -31,7 +31,7 @@ import { PRODUCTS, PRODUCT_NAMES, SOLUTIONS, SOLUTION_NAMES } from './vocabulary
 
 /* ---------------- 品牌与导航 ---------------- */
 export const brand = {
-  name: '天择科技有限公司', // 法定全称：页脚版权、SEO 标题、正文里需要正式指代公司时用
+  name: '天择教育科技有限公司', // 法定全称：页脚版权、SEO 标题、正文里需要正式指代公司时用
   short: '天择科技',           // 日常口径：logo 副行、卡片标题等紧凑位置
   en: 'TIANZE',
   tagline: 'Infrastructure for Future Talent',
@@ -85,7 +85,7 @@ export const navCta = { label: '预约演示', to: '/about#contact' }
 export const advisorKicker = '构建下一代人才培养基础设施'
 export const advisorTitle = ['用科技重塑教育', '让培养的人才', '站在时代前沿']
 export const advisorDesc =
-  '我们为高校提供区块链、数字金融、创新金融、数字经济、新商科大数据、电子商务、智能产品与其他产品体系，以及数字经济、金融科技、应用统计、新商科大数据、工商科一体化五套实验教学方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
+  '我们为高校提供区块链、数字金融、创新金融、数字经济、新商科大数据、数智电商、智能产品与其他产品体系，以及数字经济、金融科技、应用统计、新商科大数据、工商科一体化五套实验教学方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
 export const advisorCtas = [
   { label: '免费开通试用', primary: true },
   { label: '方案咨询', primary: false },
@@ -123,7 +123,7 @@ export const problems = [
 
 /* ---------------- 产品矩阵（8 大产品体系 · 整屏轮播） ----------------
    八个体系名对齐客户《产品体系.xlsx》：区块链、数字金融、创新金融、数字经济、
-   新商科大数据、电子商务、智能产品、其他。表现形式统一为 GalleryScreen 图片画廊
+   新商科大数据、数智电商、智能产品、其他。表现形式统一为 GalleryScreen 图片画廊
    （区块链前两套沿用上版真实录屏），界面截图取客户提供的真实系统截图
    （public/images/products/）。原独立的「具身智能」3D 展台体系已并入「智能产品」
    下的具身智能机器人产品 —— 展示效果原样保留，见 embodiedSystem 与 EmbodiedScreen。 */
@@ -134,7 +134,7 @@ export const matrixHead = {
 }
 
 /* 具身智能机器人实验室：原 01 独立体系的完整展示数据。现作为「智能产品」体系下
-   具身智能机器人产品的展开内容（3D 环形展台 + 六机型选型 + 实验室交付），整体展示
+   具身智能机器人产品的展开内容（3D 环形展台 + 六机型选型），整体展示
    效果与旧版一致，仅咨询意向归口到智能产品体系。 */
 export const embodiedSystem = {
   id: 'embodied',
@@ -215,7 +215,7 @@ export const productMatrix = [
     icon: ShoppingCart,
     title: PRODUCT_NAMES['ecommerce'],
     tagline: '从产品开发到大数据运营，电商核心岗位全流程实训',
-    desc: '对接电子商务核心业务岗位：网店运营、互联网产品开发、电商大数据分析与数字营销四套系统，从数据化选品到投放评估全流程实训，配 BI 大屏与学情分析。',
+    desc: '对接数智电商核心业务岗位：网店运营、互联网产品开发、电商大数据分析与数字营销四套系统，从数据化选品到投放评估全流程实训，配 BI 大屏与学情分析。',
     bullets: ['网店运营全岗位', '电商产品开发', '电商大数据分析', '数字营销 · BI 大屏'],
     stats: [{ k: '实训系统', v: '4 套' }, { k: '界面实景', v: '10 张' }],
     intent: PRODUCT_NAMES['ecommerce'],

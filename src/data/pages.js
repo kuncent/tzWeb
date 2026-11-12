@@ -848,7 +848,7 @@ export const aboutBeliefs = [
 
 export const aboutProof = [
   { icon: BookOpenCheck, k: '发明专利', v: '4 项', note: '多智能体编排、代码沙箱、数字孪生引擎方向' },
-  { icon: FileSearch, k: '软件著作权', v: '60+', note: '覆盖平台各子系统与实验模块' },
+  { icon: FileSearch, k: '软件著作权', v: '86+', note: '覆盖平台各子系统与实验模块' },
   { icon: Network, k: '合作高校', v: '800+', note: '覆盖 26 个省市与 30+ 学科' },
   { icon: Boxes, k: '在跑实训系统', v: '37 套', note: '自旧平台迁移并持续使用，含 492 条实验项目' },
 ]

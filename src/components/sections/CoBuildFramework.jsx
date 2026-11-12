@@ -1201,9 +1201,6 @@ export default function CoBuildFramework() {
               </h2>
               <p className="mt-3 text-[15px] leading-[1.7] text-ink-500">{coBuildLead}</p>
             </div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-400">
-              06 CHANNELS<span className="mx-2 text-ink-200">·</span>点选切换通道
-            </p>
           </div>
         </Reveal>
 

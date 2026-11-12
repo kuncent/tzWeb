@@ -399,7 +399,7 @@ export default function GalleryScreen({ p, i, withIndex }) {
   if (!cur) return null
 
   /* 具身智能机器人（原 01 独立体系并入智能产品）：选中即展开与旧版完全一致的
-     3D 环形展台 + 六机型选型 + 实验室交付，下方保留产品缩略图条，可随时切回
+     3D 环形展台 + 六机型选型，下方保留产品缩略图条，可随时切回
      其它智能产品。展台自身管理 live/WebGL 生命周期，这里只负责给它整屏高度。 */
   return (
     <div ref={stageRef} className="relative flex h-full min-h-0 flex-col">

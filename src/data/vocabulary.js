@@ -32,7 +32,7 @@ export const PRODUCTS = [
   { id: 'innovation-finance', name: '创新金融', short: '创新金融' },
   { id: 'digital-economy', name: '数字经济', short: '数字经济' },
   { id: 'new-business-data', name: '新商科大数据', short: '新商科大数据' },
-  { id: 'ecommerce', name: '电子商务', short: '电子商务' },
+  { id: 'ecommerce', name: '数智电商', short: '数智电商' },
   { id: 'smart-products', name: '智能产品', short: '智能产品' },
   { id: 'other', name: '其他', short: '其他' },
 ]

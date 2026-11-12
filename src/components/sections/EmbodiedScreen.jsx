@@ -1,10 +1,10 @@
 import { Suspense, lazy, useRef, useState } from 'react'
 import { motion, useInView } from 'motion/react'
 import { ArrowUpRight } from 'lucide-react'
-import { productMatrix, embodiedProducts, labModules } from '../../data/site'
+import { productMatrix, embodiedProducts } from '../../data/site'
 import { requestProductContact } from '../../lib/aiEngine'
 
-/* 具身智能机器人实验室屏：3D 环形展台 + 六机型选型 + 实验室交付模块。
+/* 具身智能机器人实验室屏：3D 环形展台 + 六机型选型。
    原为产品矩阵 01 独立体系，现并入「智能产品」体系下的具身智能机器人产品 ——
    由 GalleryScreen 选中该产品时展开，整体展示效果与旧版完全一致。 */
 
@@ -167,23 +167,6 @@ export default function EmbodiedScreen({ p, i, withIndex }) {
               </p>
             </motion.div>
           </div>
-        </div>
-
-        {/* 实验室交付：一间实验室的完整交付 */}
-        <div className="mt-3.5 shrink-0">
-          <p className="text-ui-sm font-semibold uppercase tracking-label text-accent-sky">实验室交付 · 一间实验室的完整交付</p>
-          <ul className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {labModules.map((m, mi) => (
-              <li key={m.code} className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2">
-                <p className="text-ui-sm font-semibold text-white">
-                  <span className="mr-1.5 font-mono text-caption tabular-nums text-ink-500">{pad(mi)}</span>
-                  {m.name}
-                </p>
-                <p className="mt-0.5 text-ui-sm uppercase tracking-[0.14em] text-accent-ice [@media(max-height:820px)]:hidden">{m.code}</p>
-                <p className="mt-1 text-ui-sm leading-4 text-ink-400 line-clamp-4 [@media(max-height:820px)]:line-clamp-2">{m.desc}</p>
-              </li>
-            ))}
-          </ul>
         </div>
 
         {/* 底部：能力标签 + 指标 + 咨询 */}

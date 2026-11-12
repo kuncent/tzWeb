@@ -29,9 +29,9 @@ const AUTOPLAY = true
 const AUTOPLAY_MS = 3200
 
 const STATS = [
-  { value: '47', suffix: '项', label: '软件著作权登记证书', lead: true },
+  { value: '86', suffix: '项', label: '软件著作权登记证书', lead: true },
   { value: '国家级', label: '国家版权局登记' },
-  { value: '全场景', label: '金融科技实训场景' },
+  { value: '全商科', label: '商科实训场景' },
 ]
 
 function useReducedMotion() {

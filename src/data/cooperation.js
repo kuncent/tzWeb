@@ -1,5 +1,5 @@
 /* 校企合作 · 合作实景素材库：图片均来自公司真实活动存档（public/images/coop/）。
-   每个板块的展陈方式由 CoopShowcase 的 VIEWS 按 id 映射（年份轴/书封陈列/拼贴墙/手风琴/数据海报）。 */
+   CoopShowcase 将五条合作线连续展开，并分别使用胶片、书封、拼贴、手风琴与数据海报叙事。 */
 
 export const coopCategories = [
   {

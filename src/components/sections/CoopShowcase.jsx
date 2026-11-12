@@ -2,18 +2,17 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { createPortal } from 'react-dom'
 import { Users, BookOpenCheck, Microscope, GraduationCap, Award } from 'lucide-react'
 import { coopCategories } from '../../data/cooperation'
+import { scrollToId } from '../../hooks/useLenis'
 
 const ICONS = { conference: Users, textbook: BookOpenCheck, project: Microscope, training: GraduationCap, competition: Award }
 
-/* 合作实景 · 五个板块共用一套"暗场画廊"语言：
-   同一块深色台面、同一档发丝线与留白、同一套编号 + 字幕条、同一段 0.5s 缓动；
-   但每个板块换一种构图，避免五个模块长得一样 ——
-     01 学术会议：35mm 双卷胶片（收卷 / 放卷，片边齿孔与印字都在胶片本体上）
-     02 出版教材：书封一字排开的陈列台，脚下有倒影，没有假书架
-     03 产学研合作：疏密有致的拼贴墙，大图占位、小图补缝
-     04 师资培训：横向手风琴名册，选中一张展开成主画幅（原来的课堂复原推翻重做）
-     05 以赛促学：数据海报 + 获奖现场幻灯，先用数字说话
-   动效统一：画面切换走 coop-swap，悬停只做轻微位移/提亮，不做夸张缩放。 */
+/* 合作实景 · 左侧悬浮目录 + 右侧五章连续叙事。
+   目录只负责定位与滚动高亮，不再切换内容；每一章独立组织标题、文案、交付点与舞台：
+     01 学术会议：横向时间胶片，会场纪事沿年份流动
+     02 出版教材：左侧出版叙事，右侧可抽取的书封展台
+     03 产学研合作：拼贴现场与项目笔记左右对读
+     04 师资培训：深色成长路径，手风琴展开每次培训现场
+     05 以赛促学：数据海报与赛场幻灯收束到「学 — 练 — 赛 — 用」 */
 
 const CAPTION_BAR =
   'absolute inset-x-0 bottom-0 flex items-center gap-2.5 border-t border-white/10 bg-black/45 px-3 py-2 backdrop-blur-[6px]'
@@ -539,8 +538,8 @@ function TextbookStage({ items }) {
         {n} titles · co-authored
       </div>
 
-      {/* 飞行层：挂到 body 上。舞台外层有 coop-swap 动画（transform 会留下包含块），
-          留在原地会被当成该包含块内的 fixed，坐标与裁切都会错位 */}
+      {/* 飞行层挂到 body：外层入场动画与展台裁切都可能改变 fixed 的坐标包含块，
+          portal 可保证飞行副本始终使用真实视口坐标。 */}
       {flight &&
         typeof document !== 'undefined' &&
         createPortal(
@@ -567,7 +566,7 @@ function ProjectStage({ items }) {
 
   return (
     <div className="relative flex h-full min-h-[440px] flex-col overflow-hidden md:min-h-0">
-      <div className="grid min-h-0 flex-1 grid-cols-6 grid-rows-2 gap-1.5 p-3 pb-12 md:gap-2 md:p-4 md:pb-12">
+      <div className="grid min-h-0 flex-1 auto-rows-[92px] grid-cols-2 gap-1.5 p-3 pb-12 sm:auto-rows-[112px] md:auto-rows-fr md:grid-cols-6 md:grid-rows-2 md:gap-2 md:p-4 md:pb-12">
         {items.map((it, i) => {
           const big = i === 0
           const on = i === cur
@@ -858,29 +857,69 @@ function CompetitionStage({ items }) {
   )
 }
 
-const VIEWS = {
-  conference: FilmReel,
-  textbook: TextbookStage,
-  project: ProjectStage,
-  training: TrainingStage,
-  competition: CompetitionStage,
+/* 章节标题只统一编号、图标与字阶；标题、正文、交付点的组合方式由每章自己决定。 */
+function ChapterHeading({ cat, dark = false }) {
+  const Icon = ICONS[cat.id]
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span className="font-mono text-caption tabular-nums tracking-[0.16em] text-brand">{cat.n}</span>
+        <span aria-hidden className={`h-px w-5 ${dark ? 'bg-white/25' : 'bg-ink-900/20'}`} />
+        <Icon className={`h-4 w-4 ${dark ? 'text-brand-300' : 'text-brand'}`} strokeWidth={1.7} />
+        <p className={`font-mono text-micro uppercase tracking-label ${dark ? 'text-white/40' : 'text-ink-400'}`}>{cat.en}</p>
+      </div>
+      <h3 id={`coop-title-${cat.id}`} className={`mt-3 text-[26px] font-bold tracking-tight md:text-[30px] ${dark ? 'text-white' : 'text-ink-900'}`}>
+        {cat.zh}
+      </h3>
+    </div>
+  )
 }
 
-/* 左侧竖直悬浮导航：sticky 跟随滚动，高亮当前板块；窄屏退化为横排胶囊。 */
+function StoryPoints({ points, dark = false, className = '' }) {
+  return (
+    <ol className={`grid gap-4 ${className}`}>
+      {points.map((point, i) => (
+        <li key={point} className={`flex items-start gap-3 border-t pt-3 ${dark ? 'border-white/12' : 'border-ink-900/10'}`}>
+          <span className={`mt-0.5 shrink-0 font-mono text-[10px] tabular-nums tracking-[0.14em] ${dark ? 'text-brand-300/80' : 'text-brand'}`}>
+            {pad(i)}
+          </span>
+          <p className={`min-w-0 text-ui leading-relaxed ${dark ? 'text-white/60' : 'text-ink-700'}`}>{point}</p>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+function StageFrame({ children, dark = false, className = '' }) {
+  return (
+    <div
+      className={`overflow-hidden rounded-2xl border bg-night-900 ${
+        dark ? 'border-white/10 shadow-[0_24px_60px_-36px_rgba(0,0,0,0.9)]' : 'border-ink-900/10 shadow-card'
+      } ${className}`}
+    >
+      {children}
+    </div>
+  )
+}
+
+/* 左侧悬浮目录保留原来的视觉，只把行为从切换面板改为滚动定位。 */
 function SideNav({ active, onSelect }) {
   return (
-    <nav className="sticky top-24 hidden self-start lg:block">
+    <nav aria-label="合作实景章节" className="sticky top-24 hidden self-start lg:block">
       <p className="mb-3 px-3 font-mono text-micro uppercase tracking-label text-ink-400">合作板块</p>
       <div className="flex flex-col gap-1">
         {coopCategories.map((c) => {
           const Icon = ICONS[c.id]
           const on = c.id === active
           return (
-            <button
+            <a
               key={c.id}
-              type="button"
-              onClick={() => onSelect(c.id)}
-              aria-current={on ? 'true' : undefined}
+              href={`#coop-${c.id}`}
+              onClick={(event) => {
+                event.preventDefault()
+                onSelect(c.id)
+              }}
+              aria-current={on ? 'location' : undefined}
               className={`group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-ui transition-colors ${
                 on ? 'bg-white text-ink-900 shadow-card' : 'text-ink-500 hover:bg-white/70 hover:text-ink-900'
               }`}
@@ -890,7 +929,7 @@ function SideNav({ active, onSelect }) {
               <Icon className={`h-4 w-4 shrink-0 ${on ? 'text-brand' : 'text-ink-400'}`} strokeWidth={1.8} />
               <span className="min-w-0 truncate font-medium">{c.zh}</span>
               <span className={`ml-auto font-mono text-caption tabular-nums ${on ? 'text-ink-400' : 'text-ink-300'}`}>{c.items.length}</span>
-            </button>
+            </a>
           )
         })}
       </div>
@@ -900,66 +939,159 @@ function SideNav({ active, onSelect }) {
 
 export default function CoopShowcase() {
   const [active, setActive] = useState(coopCategories[0].id)
-  const cat = coopCategories.find((c) => c.id === active)
-  const View = VIEWS[cat.id]
+  const [conference, textbook, project, training, competition] = coopCategories
+
+  const goTo = useCallback((id) => {
+    setActive(id)
+    scrollToId(`coop-${id}`)
+  }, [])
+
+  /* 五章同时常驻，滚动经过哪一章就高亮哪一章。rAF 合并滚动事件，避免反复测量。 */
+  useEffect(() => {
+    let raf = 0
+    const sync = () => {
+      raf = 0
+      const marker = Math.min(180, window.innerHeight * 0.3)
+      let current = coopCategories[0].id
+      coopCategories.forEach((c) => {
+        const el = document.getElementById(`coop-${c.id}`)
+        if (el && el.getBoundingClientRect().top <= marker) current = c.id
+      })
+      setActive((prev) => (prev === current ? prev : current))
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(sync)
+    }
+    sync()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
 
   return (
-    <section className="container-x pb-14 md:pb-20">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4 md:mb-8">
+    <section className="container-x pb-20 pt-2 md:pb-28">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4 md:mb-12">
         <div>
           <p className="font-mono text-micro uppercase tracking-label text-ink-400">COOPERATION IN PRACTICE</p>
           <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink-900 md:text-[30px]">合作实景</h2>
         </div>
-        <p className="max-w-md text-ui leading-relaxed text-ink-500">左侧切换板块，每条合作线有自己的叙事版式。</p>
+        <p className="max-w-md text-ui leading-relaxed text-ink-500">五条合作线依次展开，左侧悬浮目录可随时定位。</p>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10">
-        <SideNav active={active} onSelect={setActive} />
+        <SideNav active={active} onSelect={goTo} />
 
         <div className="min-w-0">
-          {/* 窄屏横排胶囊导航 */}
-          <div className="mb-4 flex gap-2 overflow-x-auto pb-1 lg:hidden">
+          {/* 窄屏保留同一套目录，横向滚动定位，不再切换面板。 */}
+          <div className="sticky top-16 z-20 -mx-2 mb-8 flex gap-2 overflow-x-auto border-b border-ink-900/[0.06] bg-white/95 px-2 py-3 backdrop-blur-md lg:hidden">
             {coopCategories.map((c) => {
               const Icon = ICONS[c.id]
               const on = c.id === active
               return (
-                <button
+                <a
                   key={c.id}
-                  type="button"
-                  onClick={() => setActive(c.id)}
+                  href={`#coop-${c.id}`}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    goTo(c.id)
+                  }}
+                  aria-current={on ? 'location' : undefined}
                   className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-ui transition-colors ${
                     on ? 'bg-ink-900 text-white shadow-card' : 'bg-ink-900/[0.04] text-ink-500 hover:bg-ink-900/[0.08] hover:text-ink-900'
                   }`}
                 >
                   <Icon className="h-4 w-4" strokeWidth={1.8} />
                   <span className="font-medium">{c.zh}</span>
-                </button>
+                </a>
               )
             })}
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-ink-900/10 bg-night-900 shadow-card">
-            <div className="flex items-center justify-between px-4 pt-3.5 md:px-5">
-              <p className="font-mono text-micro uppercase tracking-label text-white/40">{cat.n} · {cat.en}</p>
-              <p className="font-mono text-micro tabular-nums tracking-[0.16em] text-white/25">{String(cat.items.length).padStart(2, '0')} records</p>
-            </div>
-            <div key={cat.id} className="coop-swap p-2 md:p-3">
-              <div className={`h-[clamp(440px,46vw,516px)] ${cat.id === 'conference' ? 'md:h-[400px]' : ''}`}>
-                <View items={cat.items} />
+          <div className="space-y-16 md:space-y-24">
+            {/* 01 · 以时间为序：先看流动会场，再读会议如何回流教学。 */}
+            <article id="coop-conference" aria-labelledby="coop-title-conference" className="scroll-mt-24">
+              <div className="grid gap-5 border-t border-ink-900/10 pt-6 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:gap-8">
+                <ChapterHeading cat={conference} />
+                <p className="text-ui-lg leading-[1.85] text-ink-500">{conference.lead}</p>
               </div>
-            </div>
-          </div>
+              <StageFrame className="mt-7 h-[390px] md:h-[420px]">
+                <FilmReel items={conference.items} />
+              </StageFrame>
+              <StoryPoints points={conference.points} className="mt-6 md:grid-cols-3 md:gap-5" />
+            </article>
 
-          <div key={`info-${cat.id}`} className="coop-swap mt-6 grid gap-6 md:mt-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-10">
-            <p className="text-ui-lg leading-[1.9] text-ink-500">{cat.lead}</p>
-            <ul className="space-y-2.5">
-              {cat.points.map((p) => (
-                <li key={p} className="flex items-start gap-3 text-ui leading-relaxed text-ink-700">
-                  <span className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
-                  <span className="min-w-0">{p}</span>
-                </li>
-              ))}
-            </ul>
+            {/* 02 · 出版分章：文案是书脊旁的内容说明，展台承担抽书与换位。 */}
+            <article
+              id="coop-textbook"
+              aria-labelledby="coop-title-textbook"
+              className="scroll-mt-24 rounded-[28px] bg-mist-100 p-5 md:p-7 xl:p-8"
+            >
+              <div className="grid gap-8 xl:grid-cols-[220px_minmax(0,1fr)] xl:items-center xl:gap-9">
+                <div>
+                  <ChapterHeading cat={textbook} />
+                  <p className="mt-5 text-ui leading-[1.85] text-ink-500">{textbook.lead}</p>
+                  <StoryPoints points={textbook.points} className="mt-7" />
+                </div>
+                <StageFrame className="h-[520px]">
+                  <TextbookStage items={textbook.items} />
+                </StageFrame>
+              </div>
+            </article>
+
+            {/* 03 · 田野笔记：拼贴墙与项目说明左右对读，窄屏先叙事后看现场。 */}
+            <article
+              id="coop-project"
+              aria-labelledby="coop-title-project"
+              className="scroll-mt-24 border-y border-ink-900/10 py-8 md:py-10"
+            >
+              <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_220px] xl:items-center xl:gap-9">
+                <div className="xl:order-2">
+                  <ChapterHeading cat={project} />
+                  <p className="mt-5 text-ui leading-[1.85] text-ink-500">{project.lead}</p>
+                  <StoryPoints points={project.points} className="mt-7" />
+                </div>
+                <StageFrame className="md:h-[520px] xl:order-1">
+                  <ProjectStage items={project.items} />
+                </StageFrame>
+              </div>
+            </article>
+
+            {/* 04 · 教师成长路径：整章压暗，三个交付点是课程路径，现场名册随后展开。 */}
+            <article
+              id="coop-training"
+              aria-labelledby="coop-title-training"
+              className="scroll-mt-24 rounded-[28px] bg-night-950 p-5 text-white md:p-7 xl:p-8"
+            >
+              <div className="grid gap-5 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:gap-8">
+                <ChapterHeading cat={training} dark />
+                <p className="text-ui-lg leading-[1.85] text-white/55">{training.lead}</p>
+              </div>
+              <StoryPoints points={training.points} dark className="mt-8 md:grid-cols-3 md:gap-5" />
+              <StageFrame dark className="mt-8 h-[480px]">
+                <TrainingStage items={training.items} />
+              </StageFrame>
+            </article>
+
+            {/* 05 · 竞赛闭环：数据与现场先行，最后落到「学 — 练 — 赛 — 用」。 */}
+            <article id="coop-competition" aria-labelledby="coop-title-competition" className="scroll-mt-24">
+              <div className="grid gap-5 border-t border-ink-900/10 pt-6 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:gap-8">
+                <ChapterHeading cat={competition} />
+                <p className="text-ui-lg leading-[1.85] text-ink-500">{competition.lead}</p>
+              </div>
+              <StageFrame className="mt-7 h-[520px] md:h-[540px]">
+                <CompetitionStage items={competition.items} />
+              </StageFrame>
+              <div className="mt-7 grid gap-6 border-b border-ink-900/10 pb-8 xl:grid-cols-[minmax(0,0.65fr)_minmax(0,1.35fr)] xl:items-start">
+                <p className="whitespace-nowrap text-[clamp(24px,3vw,34px)] font-semibold tracking-[0.08em] text-ink-900">
+                  学 <span className="text-brand">—</span> 练 <span className="text-brand">—</span> 赛 <span className="text-brand">—</span> 用
+                </p>
+                <StoryPoints points={competition.points} className="md:grid-cols-3 md:gap-5" />
+              </div>
+            </article>
           </div>
         </div>
       </div>

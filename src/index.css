@@ -192,6 +192,25 @@
 
 /* keyframes 一律放顶层。嵌在 @layer 里的 @keyframes 在 v4 的处理下不保证还在，
    而这三组动画（floaty/pingSlow/breathe/chainShotBar）都是可见效果，掉了就是回归。 */
+/* 合作实景画廊：板块切换 / 灯箱换图时的淡入上移，避免硬切。 */
+@keyframes coopSwap {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.coop-swap {
+  animation: coopSwap 0.38s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .coop-swap {
+    animation: none;
+  }
+}
 @keyframes floaty {
   0%,
   100% {

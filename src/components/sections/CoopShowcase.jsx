@@ -835,21 +835,33 @@ function CompetitionStage({ items }) {
         <div className="hidden min-w-0 flex-col justify-center md:flex">
           <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/30">
             <span aria-hidden className="h-px w-4 bg-brand-300/70" />
-            national securities
+            {at.label?.split(' / ')[0] ?? 'national'}
           </span>
           <span className="mt-1 pl-6 font-mono text-[10px] uppercase tracking-[0.2em] text-white/30">
-            investment simulation
+            {at.label?.split(' / ')[1] ?? 'investment simulation'}
           </span>
 
           <p className="mt-6 flex items-end gap-2.5">
-            <span className="text-[72px] font-bold leading-[0.78] tracking-[-0.05em] text-white">10</span>
+            <span className="text-[72px] font-bold leading-[0.78] tracking-[-0.05em] text-white">
+              {at.edition ?? '—'}
+            </span>
             <span className="pb-2 font-mono text-[10px] uppercase leading-[1.5] tracking-[0.2em] text-white/35">
-              th edition
-              <br />
-              <span className="text-[11px] tracking-[0.24em] text-white/45">届</span>
+              {(at.edition ?? '').match(/^\d+$/) ? (
+                <>
+                  th edition
+                  <br />
+                  <span className="text-[11px] tracking-[0.24em] text-white/45">届</span>
+                </>
+              ) : (
+                <>
+                  snapshot
+                  <br />
+                  <span className="text-[11px] tracking-[0.24em] text-white/45">现场</span>
+                </>
+              )}
             </span>
           </p>
-          <p className="mt-3 text-[12.5px] leading-relaxed text-white/45">全国证券投资模拟实训大赛</p>
+          <p className="mt-3 text-[12.5px] leading-relaxed text-white/45">{at.title ?? at.caption}</p>
 
           <dl className="mt-7 border-t border-white/10">
             {COMP_STATS.map((s) => (

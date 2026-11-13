@@ -145,7 +145,7 @@ export function ImageRail({ products, active, onPick }) {
           />
         </span>
         <span className="tabular-nums text-white/45">
-          {pad(active)} / {pad(products.length)}
+          {pad(active)} / {pad(products.length - 1)}
         </span>
       </div>
       <div className="flex items-center gap-3">

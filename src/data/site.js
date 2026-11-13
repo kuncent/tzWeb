@@ -25,7 +25,6 @@ import {
   Send,
   BarChart3,
   ShoppingCart,
-  Shapes,
 } from 'lucide-react'
 import { PRODUCTS, PRODUCT_NAMES, SOLUTIONS, SOLUTION_NAMES } from './vocabulary'
 
@@ -85,7 +84,7 @@ export const navCta = { label: '预约演示', to: '/about#contact' }
 export const advisorKicker = '构建下一代人才培养基础设施'
 export const advisorTitle = ['用科技重塑教育', '让培养的人才', '站在时代前沿']
 export const advisorDesc =
-  '我们为高校提供区块链、数字金融、创新金融、数字经济、新商科大数据、数智电商、智能产品与其他产品体系，以及数字经济、金融科技、应用统计、新商科大数据、工商科一体化五套实验教学方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
+  '我们为高校提供区块链、数字金融、创新金融、数字经济、新商科大数据、数智电商、智能产品七大产品体系，以及数字经济、金融科技、应用统计、新商科大数据、工商科一体化五套实验教学方案，助力高校打造面向未来的实验室、课程体系与产业实践平台。'
 export const advisorCtas = [
   { label: '免费开通试用', primary: true },
   { label: '方案咨询', primary: false },
@@ -121,17 +120,18 @@ export const problems = [
   { icon: Briefcase, title: '学生毕业难以就业', desc: '三年所学拿不出一份可展示的工程简历：只有课程作业，没有可交付的项目与成果背书，面试时说不清“我能干什么”，毕业求职处处被动。' },
 ]
 
-/* ---------------- 产品矩阵（8 大产品体系 · 整屏轮播） ----------------
-   八个体系名对齐客户《产品体系.xlsx》：区块链、数字金融、创新金融、数字经济、
-   新商科大数据、数智电商、智能产品、其他。表现形式统一为 GalleryScreen 图片画廊
-   （区块链前两套沿用上版真实录屏），界面截图取客户 2026-11 补充文档
-   《产品体系和截图》逐产品替换（public/images/products/），无图产品已删除。
+/* ---------------- 产品矩阵（7 大产品体系 · 整屏轮播） ----------------
+   七个体系名与顺序对齐客户《产品体系和截图》的文件夹：0 区块链、1 数字金融、
+   2 创新金融、3 数字经济、4 新商科大数据、5 数智电商、6.智能产品。每个体系下的
+   产品也严格按各自文件夹的子目录名称与序号排列，没有对应文件夹的产品已删除。
+   表现形式统一为 GalleryScreen 图片画廊（区块链前两套沿用上版真实录屏），
+   界面截图取该文件夹内的真实系统截图（public/images/products/）。
    原独立的「具身智能」3D 展台体系已并入「智能产品」
    下的具身智能机器人产品 —— 展示效果原样保留，见 embodiedSystem 与 EmbodiedScreen。 */
 export const matrixHead = {
   en: 'PRODUCT MATRIX',
   zh: '产品体系',
-  desc: '从一条真实联盟链，到金融、数字经济、新商科与智能装备的整套实训系统 —— 八个可单独使用、也可整体交付的产品体系。',
+  desc: '从一条真实联盟链，到金融、数字经济、新商科与智能装备的整套实训系统 —— 七个可单独使用、也可整体交付的产品体系。',
 }
 
 /* 具身智能机器人实验室：原 01 独立体系的完整展示数据。现作为「智能产品」体系下
@@ -155,10 +155,10 @@ export const productMatrix = [
     en: 'BLOCKCHAIN & LEDGER',
     icon: Blocks,
     title: PRODUCT_NAMES.blockchain,
-    tagline: '从联盟链搭建到链上数据与数字人民币，八套系统覆盖区块链全链路',
-    desc: '八套系统按区块链的真实技术栈排布：FISCO 联盟链搭建与智能合约部署打底，链上数据 ETL 聚合与态势分析展开，再到数字人民币、区块链发票与供应链金融的应用实训收口。前两套配上真实操作录屏，其余各套均带界面实景与适用专业。',
-    bullets: ['FISCO 联盟链 · 合约部署', '链上数据 ETL · 态势大屏', '数字人民币 · 发票 · 供应链', 'NFT 与七大应用场景'],
-    stats: [{ k: '实训系统', v: '8 套' }, { k: '实景演示', v: '2 录屏 · 17 图' }],
+    tagline: '从联盟链搭建到链上数据与数字人民币，七套系统覆盖区块链全链路',
+    desc: '七套系统按区块链的真实技术栈排布：FISCO 联盟链搭建与智能合约部署打底，链上数据 ETL 聚合与态势分析展开，再到数字人民币、区块链发票与区块链供应链的应用实训收口。前两套配上真实操作录屏，其余各套均带界面实景与适用专业。',
+    bullets: ['FISCO 联盟链 · 合约部署', '链上数据 ETL · 态势大屏', '数字人民币 · 发行兑换支付', '区块链发票 · 供应链溯源'],
+    stats: [{ k: '实训系统', v: '7 套' }, { k: '实景演示', v: '2 录屏 · 13 图' }],
     intent: PRODUCT_NAMES.blockchain,
     rich: 'gallery',
   },
@@ -167,10 +167,10 @@ export const productMatrix = [
     en: 'DIGITAL FINANCE',
     icon: Landmark,
     title: PRODUCT_NAMES['digital-finance'],
-    tagline: '从量化交易到数字人民币，把数字金融的完整链路搬进课堂',
-    desc: '九套系统按数字金融的真实链路排布：量化投资与金融大数据打底，区块链金融、数字人民币与征信风控展开，再到数字营销与数智财经运营决策收口。每套系统都带真实界面实景与适用专业，点缩略图即可逐幕查看。',
-    bullets: ['量化投资与金融大数据', '区块链金融 · 数字人民币', '征信风控与机器学习', '数字营销 · 运营决策'],
-    stats: [{ k: '实训系统', v: '9 套' }, { k: '界面实景', v: '21 张' }],
+    tagline: '从量化交易到征信风控，把数字金融的完整链路搬进课堂',
+    desc: '七套系统按数字金融的真实链路排布：量化投资与数智财经运营决策打底，风险管理、数字营销与金融大数据挖掘展开，再到机器学习与数字征信收口。每套系统都带真实界面实景与适用专业，点缩略图即可逐幕查看。',
+    bullets: ['量化投资交易平台', '数智财经运营决策', '风险管理 · 数字营销', '大数据挖掘 · 机器学习 · 征信'],
+    stats: [{ k: '实训系统', v: '7 套' }, { k: '界面实景', v: '14 张' }],
     intent: PRODUCT_NAMES['digital-finance'],
     rich: 'gallery',
   },
@@ -179,10 +179,10 @@ export const productMatrix = [
     en: 'INNOVATION FINANCE',
     icon: Briefcase,
     title: PRODUCT_NAMES['innovation-finance'],
-    tagline: '银行、证券、保险到供应链金融，经典金融业务逐岗位仿真',
-    desc: '从财商素养游戏化通识到商业银行、投资银行、保险、供应链金融与公司金融等经典业务：按真实机构岗位流程设计，案例数据内置、规则校验自动评分，学生在校内即可走完一笔完整业务。',
-    bullets: ['商业银行 · 投资银行', '保险综合业务', '供应链金融 · 公司金融', '模拟交易 · 外汇 · 网贷'],
-    stats: [{ k: '实训系统', v: '11 套' }, { k: '界面实景', v: '30 张' }],
+    tagline: '银行、保险、投资到供应链金融，经典金融业务逐岗位仿真',
+    desc: '从财商素养游戏化通识到商业银行、保险、风险投资、供应链金融与公司金融等经典业务：按真实机构岗位流程设计，案例数据内置、规则校验自动评分，学生在校内即可走完一笔完整业务。',
+    bullets: ['商业银行 · 保险综合业务', '风险投资 · 模拟交易', '供应链金融 · 公司金融', '智能理财 · 财商素养'],
+    stats: [{ k: '实训系统', v: '8 套' }, { k: '界面实景', v: '21 张' }],
     intent: PRODUCT_NAMES['innovation-finance'],
     rich: 'gallery',
   },
@@ -191,10 +191,10 @@ export const productMatrix = [
     en: 'DIGITAL ECONOMY',
     icon: DatabaseZap,
     title: PRODUCT_NAMES['digital-economy'],
-    tagline: '数字贸易、产业数字化到双碳治理，数字经济四大领域一体实训',
-    desc: '围绕数据价值化、数字产业化、产业数字化与数字化治理四大领域：数字贸易、企业数字化转型、数字供应链与文本挖掘等十二套系统，支撑从数字经济概论到专项实训的完整课程链。',
-    bullets: ['数字贸易 · 数字营销', '企业数字化转型', '数字供应链 · 区块链发票', '文本挖掘 · 机器学习'],
-    stats: [{ k: '实训系统', v: '12 套' }, { k: '界面实景', v: '28 张' }],
+    tagline: '数字贸易、产业数字化到 AI 大数据，数字经济四大领域一体实训',
+    desc: '围绕数据价值化、数字产业化、产业数字化与数字化治理四大领域：企业数字化转型、数字经济基础、数字营销、数字贸易与 AI 智能大数据五套系统，支撑从数字经济概论到专项实训的完整课程链。',
+    bullets: ['企业数字化转型', '数字经济基础 · 双碳实验', '数字营销 · 数字贸易', 'AI 智能大数据综合实验'],
+    stats: [{ k: '实训系统', v: '5 套' }, { k: '界面实景', v: '12 张' }],
     intent: PRODUCT_NAMES['digital-economy'],
     rich: 'gallery',
   },
@@ -203,10 +203,10 @@ export const productMatrix = [
     en: 'NEW BUSINESS BIG DATA',
     icon: BarChart3,
     title: PRODUCT_NAMES['new-business-data'],
-    tagline: '财务、电商、期货到统计，新商科的数据分析底座',
-    desc: '面向新商科的数据分析底座：大数据分析方法论 + 文本挖掘与数据可视化 + 财务、电商、期货三个行业场景 + 机器学习与计量经济工具链，共用一套实训、考核与学情统计口径。',
-    bullets: ['大数据分析实训', '财务 · 电商 · 期货场景', '文本挖掘 · 数据可视化', '机器学习 · 计量经济'],
-    stats: [{ k: '实训平台', v: '10 套' }, { k: '界面实景', v: '23 张' }],
+    tagline: '财务、期货到文本挖掘，新商科的数据分析底座',
+    desc: '面向新商科的数据分析底座：Python 基础与大数据分析方法论 + 文本挖掘与金融数据可视化 + 财务、期货行业场景 + 机器学习与应用计量经济工具链，共用一套实训、考核与学情统计口径。',
+    bullets: ['大数据分析实训', '财务 · 期货场景', '文本挖掘 · 数据可视化', '机器学习 · 应用计量经济'],
+    stats: [{ k: '实训平台', v: '7 套' }, { k: '界面实景', v: '15 张' }],
     intent: PRODUCT_NAMES['new-business-data'],
     rich: 'gallery',
   },
@@ -216,9 +216,9 @@ export const productMatrix = [
     icon: ShoppingCart,
     title: PRODUCT_NAMES['ecommerce'],
     tagline: '从产品开发到大数据运营，电商核心岗位全流程实训',
-    desc: '对接数智电商核心业务岗位：网店运营、互联网产品开发、跨境电商、电商大数据分析与数字营销五套系统，从数据化选品到投放评估全流程实训，配 BI 大屏与学情分析。',
-    bullets: ['网店运营全岗位', '电商产品开发', '跨境电商综合实训', '电商大数据 · 数字营销'],
-    stats: [{ k: '实训系统', v: '5 套' }, { k: '界面实景', v: '11 张' }],
+    desc: '对接数智电商核心业务岗位：互联网产品开发、网店运营、跨境电商与电商大数据分析四套系统，从数据化选品到投放评估全流程实训，配 BI 大屏与学情分析。',
+    bullets: ['互联网产品开发', '网店运营全岗位', '跨境电商综合实训', '电商大数据综合分析'],
+    stats: [{ k: '实训系统', v: '4 套' }, { k: '界面实景', v: '8 张' }],
     intent: PRODUCT_NAMES['ecommerce'],
     rich: 'gallery',
   },
@@ -234,27 +234,16 @@ export const productMatrix = [
     intent: PRODUCT_NAMES['smart-products'],
     rich: 'gallery',
   },
-  {
-    id: 'other',
-    en: 'MORE PRODUCTS',
-    icon: Shapes,
-    title: PRODUCT_NAMES.other,
-    tagline: '跨体系通用的数字金融综合实验平台',
-    desc: '难以归入单一学科体系的通用产品：数字金融综合实验平台以在线 Python 编译器为基础，聚合大数据、区块链与人工智能三大方向的实验项目，按业务主题组织实训任务，支撑金融科技综合实训与跨课程实验。',
-    bullets: ['在线 Python 编译环境', '大数据 · 区块链 · AI 三方向', '按业务主题组织实训', '跨课程综合实验'],
-    stats: [{ k: '实训系统', v: '1 套' }, { k: '界面实景', v: '3 张' }],
-    intent: PRODUCT_NAMES.other,
-    rich: 'gallery',
-  },
 ]
 
 /* ---------------- 图片画廊体系的产品目录 ----------------
-   体系名与产品名对齐客户《产品体系.xlsx》全量目录；描述取自《产品简介.docx》原文
-   （截到句读），无原文的按界面实景或产品形态撰写；截图为客户提供的真实系统界面
+   体系与产品严格对齐客户《产品体系和截图》文件夹：体系 = 一级目录（0 区块链 …
+   6.智能产品），产品 = 该体系下的子目录，顺序按子目录序号，名称逐字取子目录名，
+   没有对应子目录的产品已删除。描述取自《产品简介.docx》原文（截到句读），无原文
+   的按界面实景或产品形态撰写；截图为该文件夹内的真实系统界面
    （public/images/products/<slug>/），thumb 为缩略图条封面。shots 的 label/cap 供
-   舞台底栏分幕刻度使用。同一产品被多个体系引用时只存一份图（如机器学习实验系统）。
-   n=0 表示无界面截图：按客户补充文档口径，无图产品已从体系内删除，仅具身智能
-   机器人豁免（它走 3D 环形展台而非截图画廊）。thumb 置空、shots 为空数组。 */
+   舞台底栏分幕刻度使用。n=0 表示无界面截图：仅具身智能机器人豁免（它走 3D 环形
+   展台而非截图画廊），thumb 置空、shots 为空数组。 */
 const gal = (slug, code, en, name, tag, desc, majors, n, intent) => ({
   slug,
   code,
@@ -278,21 +267,18 @@ export const galleryProducts = {
     gal('crypto-etl', 'CRYPTO-ETL', 'CRYPTO DATA ETL', '数字货币ETL数据分析实验平台', '全球多链 · 链上数据 ETL 聚合', '面向全球主流公链的链上数据 ETL 与智能分析网络：实时聚合市值、交易、节点与合约指标，提供多链对比、下钻分析与态势大屏，支撑数据素养与链上风控实训。', '金融科技、数据科学与大数据技术', 3, PRODUCT_NAMES.blockchain),
     gal('blockchain-tech', 'BC-TECH', 'BLOCKCHAIN TECH & APP', '区块链技术与应用实验系统', '联盟链 · 合约 · NFT 全流程', '区块链技术与应用全流程实训：联盟链搭建、智能合约编写部署到 NFT 市场应用，覆盖数字经济、数字藏品、企业资产管理、征信、农产品溯源、跨境贸易与保险七大应用场景，配 AI 智能助手。', '金融科技、区块链工程', 3, PRODUCT_NAMES.blockchain),
     gal('e-cny-lab', 'E-CNY', 'DIGITAL RMB LAB', '数字人民币实验平台', '央行 → 商行 → 企业 → 个人四层模拟', '系统参照央行数字人民币专利文件设计，模拟数字人民币生成、发行、兑换、支付、钱包管理全流程，含四层业务模拟与流通可视化监控大屏。', '金融科技、数字经济', 3, PRODUCT_NAMES.blockchain),
-    gal('digital-invoice', 'D-INV', 'BLOCKCHAIN INVOICE', '区块链发票实验系统', '多角色协同 · 发票上链溯源', '区块链发票业务仿真：企业、税务局、消费者等多角色协同，还原发票开具、流转、报销与查验全链路，票面信息上链可溯源。', '金融科技、数字经济', 3, PRODUCT_NAMES.blockchain),
-    gal('digital-supply-chain', 'D-SC', 'BLOCKCHAIN SUPPLY CHAIN', '区块链供应链实验系统', '四大角色 · 交易上链溯源', '系统模拟区块链在供应链运作中的应用，构建核心企业、一级/二级供应商、保理商四大角色，交易环节上链溯源，内置真实供应链融资合同表单。', '金融科技、供应链管理', 2, PRODUCT_NAMES.blockchain),
+    gal('digital-invoice', 'D-INV', 'BLOCKCHAIN INVOICE', '数字发票（区块链发票）实验系统', '多角色协同 · 发票上链溯源', '区块链发票业务仿真：企业、税务局、消费者等多角色协同，还原发票开具、流转、报销与查验全链路，票面信息上链可溯源。', '金融科技、数字经济', 3, PRODUCT_NAMES.blockchain),
+    gal('digital-supply-chain', 'D-SC', 'BLOCKCHAIN SUPPLY CHAIN', '数字供应链（区块链供应链）实验系统', '四大角色 · 交易上链溯源', '系统模拟区块链在供应链运作中的应用，构建核心企业、一级/二级供应商、保理商四大角色，交易环节上链溯源，内置真实供应链融资合同表单。', '金融科技、供应链管理', 2, PRODUCT_NAMES.blockchain),
     gal('e-cny-app', 'E-CNY-APP', 'DIGITAL RMB APPLICATION', '数字人民币综合应用实验系统', '央行 → 商行 → 用户全链路实验', '数字人民币综合应用实验：覆盖中国人民银行生成与发行数字货币、商业银行兑换、用户开通钱包与兑换支付等全流程实验，内置实验中心与成绩报告，支撑数字货币综合实训。', '金融科技、数字经济', 2, PRODUCT_NAMES.blockchain),
-    gal('chain-finance-edu', 'CHAIN-FIN', 'BLOCKCHAIN FINANCE', '区块链金融应用教学系统', '概念 · 技术 · 应用三层学习闭环', '系统按照认知掌握模型，将知识阅读、视频动画、测评、实验实训与实验报告结合，形成完整学习闭环；涵盖区块链概念、技术、应用三大层次实验。', '金融科技、数字经济', 4, PRODUCT_NAMES.blockchain),
   ],
   'digital-finance': [
     gal('quant-invest', 'QUANT-INV', 'QUANT INVESTMENT', '量化投资交易平台', '策略开发 · 回测到实盘全流程', '系统面向学术机构、投资机构及高端个人投资者，提供策略开发、历史回测、仿真交易、实盘交易、风险控制和资产管理全流程量化投资解决方案。', '金融工程、金融数学', 3, PRODUCT_NAMES['digital-finance']),
     gal('smart-biz-ops', 'BIZ-OPS', 'SMART BUSINESS OPS', '数智财经运营决策实战系统', '虚拟商业社会 · 跨专业分岗实训', '平台构建虚拟商业社会环境，以数字经济时代智能制造企业运营为主线开展跨专业综合实训，含撮合交易竞争机制与碳定价碳交易沙盘模拟。', '工商管理、财务管理等跨专业', 3, PRODUCT_NAMES['digital-finance']),
-    gal('fin-risk-mgmt', 'FIN-RISK', 'FIN RISK MANAGEMENT', '金融风险管理实验系统', '109 套案例 · 218 套模型代码', '平台以在线 Python 编译器为工具，从教、学、练、考、赛五方面模块化设计，内置 109 套案例、218 套模型代码，将抽象风险概念可视化。', '金融工程、金融科技', 2, PRODUCT_NAMES['digital-finance']),
+    gal('fin-risk-mgmt', 'FIN-RISK', 'FIN RISK MANAGEMENT', '金融风险管理系统', '109 套案例 · 218 套模型代码', '平台以在线 Python 编译器为工具，从教、学、练、考、赛五方面模块化设计，内置 109 套案例、218 套模型代码，将抽象风险概念可视化。', '金融工程、金融科技', 2, PRODUCT_NAMES['digital-finance']),
     gal('fin-digital-marketing', 'FIN-MKT', 'FIN DIGITAL MARKETING', '金融数字营销教学实训系统', '营销技术 · 算法 · 画像 · BI 五大板块', '系统面向大数据、人工智能、大模型背景下的金融营销人才培养，涵盖数字营销技术、营销算法、用户画像、BI 可视化与综合实训五大板块。', '金融学、市场营销', 2, PRODUCT_NAMES['digital-finance']),
     gal('fin-bigdata-mining', 'FIN-MINING', 'FIN BIG DATA MINING', '金融大数据挖掘分析系统', '在线 Python · 项目化任务化实训', '平台采用 BS 架构，以在线 Python 编译器为基础，以"项目化、任务化、步骤化"为学习单元，涵盖 Python 语言基础到行业应用系列场景。', '金融科技、数字经济、统计学', 2, PRODUCT_NAMES['digital-finance']),
     gal('ml-lab', 'ML-LAB', 'MACHINE LEARNING', '机器学习实验系统', '考练学一体 · 近 80 个案例集锦', '系统以在线 Python 编译器为工具，机器学习实验实操为主体、考练学一体，内置回归、决策树、随机森林、神经网络等案例与近 80 个案例集锦。', '人工智能、数据科学与大数据技术', 1, PRODUCT_NAMES['digital-finance']),
     gal('credit-reporting', 'CREDIT', 'CREDIT REPORTING', '数字征信实训系统', '征信画像 · 个人与企业征信三模块', '系统包含征信画像、个人征信、企业征信三大模块，基于大数据构建用户画像，利用 Python 统计分析识别优质客户，内置企业和个人案例数据。', '经济与金融、信用管理', 1, PRODUCT_NAMES['digital-finance']),
-    gal('chain-finance-edu', 'CHAIN-FIN', 'BLOCKCHAIN FINANCE', '区块链金融应用教学系统', '概念 · 技术 · 应用三层学习闭环', '系统按照认知掌握模型，将知识阅读、视频动画、测评、实验实训与实验报告结合，形成完整学习闭环；涵盖区块链概念、技术、应用三大层次实验。', '金融科技、数字经济', 4, PRODUCT_NAMES['digital-finance']),
-    gal('e-cny-lab', 'E-CNY', 'DIGITAL RMB LAB', '数字人民币实验平台', '央行 → 商行 → 企业 → 个人四层模拟', '系统参照央行数字人民币专利文件设计，模拟数字人民币生成、发行、兑换、支付、钱包管理全流程，含四层业务模拟与流通可视化监控大屏。', '金融科技、数字经济', 3, PRODUCT_NAMES['digital-finance']),
   ],
   'innovation-finance': [
     gal('fin-literacy-game', 'FIN-GAME', 'FIN LITERACY GAME', '财商素养动画游戏互动系统', '沉浸式财商游戏 · 9 大精品动画', '系统采用沉浸式财商模拟游戏形式，以"财富自由"为核心目标，集成资产配置、风险应对、现金流管控等金融逻辑，配 9 大财商精品动画。', '经济金融类课程', 2, PRODUCT_NAMES['innovation-finance']),
@@ -303,9 +289,6 @@ export const galleryProducts = {
     gal('wealth-planning', 'WEALTH', 'WEALTH PLANNING', '智能理财分析教学系统', '理财顾问岗位全流程规划', '系统参照真实理财机构要求、基于理财顾问岗位流程设计，涵盖风险测评、家庭财务报表分析到投资、保险、税务、传承规划的完整理财规划流程。', '金融学、财务管理', 2, PRODUCT_NAMES['innovation-finance']),
     gal('insurance-biz', 'INS', 'INSURANCE BUSINESS', '保险综合业务教学系统', '十八险种 · 九大角色全流程', '系统以保险公司内部经营为模板，涵盖财险寿险十八个险种、九大角色，实现从保险计划书制作、承保到理赔的全流程实验，内置全仿真单据。', '保险学、精算学', 3, PRODUCT_NAMES['innovation-finance']),
     gal('commercial-bank', 'BANK', 'COMMERCIAL BANKING', '商业银行综合业务', '七大业务模块 · 多岗位柜面模拟', '系统涵盖个人银行卡、存取款、贷款、对公活期、对公贷款、支付结算、国际结算七大业务模块，支持柜员、信贷员、国际结算专员等岗位模拟。', '金融学、投资学', 2, PRODUCT_NAMES['innovation-finance']),
-    gal('investment-bank', 'IB', 'INVESTMENT BANKING', '投资银行实验教学系统', '募 · 投 · 管 · 退四步完整流程', '系统模拟投资实务操作流程，包含私募基金募集、项目投资、投后管理、项目退出四个完整步骤，配套全流程文件模板与《投资银行实验教程》教辅。', '投资学、金融学、财务管理', 3, PRODUCT_NAMES['innovation-finance']),
-    gal('forex-sim', 'FOREX', 'FOREX SIMULATION', '外汇模拟交易实验系统', '主要货币对 · 仿真下单与风控', '系统分学生端与教师端，覆盖美元/日元、欧元/美元等主要货币对，提供仿真下单、持仓管理、外汇风险预警与班级交易排行、实验报告评分。', '金融学、投资学', 3, PRODUCT_NAMES['innovation-finance']),
-    gal('online-lending', 'P2P', 'ONLINE LENDING', '网络融资教学系统', '四种贷款产品 · 仿真网贷风控', '系统包含信用标、抵押标、担保标、实地标四种贷款产品，仿真真实网贷流程与风控措施，内置 12 种网贷产品及 16 个案例，可反复实验。', '金融科技、互联网金融', 3, PRODUCT_NAMES['innovation-finance']),
   ],
   'digital-economy': [
     gal('enterprise-dx', 'DX', 'ENTERPRISE DIGITALIZATION', '企业数字化转型实验平台', '网络化 · 数字化 · 智能化 · 平台化', '平台遵循"网络化、数字化、智能化、平台化"方法论构建，涵盖物联网组网、数据治理、行业智能算法与大模型、AI 智能体与项目管理。', '数字经济、工商管理', 3, PRODUCT_NAMES['digital-economy']),
@@ -313,13 +296,6 @@ export const galleryProducts = {
     gal('digital-marketing', 'D-MKT', 'DIGITAL MARKETING', '数字营销实验系统', '营销全链路数据分析实战', '数字营销实验环境覆盖营销环境分析、用户洞察、活动策划与效果评估的完整营销链路，内置数据分析工具与实战任务。', '电子商务、市场营销', 3, PRODUCT_NAMES['digital-economy']),
     gal('digital-trade', 'D-TRADE', 'DIGITAL TRADE', '数字贸易实验系统', '十三章 · 50+ 实务项目', '系统以数字教材框架模式为设计蓝图，涵盖十三个章节、50 多个实务项目，涉及数字贸易标准规则、法律法规、知识产权保护与数据要素交易。', '数字经济、国际经济与贸易', 2, PRODUCT_NAMES['digital-economy']),
     gal('de-ai-bigdata', 'DE-AI', 'DIGITAL ECONOMY & AI', '数字经济与AI智能大数据综合实验系统', '100+ 实验 · Python 与 AI 全流程', '系统构建理论学习、代码实践与行业应用一体的 Python 数据分析与 AI 应用实训体系，一站式在线编程环境内置超 100 个实验项目。', '数字经济、人工智能', 2, PRODUCT_NAMES['digital-economy']),
-    gal('smart-biz-ops', 'BIZ-OPS', 'SMART BUSINESS OPS', '数智财经运营决策实战系统', '虚拟商业社会 · 跨专业分岗实训', '平台构建虚拟商业社会环境，以数字经济时代智能制造企业运营为主线开展跨专业综合实训，含撮合交易竞争机制与碳定价碳交易沙盘模拟。', '工商管理、财务管理等跨专业', 3, PRODUCT_NAMES['digital-economy']),
-    gal('digital-supply-chain', 'D-SC', 'DIGITAL SUPPLY CHAIN', '数字供应链实验系统', '四大角色 · 交易上链溯源', '系统模拟区块链在供应链运作中的应用，构建核心企业、一级/二级供应商、保理商四大角色，交易环节上链溯源，内置真实供应链融资合同表单。', '金融科技、供应链管理', 2, PRODUCT_NAMES['digital-economy']),
-    gal('text-mining', 'TEXT', 'TEXT BIG DATA MINING', '文本大数据挖掘分析处理', '采集 · 分词 · 情感 · 知识图谱', '系统着眼商业文本数据全流程挖掘分析，训练数据采集、清洗、词性标注、情感分析、文本摘要、相似度计算等能力，可自动生成知识图谱。', '金融科技、人工智能', 3, PRODUCT_NAMES['digital-economy']),
-    gal('python-basics', 'PY', 'PYTHON BASICS', 'Python基础实训教学系统', '实训 · 考核 · 考试 · 资源四板块', 'Python 编程入门实训环境：实训演练、实战考核、理论考试与资源中心四大板块，配学习数据统计分析，支撑编程基础与数据处理入门实验。', '人工智能、数据科学与大数据技术', 2, PRODUCT_NAMES['digital-economy']),
-    gal('digital-invoice', 'D-INV', 'BLOCKCHAIN INVOICE', '数字发票实验系统', '多角色协同 · 发票上链溯源', '区块链发票业务仿真：企业、税务局、消费者等多角色协同，还原发票开具、流转、报销与查验全链路，票面信息上链可溯源。', '金融科技、数字经济', 3, PRODUCT_NAMES['digital-economy']),
-    gal('ml-lab', 'ML-LAB', 'MACHINE LEARNING', '机器学习实验系统', '考练学一体 · 近 80 个案例集锦', '系统以在线 Python 编译器为工具，机器学习实验实操为主体、考练学一体，内置回归、决策树、随机森林、神经网络等案例与近 80 个案例集锦。', '人工智能、数据科学与大数据技术', 1, PRODUCT_NAMES['digital-economy']),
-    gal('ml-econometrics', 'ML-ECON', 'ML & ECONOMETRICS', '机器学习与应用计量经济学实训教学系统', '机器学习与计量建模一体化', '机器学习与应用计量经济学实训教学系统：实验进度与学习统计一屏总览，覆盖回归、分类与计量建模实验，支撑理论与实操一体化教学。', '人工智能、统计学', 2, PRODUCT_NAMES['digital-economy']),
   ],
   'new-business-data': [
     gal('text-mining', 'TEXT', 'TEXT BIG DATA MINING', '文本大数据挖掘分析处理', '采集 · 分词 · 情感 · 知识图谱', '系统着眼商业文本数据全流程挖掘分析，训练数据采集、清洗、词性标注、情感分析、文本摘要、相似度计算等能力，可自动生成知识图谱。', '金融科技、人工智能', 3, PRODUCT_NAMES['new-business-data']),
@@ -329,30 +305,23 @@ export const galleryProducts = {
     gal('ml-econometrics', 'ML-ECON', 'ML & ECONOMETRICS', '机器学习与应用计量经济学实训教学系统', '机器学习与计量建模一体化', '机器学习与应用计量经济学实训教学系统：实验进度与学习统计一屏总览，覆盖回归、分类与计量建模实验，支撑理论与实操一体化教学。', '人工智能、统计学', 2, PRODUCT_NAMES['new-business-data']),
     gal('fin-bigdata-analytics', 'FIN-BD', 'FINANCIAL BIG DATA', '财务大数据分析实训平台', '财务数据处理与指标可视化', '财务大数据分析实训平台：实训、考核、考试与资源中心一体，配学习数据统计分析，支撑财务数据处理、指标计算与可视化分析实验。', '财务管理、大数据管理与应用', 2, PRODUCT_NAMES['new-business-data']),
     gal('futures-bigdata', 'FUT-BD', 'FUTURES BIG DATA', '期货大数据分析教学平台', '期货行情采集与量化分析', '期货大数据分析教学平台：实训、考核、考试与资源中心一体，支撑期货行情数据采集、指标计算与量化分析实验。', '金融工程、统计学', 2, PRODUCT_NAMES['new-business-data']),
-    gal('ecom-bigdata', 'EC-BD', 'E-COMMERCE BIG DATA', '电商大数据综合分析平台', '行业 · 竞争 · 用户数据分析', '电商大数据综合分析平台覆盖行业、竞争与用户数据分析实训，配考核、考试与资源中心，支撑数据化选品、运营与营销决策实验。', '电子商务、数字经济', 3, PRODUCT_NAMES['new-business-data']),
-    gal('ml-lab', 'ML-LAB', 'MACHINE LEARNING', '机器学习实验系统', '考练学一体 · 近 80 个案例集锦', '系统以在线 Python 编译器为工具，机器学习实验实操为主体、考练学一体，内置回归、决策树、随机森林、神经网络等案例与近 80 个案例集锦。', '人工智能、数据科学与大数据技术', 1, PRODUCT_NAMES['new-business-data']),
-    gal('fin-bigdata-mining-v2', 'FIN-BD-MINE', 'FIN BIG DATA MINING', '财经金融大数据分析挖掘系统', '按业务主题组织的实验项目库', '财经金融大数据分析挖掘系统按业务主题组织实验项目，覆盖金融市场、资产配置、风险管理等场景，每个项目配套数据与分析工具。', '金融科技、数据科学与大数据技术', 4, PRODUCT_NAMES['new-business-data']),
   ],
   ecommerce: [
-    gal('ecom-product-dev', 'EC-DEV', 'E-COMMERCE PRODUCT DEV', '电商互联网产品开发实验系统', '选品 · 投放 · 供应 · 评估全岗位', '系统依托真实工作场景与电商核心业务岗位提炼技能点，实训涵盖市场需求挖掘、产品规划、投放测试、供应渠道管理与产品评估考核。', '电子商务、数字经济', 2, PRODUCT_NAMES['ecommerce']),
+    gal('ecom-product-dev', 'EC-DEV', 'E-COMMERCE PRODUCT DEV', '互联网产品开发实验系统', '选品 · 投放 · 供应 · 评估全岗位', '系统依托真实工作场景与电商核心业务岗位提炼技能点，实训涵盖市场需求挖掘、产品规划、投放测试、供应渠道管理与产品评估考核。', '电子商务、数字经济', 2, PRODUCT_NAMES['ecommerce']),
     gal('online-store', 'STORE-OPS', 'ONLINE STORE OPS', '网店运营实训系统', '开店 · 装修 · 推广 · 客服全岗位', '网店运营实训系统：覆盖网店开设、装修、商品管理、营销推广与客服售后等运营全岗位流程，支撑电子商务运营综合实训。', '电子商务', 2, PRODUCT_NAMES['ecommerce']),
     gal('cross-border-ecom', 'CB-ECOM', 'CROSS-BORDER E-COMMERCE', '跨境电商综合实训平台', '跨境开店 · 物流支付全流程', '跨境电商综合实训平台：覆盖跨境店铺开设、选品刊登、物流与海外仓、跨境支付结算与售后客服全流程，支撑跨境电商运营综合实训。', '电子商务、国际经济与贸易', 1, PRODUCT_NAMES['ecommerce']),
     gal('ecom-bigdata', 'EC-BD', 'E-COMMERCE BIG DATA', '电商大数据综合分析平台', '行业 · 竞争 · 用户数据分析', '电商大数据综合分析平台覆盖行业、竞争与用户数据分析实训，配考核、考试与资源中心，支撑数据化选品、运营与营销决策实验。', '电子商务、数字经济', 3, PRODUCT_NAMES['ecommerce']),
-    gal('digital-marketing', 'D-MKT', 'DIGITAL MARKETING', '数字营销实验系统', '营销全链路数据分析实战', '数字营销实验环境覆盖营销环境分析、用户洞察、活动策划与效果评估的完整营销链路，内置数据分析工具与实战任务。', '电子商务、市场营销', 3, PRODUCT_NAMES['ecommerce']),
   ],
   'smart-products': [
     /* 具身智能机器人：原 01 独立体系并入此处，embodied 标记让画廊选中它时展开
        完整的 3D 环形展台（EmbodiedScreen），整体展示效果与旧版一致。放在首位以
-       保留其旗舰展示地位，其余智能产品仍走静态截图画廊。 */
+       保留其旗舰展示地位，其余智能产品按 6.智能产品 文件夹序号走静态截图画廊。 */
     { ...gal('embodied-robot', 'EMBODIED', 'EMBODIED ROBOT', '具身智能 · 机器人', '人形 · 机械臂 · 移动视觉成套 · 3D 展台', '具身智能机器人实验室：人形、机械臂、移动与视觉成套装备，覆盖运动学、控制与抓取实训，配空间规划、课程体系与师资培训一体交付。选中即可进入 3D 环形展台逐型号查看。', '机器人工程、人工智能', 0, PRODUCT_NAMES['smart-products']), embodied: true },
-    gal('ai-fin-coach', 'AI-COACH', 'AI FIN COACH', 'AI金融智能陪练系统实训系统', '数字人话术陪练 · 沉浸式对话训练', '系统融合语音合成与识别、大语言模型、智能体、数字人及数据分析等前沿 AI 技术，提供高度仿真的沉浸式对话训练场景与结构化话术陪练。', '金融学、数字经济', 2, PRODUCT_NAMES['smart-products']),
+    gal('ai-fin-coach', 'AI-COACH', 'AI FIN COACH', 'AI金融智能陪练实训系统', '数字人话术陪练 · 沉浸式对话训练', '系统融合语音合成与识别、大语言模型、智能体、数字人及数据分析等前沿 AI 技术，提供高度仿真的沉浸式对话训练场景与结构化话术陪练。', '金融学、数字经济', 2, PRODUCT_NAMES['smart-products']),
     gal('ai-insurance-agent', 'AI-INS', 'AI INSURANCE AGENT', 'AI保险智能体平台', '保险大模型 · 智能体问答', 'AI 保险智能体平台：以大模型与保险知识库驱动的智能体，覆盖产品讲解、投保咨询、核保理赔问答与话术陪练，支撑保险科技场景实训。', '保险学、金融科技', 1, PRODUCT_NAMES['smart-products']),
     gal('ai-advisor-robot', 'AI-ADVISOR', 'AI ADVISOR ROBOT', 'AI智能投顾机器人', '智能投顾 · 理财对话机器人', 'AI 智能投顾机器人：面向理财与投顾场景的对话机器人，结合用户画像与资产配置模型提供智能投顾问答与理财建议演示。', '金融学、投资学', 2, PRODUCT_NAMES['smart-products']),
     gal('ai-digital-human', 'DH-COURSE', 'AI DIGITAL HUMAN COURSEWARE', 'AI数字人应用智能课件平台', '一键备课 · 数字人课件生成', 'AI 数字人智能课件平台提供一键备课、PPT 生成、语音克隆、数字人视频与教学视频生成，把课程大纲变成可交付的数字人课件。', '数字媒体艺术、教育技术', 2, PRODUCT_NAMES['smart-products']),
     gal('vision-sorting', 'VISION-SORT', 'VISION SORTING', '智能视觉分拣教学实训设备', '机器视觉 · 分拣实训装备', '智能视觉分拣教学实训设备：以机器视觉识别与机械分拣一体的实训装备，覆盖图像采集、目标识别与分拣控制实验，支撑智能制造与机器视觉课程。', '人工智能、智能制造', 2, PRODUCT_NAMES['smart-products']),
-  ],
-  other: [
-    gal('digital-fin-platform', 'FIN-PLAT', 'DIGITAL FIN PLATFORM', '数字金融综合实验平台', '大数据 · 区块链 · AI 三方向聚合', '数字金融综合实验平台聚合大数据、区块链与人工智能三大方向的实验项目，按业务主题组织实训任务，支撑金融科技综合实训与跨课程实验。', '金融科技、数字经济', 3, PRODUCT_NAMES.other),
   ],
 }
 
@@ -498,7 +467,7 @@ export const blockchainProducts = [
 /* 区块链画廊前两套沿用上一版的真实操作录屏：FISCO 联盟链 ↔ 联盟链搭建实训（chain.mp4），
    数字货币 ETL ↔ 链上态势感知平台（chainlens.mp4）。带 clip 的产品在画廊里走影片舞台
    （FilmStage）与悬停即播缩略图（ClipThumb），故清空静态 shots、保留录屏海报与体验入口；
-   其余六套仍走静态截图。clip/demo 直接复用上一版数据，不另抄一份分幕文案。 */
+   其余五套仍走静态截图。clip/demo 直接复用上一版数据，不另抄一份分幕文案。 */
 ;[
   [0, 0],
   [1, 1],
@@ -673,7 +642,7 @@ export const resources = [
 
 /* ---------------- 联系我们 ---------------- */
 export const contactHead = { en: 'CONTACT', zh: '联系我们', desc: '留下您的联系方式，我们的方案专家与教育顾问将在 1 个工作日内与您联系。' }
-/* 意向方向统一走词表：前 6 项 = 产品体系全名，后 3 项 = 合作方向 */
+/* 意向方向统一走词表：前 7 项 = 产品体系全名，后 3 项 = 合作方向 */
 export { CONTACT_INTENTS as contactProducts } from './vocabulary'
 export const contact = {
   phone: '400-000-0000',
@@ -683,7 +652,7 @@ export const contact = {
 export const offices = ['深圳总部', '北京', '重庆', '郑州', '西安', '长沙', '广州']
 
 /* ---------------- 页脚 ----------------
-   产品与方案两列都从词表生成：产品 = 8 大产品体系，方案 = 5 套学科方案，
+   产品与方案两列都从词表生成：产品 = 7 大产品体系，方案 = 5 套学科方案，
    链接落到各自的真实锚点，不再挂旧场景名与死链。 */
 export const footerNav = [
   {

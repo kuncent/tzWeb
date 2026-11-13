@@ -283,7 +283,7 @@ export const galleryProducts = {
   'innovation-finance': [
     gal('fin-literacy-game', 'FIN-GAME', 'FIN LITERACY GAME', '财商素养动画游戏互动系统', '沉浸式财商游戏 · 9 大精品动画', '系统采用沉浸式财商模拟游戏形式，以"财富自由"为核心目标，集成资产配置、风险应对、现金流管控等金融逻辑，配 9 大财商精品动画。', '经济金融类课程', 2, PRODUCT_NAMES['innovation-finance']),
     gal('venture-capital', 'VC', 'VENTURE CAPITAL', '风险投资虚拟仿真系统', '注册制一级市场募投管退', '系统模拟注册制下一级市场基金投资运作，完整覆盖私募股权投资募、投、管、退四个流程，含财务尽调、估值、IPO 发行与择机退出收益分配。', '投资学、金融学、财务管理', 3, PRODUCT_NAMES['innovation-finance']),
-    gal('fin-sim-trading', 'SIM-TRADE', 'SIMULATED TRADING', '金融模拟交易教学系统', '六大交易所实时行情 · 精准撮合', '系统严格按真实交易所规则设计，接入国内六大交易所实时行情，清算中心与撮合引擎分离，提供股票、基金、期货模拟交易与竞赛排名机制。', '投资学、金融工程', 4, PRODUCT_NAMES['innovation-finance']),
+    gal('fin-sim-trading', 'SIM-TRADE', 'SIMULATED TRADING', '金融模拟交易教学系统', '六大交易所实时行情 · 精准撮合', '系统严格按真实交易所规则设计，接入国内六大交易所实时行情，清算中心与撮合引擎分离，提供股票、基金、期货模拟交易与竞赛排名机制。', '投资学、金融工程', 3, PRODUCT_NAMES['innovation-finance']),
     gal('corporate-fin', 'CORP-FIN', 'CORPORATE FINANCE', '公司金融实训系统', '七大模块 · 18 个教学任务', '系统涵盖收益与风险、价值评估、投资决策、融资决策、营运资本管理、公司财务分析、财务预警七大模块共 18 个教学任务，引入 Python 计算与可视化。', '金融学、财务管理', 3, PRODUCT_NAMES['innovation-finance']),
     gal('supply-chain-fin', 'SCF', 'SUPPLY CHAIN FINANCE', '供应链金融教学系统', '五种供应链融资业务模式实验', '系统涵盖存货质押、保兑仓、应收账款质押、正向保理、反向保理五种融资业务模式实验，支持个人与分组分角色团队实验，自动评分统计成绩。', '金融学、供应链管理', 2, PRODUCT_NAMES['innovation-finance']),
     gal('wealth-planning', 'WEALTH', 'WEALTH PLANNING', '智能理财分析教学系统', '理财顾问岗位全流程规划', '系统参照真实理财机构要求、基于理财顾问岗位流程设计，涵盖风险测评、家庭财务报表分析到投资、保险、税务、传承规划的完整理财规划流程。', '金融学、财务管理', 2, PRODUCT_NAMES['innovation-finance']),
@@ -310,7 +310,7 @@ export const galleryProducts = {
     gal('ecom-product-dev', 'EC-DEV', 'E-COMMERCE PRODUCT DEV', '互联网产品开发实验系统', '选品 · 投放 · 供应 · 评估全岗位', '系统依托真实工作场景与电商核心业务岗位提炼技能点，实训涵盖市场需求挖掘、产品规划、投放测试、供应渠道管理与产品评估考核。', '电子商务、数字经济', 2, PRODUCT_NAMES['ecommerce']),
     gal('online-store', 'STORE-OPS', 'ONLINE STORE OPS', '网店运营实训系统', '开店 · 装修 · 推广 · 客服全岗位', '网店运营实训系统：覆盖网店开设、装修、商品管理、营销推广与客服售后等运营全岗位流程，支撑电子商务运营综合实训。', '电子商务', 2, PRODUCT_NAMES['ecommerce']),
     gal('cross-border-ecom', 'CB-ECOM', 'CROSS-BORDER E-COMMERCE', '跨境电商综合实训平台', '跨境开店 · 物流支付全流程', '跨境电商综合实训平台：覆盖跨境店铺开设、选品刊登、物流与海外仓、跨境支付结算与售后客服全流程，支撑跨境电商运营综合实训。', '电子商务、国际经济与贸易', 1, PRODUCT_NAMES['ecommerce']),
-    gal('ecom-bigdata', 'EC-BD', 'E-COMMERCE BIG DATA', '电商大数据综合分析平台', '行业 · 竞争 · 用户数据分析', '电商大数据综合分析平台覆盖行业、竞争与用户数据分析实训，配考核、考试与资源中心，支撑数据化选品、运营与营销决策实验。', '电子商务、数字经济', 3, PRODUCT_NAMES['ecommerce']),
+    gal('ecom-bigdata', 'EC-BD', 'E-COMMERCE BIG DATA', '电商大数据综合分析平台', '行业 · 竞争 · 用户数据分析', '电商大数据综合分析平台覆盖行业、竞争与用户数据分析实训，配考核、考试与资源中心，支撑数据化选品、运营与营销决策实验。', '电子商务、数字经济', 2, PRODUCT_NAMES['ecommerce']),
   ],
   'smart-products': [
     /* 具身智能机器人：原 01 独立体系并入此处，embodied 标记让画廊选中它时展开
@@ -319,7 +319,7 @@ export const galleryProducts = {
     { ...gal('embodied-robot', 'EMBODIED', 'EMBODIED ROBOT', '具身智能 · 机器人', '人形 · 机械臂 · 移动视觉成套 · 3D 展台', '具身智能机器人实验室：人形、机械臂、移动与视觉成套装备，覆盖运动学、控制与抓取实训，配空间规划、课程体系与师资培训一体交付。选中即可进入 3D 环形展台逐型号查看。', '机器人工程、人工智能', 0, PRODUCT_NAMES['smart-products']), embodied: true },
     gal('ai-fin-coach', 'AI-COACH', 'AI FIN COACH', 'AI金融智能陪练实训系统', '数字人话术陪练 · 沉浸式对话训练', '系统融合语音合成与识别、大语言模型、智能体、数字人及数据分析等前沿 AI 技术，提供高度仿真的沉浸式对话训练场景与结构化话术陪练。', '金融学、数字经济', 2, PRODUCT_NAMES['smart-products']),
     gal('ai-insurance-agent', 'AI-INS', 'AI INSURANCE AGENT', 'AI保险智能体平台', '保险大模型 · 智能体问答', 'AI 保险智能体平台：以大模型与保险知识库驱动的智能体，覆盖产品讲解、投保咨询、核保理赔问答与话术陪练，支撑保险科技场景实训。', '保险学、金融科技', 1, PRODUCT_NAMES['smart-products']),
-    gal('ai-advisor-robot', 'AI-ADVISOR', 'AI ADVISOR ROBOT', 'AI智能投顾机器人', '智能投顾 · 理财对话机器人', 'AI 智能投顾机器人：面向理财与投顾场景的对话机器人，结合用户画像与资产配置模型提供智能投顾问答与理财建议演示。', '金融学、投资学', 2, PRODUCT_NAMES['smart-products']),
+    gal('ai-advisor-robot', 'AI-ADVISOR', 'AI ADVISOR ROBOT', 'AI智能投顾机器人', '智能投顾 · 理财对话机器人', 'AI 智能投顾机器人：面向理财与投顾场景的对话机器人，结合用户画像与资产配置模型提供智能投顾问答与理财建议演示。', '金融学、投资学', 1, PRODUCT_NAMES['smart-products']),
     gal('ai-digital-human', 'DH-COURSE', 'AI DIGITAL HUMAN COURSEWARE', 'AI数字人应用智能课件平台', '一键备课 · 数字人课件生成', 'AI 数字人智能课件平台提供一键备课、PPT 生成、语音克隆、数字人视频与教学视频生成，把课程大纲变成可交付的数字人课件。', '数字媒体艺术、教育技术', 2, PRODUCT_NAMES['smart-products']),
     gal('vision-sorting', 'VISION-SORT', 'VISION SORTING', '智能视觉分拣教学实训设备', '机器视觉 · 分拣实训装备', '智能视觉分拣教学实训设备：以机器视觉识别与机械分拣一体的实训装备，覆盖图像采集、目标识别与分拣控制实验，支撑智能制造与机器视觉课程。', '人工智能、智能制造', 2, PRODUCT_NAMES['smart-products']),
   ],

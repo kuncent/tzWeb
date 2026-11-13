@@ -749,6 +749,8 @@ function CompetitionStage({ items }) {
      在滚、缩略图纹丝不动，就觉得"不能滚"。这里用 preventDefault 吃掉纵向
      deltaY、转成 scrollLeft，滚动到头时再让事件冒泡回页面 */
   const rowRef = useRef(null)
+  const suppressClick = useRef(false)
+  const [dragging, setDragging] = useState(false)
   useEffect(() => {
     const row = rowRef.current
     if (!row) return
@@ -768,6 +770,62 @@ function CompetitionStage({ items }) {
     }
     row.addEventListener('wheel', onWheel, { passive: false })
     return () => row.removeEventListener('wheel', onWheel)
+  }, [])
+
+  /* 鼠标按住左右拖（触屏走原生横滑）：只认左键，中键留给浏览器自动滚屏。
+     滚动条是隐藏的，只靠滚轮的话 PC 上按住拖不动，看着像这条带子卡死。
+     拖过 6px 才算拖动，松手后吞掉那一下点击，免得拖完顺手把主图换了。 */
+  useEffect(() => {
+    const row = rowRef.current
+    if (!row) return
+    let active = false
+    let moved = false
+    let startX = 0
+    let startLeft = 0
+    const onDown = (e) => {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return
+      active = true
+      moved = false
+      startX = e.clientX
+      startLeft = row.scrollLeft
+    }
+    const onMove = (e) => {
+      if (!active) return
+      const dx = e.clientX - startX
+      if (!moved && Math.abs(dx) < 6) return
+      if (!moved) {
+        moved = true
+        setDragging(true)
+        row.style.userSelect = 'none'
+      }
+      row.scrollLeft = startLeft - dx
+    }
+    const onUp = () => {
+      if (!active) return
+      active = false
+      if (!moved) return
+      setDragging(false)
+      row.style.userSelect = ''
+      suppressClick.current = true
+    }
+    const onClick = (e) => {
+      if (!suppressClick.current) return
+      suppressClick.current = false
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    row.addEventListener('pointerdown', onDown)
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    window.addEventListener('pointercancel', onUp)
+    row.addEventListener('click', onClick, true)
+    return () => {
+      row.removeEventListener('pointerdown', onDown)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onUp)
+      row.removeEventListener('click', onClick, true)
+    }
   }, [])
 
   return (
@@ -828,7 +886,13 @@ function CompetitionStage({ items }) {
             </span>
           </div>
 
-          <div ref={rowRef} data-lenis-prevent-wheel className="mt-2.5 flex shrink-0 flex-nowrap items-center gap-1.5 overflow-x-auto no-scrollbar [&>*]:flex-none">
+          <div
+            ref={rowRef}
+            data-lenis-prevent-wheel
+            className={`mt-2.5 flex shrink-0 flex-nowrap items-center gap-1.5 overflow-x-auto no-scrollbar [&>*]:flex-none ${
+              dragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+          >
             {items.map((it, i) => {
               const on = i === cur
               return (

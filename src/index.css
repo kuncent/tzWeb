@@ -688,6 +688,14 @@
   ::selection {
     @apply bg-brand/20 text-ink-900;
   }
+  /* ―― 全站图片保护：禁止拖拽另存、禁止右键图菜单所需的选中能力
+     注意：-webkit-user-drag 只影响拖拽到桌面保存，不影响 wheel 事件，
+     不会和 Lenis 或缩略图横向滚动冲突 */
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
   /* ―― 键盘焦点环（P2⑦）――
      之前全站只有滚动条有 focus ring，按钮/链接/输入框键盘聚焦时裸着一层，
      这是“高端产品”最容易被技术负责人/无障碍审查一眼看出来的破绽。

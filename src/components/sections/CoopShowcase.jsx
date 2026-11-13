@@ -744,6 +744,31 @@ function CompetitionStage({ items }) {
   const n = items.length
   const [cur, setCur] = useState(0)
   const at = items[cur]
+  /* 缩略图横向滚动行的 ref —— 挂 wheel 事件把鼠标滚轮翻译成横向滚动。
+     浏览器默认不会让 overflow-x-auto 响应物理滚轮，PC 用户滚一下发现页面
+     在滚、缩略图纹丝不动，就觉得"不能滚"。这里用 preventDefault 吃掉纵向
+     deltaY、转成 scrollLeft，滚动到头时再让事件冒泡回页面 */
+  const rowRef = useRef(null)
+  useEffect(() => {
+    const row = rowRef.current
+    if (!row) return
+    /* 把鼠标滚轮 deltaY 翻译成横向 scrollLeft。
+       行上挂了 data-lenis-prevent-wheel，Lenis（1.1.14）在 wheel handler 里
+       看到这个属性就提前 return，不会拦截事件 —— 我们用普通冒泡就能收到 */
+    const onWheel = (e) => {
+      const dx = Math.abs(e.deltaX), dy = Math.abs(e.deltaY)
+      if (dx > dy) return                         // 触控板横滑不干预
+      const d = e.deltaY
+      const atStart = row.scrollLeft <= 0 && d < 0
+      const atEnd = row.scrollLeft + row.clientWidth >= row.scrollWidth - 1 && d > 0
+      if (atStart) return                         // 左尽头：放行给 Lenis 让页面滚
+      if (atEnd) return                           // 右尽头：放行
+      e.preventDefault()
+      row.scrollLeft += d
+    }
+    row.addEventListener('wheel', onWheel, { passive: false })
+    return () => row.removeEventListener('wheel', onWheel)
+  }, [])
 
   return (
     <div className="relative flex h-full min-h-[460px] flex-col overflow-hidden md:min-h-0">
@@ -803,7 +828,7 @@ function CompetitionStage({ items }) {
             </span>
           </div>
 
-          <div className="mt-2.5 grid shrink-0 grid-cols-6 gap-1.5">
+          <div ref={rowRef} data-lenis-prevent-wheel className="mt-2.5 flex shrink-0 flex-nowrap items-center gap-1.5 overflow-x-auto no-scrollbar [&>*]:flex-none">
             {items.map((it, i) => {
               const on = i === cur
               return (
@@ -813,7 +838,7 @@ function CompetitionStage({ items }) {
                   onClick={() => setCur(i)}
                   aria-label={it.caption}
                   aria-current={on ? 'true' : undefined}
-                  className={`relative h-11 overflow-hidden rounded-[3px] ring-1 transition-all duration-500 ${
+                  className={`relative h-11 w-20 shrink-0 overflow-hidden rounded-[3px] ring-1 transition-all duration-500 sm:w-24 md:w-20 lg:w-24 ${
                     on ? 'ring-white/45' : 'ring-white/10 hover:ring-white/25'
                   }`}
                 >

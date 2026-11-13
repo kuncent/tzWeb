@@ -28,6 +28,23 @@ if (IS_PREVIEW && typeof document !== 'undefined') {
   })
 }
 
+/* ―― 全站图片保护：阻止右键「图片另存为」菜单
+   只拦截 target 本身就是 <img> 的事件 —— 按钮里包着 <img> 的缩略图 / 卡片图，
+   用户右键按钮本体不会被拦；右键 <img> 才吃掉，彻底禁掉「在新标签打开图片」
+   和「图片另存为」两个通道。拖拽和选中已由 index.css 的 img 规则禁掉 */
+if (typeof document !== 'undefined') {
+  document.addEventListener(
+    'contextmenu',
+    (ev) => {
+      const t = ev.target
+      if (t && t.nodeType === 1 && t.tagName === 'IMG') {
+        ev.preventDefault()
+      }
+    },
+    true,
+  )
+}
+
 /* ―― 首屏 loading 角标的交棒时机 ――
    角标不挡页面（只一枚胶囊，pointer-events:none），它标的是「具身首屏还没得演」
    那一段：不是「React 说渲染完了」，也不是「那一帧上了屏」，而是「首屏动画能开始演」：

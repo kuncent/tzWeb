@@ -88,7 +88,17 @@ export default function Competition() {
       rows.map((r) => {
         const p = parseNote(r.note)
         const members = p.members.length ? p.members : [r.name].filter(Boolean)
-        return { ...r, team: p.team, members, advisors: p.advisors, email: p.email, extra: p.extra, phones: Array.isArray(r.phones) ? r.phones : [] }
+        return {
+          ...r,
+          team: p.team,
+          members,
+          advisors: p.advisors,
+          email: p.email,
+          extra: p.extra,
+          phones: Array.isArray(r.phones) ? r.phones : [],
+          classes: Array.isArray(r.classes) ? r.classes : [],
+          sids: Array.isArray(r.sids) ? r.sids : [],
+        }
       }),
     [rows],
   )
@@ -304,19 +314,23 @@ function TeamDetail({ team, canWrite, onStatus }) {
             {team.members.length} / 4
           </span>
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-2 sm:grid-cols-2">
           {team.members.map((m, i) => (
-            <span
-              key={`${m}-${i}`}
-              className="inline-flex items-center gap-2 rounded-lg border border-ink-900/8 bg-mist-100 px-2.5 py-1.5 text-[12.5px] text-ink-800"
-            >
-              <span className="font-mono text-[10px] text-ink-400">{String(i + 1).padStart(2, '0')}</span>
-              {m}
-              {team.phones?.[i] && (
-                <span className="font-mono text-[11px] tabular-nums text-ink-400">{team.phones[i]}</span>
-              )}
-              {i === 0 && <span className="rounded bg-brand/10 px-1.5 py-0.5 text-[10px] text-brand">队长</span>}
-            </span>
+            <div key={`${m}-${i}`} className="rounded-xl border border-ink-900/8 bg-mist-50/60 px-3 py-2.5">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] text-ink-400">{String(i + 1).padStart(2, '0')}</span>
+                <span className="text-[13px] font-medium text-ink-900">{m}</span>
+                {i === 0 && <span className="rounded bg-brand/10 px-1.5 py-0.5 text-[10px] text-brand">队长</span>}
+              </div>
+              <dl className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11.5px]">
+                <dt className="text-ink-400">手机号</dt>
+                <dd className="tabular-nums text-ink-600">{team.phones[i] || '—'}</dd>
+                <dt className="text-ink-400">班级</dt>
+                <dd className="text-ink-600">{team.classes[i] || '—'}</dd>
+                <dt className="text-ink-400">学号</dt>
+                <dd className="tabular-nums text-ink-600">{team.sids[i] || '—'}</dd>
+              </dl>
+            </div>
           ))}
         </div>
       </div>

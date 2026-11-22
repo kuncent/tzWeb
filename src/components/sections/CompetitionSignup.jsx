@@ -33,6 +33,14 @@ const EMPTY = {
   phone2: '',
   phone3: '',
   phone4: '',
+  cls1: '',
+  cls2: '',
+  cls3: '',
+  cls4: '',
+  sid1: '',
+  sid2: '',
+  sid3: '',
+  sid4: '',
   email: '',
   m2: '',
   m3: '',
@@ -115,6 +123,26 @@ export default function CompetitionSignup() {
       if (seenN.has(n)) err.members = '队内成员姓名重复，请核对'
       else seenN.set(n, k)
     }
+    // 每位成员都要填班级与学号；学号在队内不能重复
+    const metas = [
+      ['cls1', 'sid1', form.cls1, form.sid1],
+      ['cls2', 'sid2', form.cls2, form.sid2],
+      ['cls3', 'sid3', form.cls3, form.sid3],
+      ['cls4', 'sid4', form.cls4, form.sid4],
+    ]
+    for (const [ck, sk, c, s] of metas) {
+      if (!(c || '').trim()) err[ck] = '请填写班级'
+      if (!(s || '').trim()) err[sk] = '请填写学号'
+    }
+    const seenS = new Map()
+    for (const [, sk, , s] of metas) {
+      const v = (s || '').trim()
+      if (!v) continue
+      if (seenS.has(v)) {
+        err[sk] = '该学号与队内其他成员重复'
+        err[seenS.get(v)] = '该学号与队内其他成员重复'
+      } else seenS.set(v, sk)
+    }
     setErrors(err)
     if (Object.keys(err).length) return
 
@@ -139,6 +167,8 @@ export default function CompetitionSignup() {
           phone2: form.phone2.trim(),
           phone3: form.phone3.trim(),
           phone4: form.phone4.trim(),
+          classes: [form.cls1, form.cls2, form.cls3, form.cls4].map((v) => v.trim()),
+          sids: [form.sid1, form.sid2, form.sid3, form.sid4].map((v) => v.trim()),
           org: form.school.trim(),
           region: form.region.trim(),
           role: '队长',
@@ -266,6 +296,34 @@ export default function CompetitionSignup() {
             {errors.phone && <span className="mt-1.5 block text-[12px] text-red-500">{errors.phone}</span>}
           </label>
 
+          <label className="block">
+            <span className={labelCls}>
+              班级 <span className="text-[#9a7220]">*</span>
+            </span>
+            <input
+              value={form.cls1}
+              onChange={set('cls1')}
+              placeholder="例如：2024 级财务管理 1 班"
+              className={inputCls}
+              aria-invalid={!!errors.cls1}
+            />
+            {errors.cls1 && <span className="mt-1.5 block text-[12px] text-red-500">{errors.cls1}</span>}
+          </label>
+
+          <label className="block">
+            <span className={labelCls}>
+              学号 <span className="text-[#9a7220]">*</span>
+            </span>
+            <input
+              value={form.sid1}
+              onChange={set('sid1')}
+              placeholder="学号"
+              className={inputCls}
+              aria-invalid={!!errors.sid1}
+            />
+            {errors.sid1 && <span className="mt-1.5 block text-[12px] text-red-500">{errors.sid1}</span>}
+          </label>
+
           <label className="block sm:col-span-2">
             <span className={labelCls}>电子邮箱</span>
             <input
@@ -279,40 +337,74 @@ export default function CompetitionSignup() {
         </div>
       </Fieldset>
 
-      <Fieldset num="03" title="团队成员" hint="含队长共 4 名 · 每人都需填写手机号">
-        <div className="grid gap-5 sm:grid-cols-2">
+      <Fieldset num="03" title="团队成员" hint="含队长共 4 名 · 每人需填手机号、班级与学号">
+        <div className="flex flex-col gap-4">
           {[
-            ['m2', 'phone2', '成员 02'],
-            ['m3', 'phone3', '成员 03'],
-            ['m4', 'phone4', '成员 04'],
-          ].map(([nk, pk, label]) => (
-            <div key={nk} className="contents">
-              <label className="block">
-                <span className={labelCls}>
-                  {label} 姓名 <span className="text-[#9a7220]">*</span>
+            ['m2', 'phone2', 'cls2', 'sid2', '成员 02'],
+            ['m3', 'phone3', 'cls3', 'sid3', '成员 03'],
+            ['m4', 'phone4', 'cls4', 'sid4', '成员 04'],
+          ].map(([nk, pk, ck, sk, label]) => (
+            <div key={nk} className="rounded-[13px] border border-[#e6edf6] bg-[#fafcff] p-4">
+              <p className="mb-3.5 flex items-center gap-2 text-[12.5px] font-bold text-[#3c4f68]">
+                <span className="grid h-5 w-5 place-items-center rounded-[6px] bg-[#eef6ff] font-mono text-[10px] font-extrabold text-[#1f5f9e]">
+                  {label.slice(-2)}
                 </span>
-                <input
-                  value={form[nk]}
-                  onChange={set(nk)}
-                  placeholder="姓名"
-                  className={inputCls}
-                  aria-invalid={!!errors.members}
-                />
-              </label>
-              <label className="block">
-                <span className={labelCls}>
-                  {label} 手机号 <span className="text-[#9a7220]">*</span>
-                </span>
-                <input
-                  value={form[pk]}
-                  onChange={set(pk)}
-                  inputMode="tel"
-                  placeholder="11 位手机号"
-                  className={inputCls}
-                  aria-invalid={!!errors[pk]}
-                />
-                {errors[pk] && <span className="mt-1.5 block text-[12px] text-red-500">{errors[pk]}</span>}
-              </label>
+                {label}
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block">
+                  <span className={labelCls}>
+                    姓名 <span className="text-[#9a7220]">*</span>
+                  </span>
+                  <input
+                    value={form[nk]}
+                    onChange={set(nk)}
+                    placeholder="姓名"
+                    className={inputCls}
+                    aria-invalid={!!errors.members}
+                  />
+                </label>
+                <label className="block">
+                  <span className={labelCls}>
+                    手机号 <span className="text-[#9a7220]">*</span>
+                  </span>
+                  <input
+                    value={form[pk]}
+                    onChange={set(pk)}
+                    inputMode="tel"
+                    placeholder="11 位手机号"
+                    className={inputCls}
+                    aria-invalid={!!errors[pk]}
+                  />
+                  {errors[pk] && <span className="mt-1.5 block text-[12px] text-red-500">{errors[pk]}</span>}
+                </label>
+                <label className="block">
+                  <span className={labelCls}>
+                    班级 <span className="text-[#9a7220]">*</span>
+                  </span>
+                  <input
+                    value={form[ck]}
+                    onChange={set(ck)}
+                    placeholder="例如：2024 级财务管理 1 班"
+                    className={inputCls}
+                    aria-invalid={!!errors[ck]}
+                  />
+                  {errors[ck] && <span className="mt-1.5 block text-[12px] text-red-500">{errors[ck]}</span>}
+                </label>
+                <label className="block">
+                  <span className={labelCls}>
+                    学号 <span className="text-[#9a7220]">*</span>
+                  </span>
+                  <input
+                    value={form[sk]}
+                    onChange={set(sk)}
+                    placeholder="学号"
+                    className={inputCls}
+                    aria-invalid={!!errors[sk]}
+                  />
+                  {errors[sk] && <span className="mt-1.5 block text-[12px] text-red-500">{errors[sk]}</span>}
+                </label>
+              </div>
             </div>
           ))}
         </div>

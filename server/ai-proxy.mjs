@@ -521,30 +521,41 @@ export async function aiProxy(req, res, next) {
       if (Object.keys(err).length) return json(res, 422, { error: 'invalid', fields: err })
 
       /* 竞赛报名额外规则（source 以 competition 开头）：
-         · 4 名成员各填 11 位手机号，队内手机号 / 姓名去重（前端先挡，服务端兜底）；
-         · 每位选手限报一支队伍：任一手机号已在已报名队伍出现即拦截；
+         · 4 名成员各填 11 位手机号 + 班级 + 学号，队内手机号 / 学号去重（前端先挡，服务端兜底）；
+         · 每位选手限报一支队伍：手机号全局唯一，学号按「学校 + 学号」唯一；
          · 每所学校最多报名 4 支队伍：按 org 精确匹配计数。 */
       const isComp = String(body.source || '').startsWith('competition')
-      let compPhones = null
+      let compFields = null
       if (isComp) {
         const phone2 = str(body.phone2, 20)
         const phone3 = str(body.phone3, 20)
         const phone4 = str(body.phone4, 20)
         const phones = [phone, phone2, phone3, phone4]
+        const classes = (Array.isArray(body.classes) ? body.classes : []).slice(0, 4).map((v) => str(v, 40))
+        const sids = (Array.isArray(body.sids) ? body.sids : []).slice(0, 4).map((v) => str(v, 30))
         const keyAt = (i) => (i === 0 ? 'phone' : `phone${i + 1}`)
         const compErr = {}
-        for (let i = 0; i < phones.length; i++) {
+        for (let i = 0; i < 4; i++) {
           if (!/^1\d{10}$/.test(phones[i])) compErr[keyAt(i)] = '请输入正确的 11 位手机号'
+          if (!classes[i]) compErr[`cls${i + 1}`] = '请填写班级'
+          if (!sids[i]) compErr[`sid${i + 1}`] = '请填写学号'
         }
-        const seen = new Map()
-        for (let i = 0; i < phones.length; i++) {
+        const seenP = new Map()
+        const seenS = new Map()
+        for (let i = 0; i < 4; i++) {
           const p = phones[i]
-          if (!p) continue
-          if (seen.has(p)) {
-            compErr[keyAt(i)] = '该手机号与队内其他成员重复'
-            compErr[keyAt(seen.get(p))] = '该手机号与队内其他成员重复'
-          } else {
-            seen.set(p, i)
+          if (p) {
+            if (seenP.has(p)) {
+              compErr[keyAt(i)] = '该手机号与队内其他成员重复'
+              compErr[keyAt(seenP.get(p))] = '该手机号与队内其他成员重复'
+            } else seenP.set(p, i)
+          }
+          const s = sids[i]
+          if (s) {
+            if (seenS.has(s)) {
+              compErr[`sid${i + 1}`] = '该学号与队内其他成员重复'
+              compErr[`sid${seenS.get(s) + 1}`] = '该学号与队内其他成员重复'
+            } else seenS.set(s, i)
           }
         }
         if (!Object.keys(compErr).length) {
@@ -555,19 +566,26 @@ export async function aiProxy(req, res, next) {
             existing = []
           }
           existing = existing.filter((r) => String(r.source || '').startsWith('competition'))
-          // 每位选手限报一支队伍：收集所有已报名队伍的手机号
+          const orgNorm = org.trim()
+          // 每位选手限报一支队伍：手机号全局唯一；学号按「学校 + 学号」唯一
           const usedPhones = new Set()
+          const usedSids = new Set()
           for (const r of existing) {
             const list = Array.isArray(r.phones) && r.phones.length ? r.phones : [r.phone]
             for (const p of list) if (p) usedPhones.add(String(p).trim())
+            if (Array.isArray(r.sids)) {
+              for (const s of r.sids) if (s) usedSids.add(`${String(r.org || '').trim()}::${String(s).trim()}`)
+            }
           }
-          for (let i = 0; i < phones.length; i++) {
+          for (let i = 0; i < 4; i++) {
             if (phones[i] && usedPhones.has(phones[i])) {
               compErr[keyAt(i)] = '该手机号已报名其他队伍，每位选手限报一支队伍'
             }
+            if (sids[i] && usedSids.has(`${orgNorm}::${sids[i]}`)) {
+              compErr[`sid${i + 1}`] = '该学号已报名其他队伍，每位选手限报一支队伍'
+            }
           }
           // 每校最多 4 支队伍
-          const orgNorm = org.trim()
           if (orgNorm) {
             const schoolCount = existing.filter((r) => (r.org || '').trim() === orgNorm).length
             if (schoolCount >= 4) {
@@ -576,7 +594,7 @@ export async function aiProxy(req, res, next) {
           }
         }
         if (Object.keys(compErr).length) return json(res, 422, { error: 'invalid', fields: compErr })
-        compPhones = phones
+        compFields = { phones, classes, sids }
       }
 
       const record = {
@@ -586,7 +604,11 @@ export async function aiProxy(req, res, next) {
         source: str(body.source, 40) || 'site-contact',
         name, phone, org, region, role, product, note,
       }
-      if (compPhones) record.phones = compPhones
+      if (compFields) {
+        record.phones = compFields.phones
+        record.classes = compFields.classes
+        record.sids = compFields.sids
+      }
       try {
         sinkLead(record)
       } catch (e) {

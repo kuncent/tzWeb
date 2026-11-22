@@ -23,6 +23,7 @@ const Devices = lazy(() => import('./pages/Devices'))
 const Cases = lazy(() => import('./pages/Cases'))
 const SchoolEnterprise = lazy(() => import('./pages/SchoolEnterprise'))
 const PartnershipPreview = lazy(() => import('./pages/PartnershipPreview'))
+const Competition = lazy(() => import('./pages/Competition'))
 const About = lazy(() => import('./pages/About'))
 
 /* 管理后台整棵子树懒加载：/admin 才拉自己的块，不进营销首屏的 entry chunk。
@@ -101,6 +102,7 @@ function SiteShell() {
               <Route path="/partnership" element={<SchoolEnterprise />} />
               {/* 校企合作新版合作板块的预览副本：不影响 /partnership 正式内容 */}
               <Route path="/partnership-preview" element={<PartnershipPreview />} />
+              <Route path="/competition" element={<Competition />} />
               <Route path="/about" element={<About />} />
               {/* 兜底路由保留：导航里万一又少接一个页，Placeholder 会直接
                   把路径显示出来（见 pages/Placeholder.jsx），比白屏好查 */}

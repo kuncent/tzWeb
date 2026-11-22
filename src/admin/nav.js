@@ -7,7 +7,7 @@
  * ============================================================ */
 import {
   LayoutDashboard, Inbox, FileText, Users as UsersIcon, Settings as SettingsIcon,
-  BarChart3, SearchCheck, Sparkles, ScrollText,
+  BarChart3, SearchCheck, Sparkles, ScrollText, Trophy,
 } from 'lucide-react'
 
 /* 每项：{ path, label, icon, perm, end? }
@@ -18,6 +18,7 @@ export const NAV_GROUPS = [
   ]},
   { title: '销售', items: [
     { path: '/admin/leads', label: '线索管理', icon: Inbox, perm: 'leads.read' },
+    { path: '/admin/competition', label: '竞赛报名', icon: Trophy, perm: 'leads.read' },
   ]},
   { title: '运营', items: [
     { path: '/admin/analytics', label: '访问统计', icon: BarChart3, perm: 'analytics.read' },

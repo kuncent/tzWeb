@@ -34,7 +34,7 @@ import { fileURLToPath } from 'node:url'
 import { generateDeck, offlineDeckEvents } from './maic-deck.mjs'
 import { handleAdmin, readPublishedContent, ensureAdminBoot, configureAdmin } from './admin.mjs'
 import { handleTrack } from './tracker.mjs'
-import { FILES, appendJsonl } from './data.mjs'
+import { FILES, appendJsonl, readJsonl } from './data.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 /* 找 .env 的候选目录：被 Vite 的 config 加载器打包时，import.meta.url 会指向
@@ -108,6 +108,24 @@ function leadRateOk(ip) {
   }
   rec.n++
   return rec.n <= LEAD_MAX
+}
+
+/* ---------- 赛事看板（公开只读） ----------
+   截止时间按通知口径：12 月 05 日报名结束，即 12-06 00:00（UTC+8）。
+   已报名队伍数 = 线索表里 source 以 competition 开头的记录数；
+   读失败时沿用上一次缓存值，绝不因读盘异常把看板打成 0。 */
+const COMPETITION_DEADLINE = '2026-12-06T00:00:00+08:00'
+let TEAM_STAT = { at: 0, n: 0 }
+function competitionTeamCount() {
+  const now = Date.now()
+  if (now - TEAM_STAT.at < 30000) return TEAM_STAT.n
+  try {
+    const n = readJsonl(FILES.leads).filter((r) => String(r.source || '').startsWith('competition')).length
+    TEAM_STAT = { at: now, n }
+    return n
+  } catch {
+    return TEAM_STAT.n
+  }
 }
 
 /* ---------- 2. 提示词：把「一堂课」压成可校验的 JSON ---------- */
@@ -438,6 +456,19 @@ export async function aiProxy(req, res, next) {
     res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-cache', etag })
     res.end(body)
     return
+  }
+
+  /* 赛事看板：报名截止时间 + 已报名队伍数（公开只读，不含任何 PII）。
+     「一支队伍 = 一条 source 以 competition 开头的线索」，与报名表提交口径一致。
+     30s 缓存：首页/竞赛页刷新会反复打这个接口，不必每次都全量读 JSONL。 */
+  if (url === '/competition/stats') {
+    allowCors(req, res)
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204).end()
+      return
+    }
+    if (req.method !== 'GET') return json(res, 405, { error: 'method-not-allowed' })
+    return json(res, 200, { deadline: COMPETITION_DEADLINE, teams: competitionTeamCount() })
   }
 
   if (url !== '/health' && url !== '/chat' && url !== '/classroom' && url !== '/prepare' && url !== '/lead') {

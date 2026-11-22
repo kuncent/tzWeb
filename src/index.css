@@ -1081,45 +1081,24 @@ html.lenis body {
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 70%, transparent);
   mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 70%, transparent);
 }
-/* ―― 首屏竞技场：刻度环 / 扫描弧 / 节点脉冲 / 中心换场 ―― */
-@keyframes arena-spin { to { transform: rotate(360deg); } }
-.arena-spin { animation: arena-spin 8s linear infinite; }
-.arena-spin-rev { animation: arena-spin 46s linear infinite reverse; }
-.arena-arc {
-  background: conic-gradient(
-    from 0deg,
-    rgba(217, 189, 131, 0) 0deg,
-    rgba(217, 189, 131, 0) 244deg,
-    rgba(217, 189, 131, 0.55) 330deg,
-    #f5e4bd 356deg,
-    rgba(217, 189, 131, 0) 360deg
-  );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+/* ―― 竞赛页（浅色版）：首屏金色流光标题 + 漂浮光斑 ―― */
+.hero-shine {
+  background: linear-gradient(100deg, #e8b863, #fff3d2 28%, #e8b863 56%, #f7d9a0 78%, #d9a441);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: hero-shine 7s linear infinite;
 }
-.arena-ticks {
-  background: repeating-conic-gradient(from 0deg, rgba(169, 223, 255, 0.55) 0 0.4deg, transparent 0.4deg 6deg);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px));
+@keyframes hero-shine {
+  to { background-position: -220% 0; }
 }
-@keyframes arena-pulse {
-  0% { transform: scale(1); opacity: 0.6; }
-  75%, 100% { transform: scale(1.45); opacity: 0; }
+@keyframes comp-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(30px, -40px, 0) scale(1.1); }
 }
-.arena-pulse { animation: arena-pulse 2.6s ease-out infinite; }
-@keyframes arena-item {
-  from { opacity: 0; transform: translateY(14px) scale(0.97); }
-  to { opacity: 1; transform: none; }
-}
-.arena-item { animation: arena-item 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
-/* 赛程轨道上往返的一粒光 */
-@keyframes comp-track {
-  0% { left: 0%; opacity: 0; }
-  12% { opacity: 1; }
-  88% { opacity: 1; }
-  100% { left: 100%; opacity: 0; }
-}
-.comp-track { animation: comp-track 7s ease-in-out infinite; }
+.comp-float { animation: comp-float 16s ease-in-out infinite; }
+.comp-float-slow { animation: comp-float 22s ease-in-out infinite reverse; }
 @media (prefers-reduced-motion: reduce) {
-  .arena-spin, .arena-spin-rev, .arena-pulse, .arena-item, .comp-track { animation: none; }
+  .hero-shine, .comp-float, .comp-float-slow { animation: none; }
 }

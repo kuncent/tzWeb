@@ -1,10 +1,22 @@
 import StoryHero from '../components/sections/StoryHero'
+import CompetitionModules from '../components/sections/CompetitionModules'
 
-/* 首页现在只有首屏那一块：具身 / 区块链 / AI 三屏业务特效（钉屏三切，看板可交互）。
-   原来的「挑战与问题 / AI 方案顾问 / 技术架构 / AI 能力 / 联系我们」五屏已下线：
-   前四个模块整块去掉，「联系我们」表单迁到关于我们页（/about#contact，见 pages/About.jsx）。
-   没有首屏之下的延后挂载屏，这里也就不再需要那套动态 import + idle 门控的机制
-   （旧版靠它把首屏之下的重依赖摘出入口 chunk —— 现在摘无可摘，直接留静态首屏）。 */
+/* 首页 = 首屏那块三屏业务特效 + 2026 大赛的四个环节。
+   环节区接在首屏羽化色 #0a1a2e 上（首屏底部渐变正好落到这个色），
+   下方直接接页脚，整段没有色阶台阶。 */
 export default function Home() {
-  return <StoryHero />
+  return (
+    <>
+      <StoryHero />
+      <CompetitionModules
+        id="competition-modules"
+        bg="bg-[#0a1a2e]"
+        no={null}
+        kicker="2026 NATIONAL COMPETITION"
+        title="赛场上的四个环节"
+        sub="2026 年全国数智财经综合应用大赛：参赛团队在企业数字化经营、财务、税务、金融投资四个环节连续博弈。"
+        link={{ to: '/competition', label: '了解赛事与报名' }}
+      />
+    </>
+  )
 }

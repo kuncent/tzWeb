@@ -13,6 +13,7 @@ import Shell from './Shell'
 import Login from './Login'
 import Dashboard from './Dashboard'
 import Leads from './Leads'
+import Competition from './Competition'
 import Content from './Content'
 import Users from './Users'
 import Settings from './Settings'
@@ -56,6 +57,7 @@ function Gate() {
       <Route path="/admin" element={<Shell />}>
         <Route index element={<Dashboard />} />
         <Route path="leads" element={<RequirePerm perm="leads.read"><Leads /></RequirePerm>} />
+        <Route path="competition" element={<RequirePerm perm="leads.read"><Competition /></RequirePerm>} />
         <Route path="content" element={<RequirePerm perm="content.read"><Content /></RequirePerm>} />
         <Route path="analytics" element={<RequirePerm perm="analytics.read"><Analytics /></RequirePerm>} />
         <Route path="seo" element={<RequirePerm perm="audit.read"><Seo /></RequirePerm>} />

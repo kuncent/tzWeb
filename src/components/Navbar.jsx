@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { Menu, X, Search, Compass, ChevronDown, ArrowRight, Sparkles } from 'lucide-react'
+import { Menu, X, Search, Compass, ChevronDown, ArrowRight, Sparkles, Trophy } from 'lucide-react'
 import SiteSearch from './SiteSearch'
 import { BrandLockup } from './Brand'
 import { nav, navCta, productMatrix } from '../data/site'
@@ -11,12 +11,14 @@ import { requestMatrixIndex } from '../lib/matrixNav'
 
 /* 这些页的第一屏是暗底 PageHero（与首页首屏同一底色）。顶栏在
    页首要保持透明 + 浅色字，否则深色 logo 压在暗底上读不出来。 */
-const DARK_HERO_PATHS = new Set(['/solutions', '/products', '/devices', '/about'])
+const DARK_HERO_PATHS = new Set(['/solutions', '/products', '/devices', '/about', '/competition'])
 
 /* 这些页整页都是暗底（产品页第一屏是 sticky 钉死的暗色矩阵，其后没有
    浅色内容）：顶栏要一路保持透明 + 浅色字，不能按普通页那样滚一点就翻白底，
-   否则浅色 bar 压在暗画面上会很突兀。 */
-const DARK_THROUGHOUT_PATHS = new Set(['/products'])
+   否则浅色 bar 压在暗画面上会很突兀。
+   竞赛页同理：整页深海军蓝 + 鎏金，只有末尾 04/05 是浅色带；顶栏在这里
+   也保持暗玻璃 + 浅色字，翻白底会跟页面色调打架。 */
+const DARK_THROUGHOUT_PATHS = new Set(['/products', '/competition'])
 
 /* 「智云平台」是外链：新标签打开外部登录页，不占用站内路由。 */
 const CLOUD_URL = 'https://zycloud.sztzjy.com/Login'
@@ -68,6 +70,7 @@ export default function Navbar() {
   const suppressFocusOpen = useRef(false) // Esc 把焦点还给触发项时，别让 onFocus 又把面板弹开
   const [flyLeft, setFlyLeft] = useState(0) // 面板相对触发项的 left（px）
   const onHome = location.pathname === '/'
+  const onCompetition = location.pathname === '/competition'
   const navRef = useRef(null)
   /* 选中项背景胶囊位置（measurePill 量出）；null = 不显 */
   const [pillBox, setPillBox] = useState(null)
@@ -243,7 +246,9 @@ export default function Navbar() {
         solid
           ? 'border-b border-ink-900/[0.06] bg-white/80 shadow-soft backdrop-blur-xl'
           : solidDark
-            ? 'border-b border-white/[0.07] bg-night/85 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.9)] backdrop-blur-xl'
+            ? `border-b shadow-[0_10px_30px_-18px_rgba(0,0,0,0.9)] backdrop-blur-xl ${
+                onCompetition ? 'border-[#d9bd83]/20 bg-[#050b18]/90' : 'border-white/[0.07] bg-night/85'
+              }`
             : 'bg-transparent'
       }`}
     >
@@ -440,6 +445,50 @@ export default function Navbar() {
               aria-hidden
             />
           <div className="hidden items-center gap-1.5 lg:flex xl:gap-2.5">
+            {/* 竞赛：当前正在进行的活动，放在辅助入口最左侧（智云平台左边）。
+                常态就是一枚带呼吸点的品牌浅底胶囊 + NEW 角标，比普通导航项更抓眼；
+                进入本页后转实心，位置与宽度不变，避免选中时顶栏元素跳动。 */}
+            <Link
+              to="/competition"
+              aria-current={onCompetition ? 'page' : undefined}
+              className={`group/live relative hidden shrink-0 items-center gap-2 overflow-hidden rounded-full px-3.5 py-2 text-ui-sm font-medium ring-1 ring-inset transition-all duration-300 lg:inline-flex ${
+                onCompetition
+                  ? light
+                    ? 'bg-[#d9bd83] text-[#111b29] ring-[#d9bd83] hover:bg-[#e4c994]'
+                    : 'bg-brand text-white ring-brand hover:bg-brand-600'
+                  : light
+                    ? 'bg-white/[0.14] text-white ring-white/25 hover:bg-white/[0.22]'
+                    : 'bg-brand-soft text-brand-text ring-brand/20 hover:bg-brand-soft/70'
+              }`}
+            >
+              <span className="relative flex h-[6px] w-[6px] shrink-0" aria-hidden>
+                <span
+                  className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-70 motion-reduce:animate-none ${
+                    onCompetition ? 'bg-current' : light ? 'bg-accent-ice' : 'bg-brand'
+                  }`}
+                />
+                <span
+                  className={`relative inline-flex h-[6px] w-[6px] rounded-full ${
+                    onCompetition ? 'bg-current' : light ? 'bg-accent-ice' : 'bg-brand'
+                  }`}
+                />
+              </span>
+              竞赛
+              <span
+                className={`rounded-full px-1.5 py-0.5 font-mono text-[8.5px] font-semibold leading-none tracking-[0.08em] ${
+                  onCompetition
+                    ? light
+                      ? 'bg-[#111b29]/85 text-[#f5e4bd]'
+                      : 'bg-white/25 text-white'
+                    : light
+                      ? 'bg-white/25 text-white'
+                      : 'bg-brand text-white'
+                }`}
+              >
+                NEW
+              </span>
+            </Link>
+
             <a
               href={CLOUD_URL}
               target="_blank"
@@ -492,6 +541,26 @@ export default function Navbar() {
             className="overflow-hidden border-t border-ink-900/[0.06] bg-white/95 backdrop-blur-xl lg:hidden"
           >
             <div className="container-x flex flex-col gap-1 py-4">
+              {/* 竞赛：移动端同样置顶强调（主站一级导航里没有它，只在这处与桌面胶囊出现） */}
+              <Link
+                to="/competition"
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-2.5 rounded-xl px-4 py-3 text-ui-lg font-medium ${
+                  onCompetition ? 'bg-[#f7f1e2] text-[#8a6a28]' : 'bg-brand-soft text-brand-text'
+                }`}
+              >
+                <Trophy className="h-4 w-4" />
+                竞赛
+                <span className="ml-auto flex items-center gap-1.5">
+                  <span className="relative flex h-1.5 w-1.5" aria-hidden>
+                    <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-70 motion-reduce:animate-none ${onCompetition ? 'bg-[#b89150]' : 'bg-brand'}`} />
+                    <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${onCompetition ? 'bg-[#b89150]' : 'bg-brand'}`} />
+                  </span>
+                  <span className={`rounded-full px-1.5 py-0.5 font-mono text-[8.5px] font-semibold leading-none tracking-[0.08em] text-white ${onCompetition ? 'bg-[#b89150]' : 'bg-brand'}`}>
+                    NEW
+                  </span>
+                </span>
+              </Link>
               <button
                 type="button"
                 onClick={() => {

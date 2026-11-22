@@ -220,7 +220,10 @@ function LeadDetail({ lead, canWrite, onSave }) {
   const [status, setStatus] = useState(lead.status || 'new')
   const [note, setNote] = useState(lead.note || '')
   useEffect(() => { setStatus(lead.status || 'new'); setNote(lead.note || '') }, [lead])
-  const dirty = status !== (lead.status || 'new') || note !== (lead.note || '')
+  /* 竞赛报名的队伍信息（成员 / 指导教师）就压在这条 note 里，
+     在通用线索里改它会把队伍拆散 —— 锁成只读，引导去「竞赛报名」处理。 */
+  const packed = String(lead.source || '').startsWith('competition')
+  const dirty = status !== (lead.status || 'new') || (!packed && note !== (lead.note || ''))
   const [saving, setSaving] = useState(false)
 
   const rows = [
@@ -252,8 +255,14 @@ function LeadDetail({ lead, canWrite, onSave }) {
           {STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
         </Select>
       </Field>
-      <Field label="备注" hint="记录沟通进展，仅后台可见">
-        <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={4} disabled={!canWrite} placeholder="尚未记录" />
+      <Field label="备注" hint={packed ? '竞赛报名数据，在「竞赛报名」中查看与处理' : '记录沟通进展，仅后台可见'}>
+        <Textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={4}
+          disabled={!canWrite || packed}
+          placeholder="尚未记录"
+        />
       </Field>
 
       {lead.updatedBy && <p className="text-[12px] text-ink-400">最近更新：{lead.updatedBy} · {fmtTime(lead.updatedAt)}</p>}

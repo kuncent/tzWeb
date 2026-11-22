@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
  * Tailwind 4：站点唯一样式入口
  * ------------------------------------------------------------
  * v3 的 tailwind.config.js 已删除，自定义 token 全部搬进下面的 @theme。
@@ -28,6 +28,7 @@
   --color-ink-900: #0b0f17;
   --color-ink-800: #161b24;
   --color-ink-700: #232a35;
+  --color-ink-600: #3b4350;
   --color-ink-500: #4e5866;
   --color-ink-400: #67707c;
   --color-ink-300: #9aa1ac;
@@ -976,4 +977,149 @@ html.lenis body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ―― 竞赛页配色：取自 2026 大赛参考稿（#050b18 海军蓝底 + #d9bd83 鎏金 + #62e5ff 青）。
+   在容器上重定义 ink / mist 语义色，页面内已有的 text-ink-* / bg-mist-* 工具类
+   自动落到这套暗色阶上，不必逐个改类名。 ―― */
+.comp-theme {
+  --color-ink-900: #eef5ff;
+  --color-ink-800: #e2edf9;
+  --color-ink-700: #cddbea;
+  --color-ink-600: #b3c6da;
+  --color-ink-500: #9eb1c9;
+  --color-ink-400: #7186a2;
+  --color-ink-300: #5b7089;
+  --color-ink-200: #40536a;
+  --color-mist-100: #081426;
+  --color-mist-200: #0b1b2f;
+  --color-brand: #3b9cff;
+  --color-brand-400: #62e5ff;
+  --color-brand-soft: rgba(59, 156, 255, 0.12);
+  --color-brand-text: #9ed4ff;
+  --color-accent-ice: #62e5ff;
+  --color-accent-sky: #a9dfff;
+  --comp-gold: #d9bd83;
+  --comp-gold-ghost: rgba(217, 189, 131, 0.25);
+  background-color: #050b18;
+  color: #eef5ff;
+  position: relative;
+  isolation: isolate;
+}
+.comp-theme ::selection { background: rgba(217, 189, 131, 0.28); }
+
+/* ―― 竞赛页 04 / 05：浅色区 ――
+   把 .comp-theme 重映射过的语义色还原成站内浅色方案，
+   组件里的 text-ink-* / bg-mist-* 不必改一行，放进来就是浅色版。 ―― */
+.comp-light {
+  --color-ink-900: #0b0f17;
+  --color-ink-800: #161b24;
+  --color-ink-700: #232a35;
+  --color-ink-600: #3b4350;
+  --color-ink-500: #4e5866;
+  --color-ink-400: #67707c;
+  --color-ink-300: #9aa1ac;
+  --color-ink-200: #c3c8d1;
+  --color-mist-100: #f1f4f8;
+  --color-mist-200: #e8edf4;
+  --color-brand: #1677ff;
+  --color-brand-400: #65bfff;
+  --color-brand-soft: #eef4ff;
+  --color-brand-text: #0b5bd3;
+  --color-accent-ice: #7dd3fc;
+  --color-accent-sky: #93b4ff;
+  --comp-gold: #9a7220;
+  --comp-gold-ghost: rgba(154, 114, 32, 0.22);
+  background-color: #f5f7fa;
+  color: #0b0f17;
+}
+/* ―― 竞赛页 03：整块鎏金场 ――
+   深海军蓝文字压在金场上，上下切一道斜边，把「连续暗底」打断一次。
+   这是整页唯一的高饱和色块，用来标记「奖励」这一章。 ―― */
+.comp-gold {
+  --color-ink-900: #0b0f17;
+  --color-ink-700: #232a35;
+  --color-ink-500: #4e5866;
+  --color-ink-400: #67707c;
+  --color-ink-300: #8b7a52;
+  --comp-gold: #6b4d12;
+  --comp-gold-ghost: rgba(11, 15, 23, 0.18);
+  background: linear-gradient(180deg, #f0dcb2 0%, #ddc089 46%, #cfb276 100%);
+  color: #14100a;
+  clip-path: polygon(0 3.2vw, 100% 0, 100% calc(100% - 3.2vw), 0 100%);
+}
+/* ―― 竞赛页背景：完全对齐参考稿 index.html 的三层结构 ――
+   1) 星点 canvas（fixed, z -3）  2) 氛围渐变（fixed, z -2）
+   3) 72px 网格（fixed, z -1, opacity .14, 上下淡出）
+   三者都是 fixed，滚动时背景不动，页面只在其上滑动。 ―― */
+.comp-stars {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+}
+.comp-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 18%, rgba(20, 91, 160, 0.24), transparent 42%),
+    radial-gradient(ellipse at 85% 55%, rgba(19, 75, 133, 0.12), transparent 35%),
+    linear-gradient(180deg, #050b18 0%, #071326 48%, #050b18 100%);
+}
+.comp-grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.14;
+  background-image:
+    linear-gradient(rgba(80, 148, 207, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(80, 148, 207, 0.15) 1px, transparent 1px);
+  background-size: 72px 72px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 70%, transparent);
+}
+/* ―― 首屏竞技场：刻度环 / 扫描弧 / 节点脉冲 / 中心换场 ―― */
+@keyframes arena-spin { to { transform: rotate(360deg); } }
+.arena-spin { animation: arena-spin 8s linear infinite; }
+.arena-spin-rev { animation: arena-spin 46s linear infinite reverse; }
+.arena-arc {
+  background: conic-gradient(
+    from 0deg,
+    rgba(217, 189, 131, 0) 0deg,
+    rgba(217, 189, 131, 0) 244deg,
+    rgba(217, 189, 131, 0.55) 330deg,
+    #f5e4bd 356deg,
+    rgba(217, 189, 131, 0) 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+}
+.arena-ticks {
+  background: repeating-conic-gradient(from 0deg, rgba(169, 223, 255, 0.55) 0 0.4deg, transparent 0.4deg 6deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px));
+}
+@keyframes arena-pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  75%, 100% { transform: scale(1.45); opacity: 0; }
+}
+.arena-pulse { animation: arena-pulse 2.6s ease-out infinite; }
+@keyframes arena-item {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+.arena-item { animation: arena-item 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+/* 赛程轨道上往返的一粒光 */
+@keyframes comp-track {
+  0% { left: 0%; opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+.comp-track { animation: comp-track 7s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .arena-spin, .arena-spin-rev, .arena-pulse, .arena-item, .comp-track { animation: none; }
 }

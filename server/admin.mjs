@@ -337,9 +337,10 @@ export async function handleAdmin(req, res, url, deps) {
     if (!hasPerm(user, 'leads.read')) return json(res, 403, { error: 'forbidden' })
     /* 遵循当前筛选：与列表同一套 queryLeads，避免「筛完导出」与实际不一致 */
     const rows = queryLeads((req.url || '').split('?')[1] || '')
-    const head = ['提交时间', '姓名', '手机号', '单位', '所在地区', '职位', '意向方向', '来源', '状态', '备注', 'IP']
+    const head = ['提交时间', '姓名', '手机号', '单位', '所在地区', '职位', '意向方向', '来源', '状态', '奖项', '备注', 'IP']
+    const AWARD_LABEL = { first: '一等奖', second: '二等奖', third: '三等奖', excellent: '优秀奖' }
     const body = rows
-      .map((r) => [r.ts, r.name, r.phone, r.org, r.region, r.role, r.product, r.source, r.status || 'new', r.note, r.ip].map(csvCell).join(','))
+      .map((r) => [r.ts, r.name, r.phone, r.org, r.region, r.role, r.product, r.source, r.status || 'new', AWARD_LABEL[r.award] || '', r.note, r.ip].map(csvCell).join(','))
       .join('\r\n')
     res.writeHead(200, {
       'content-type': 'text/csv; charset=utf-8',
@@ -357,6 +358,11 @@ export async function handleAdmin(req, res, url, deps) {
     const body = await readBody(req).catch(() => ({}))
     if (body.status) rows[idx].status = str(body.status, 20)
     if (body.note != null) rows[idx].note = str(body.note, 500)
+    /* 评奖：只接受约定码值，空串表示撤销评奖；非法值不入库 */
+    if (body.award != null) {
+      const award = str(body.award, 20)
+      if (['', 'first', 'second', 'third', 'excellent'].includes(award)) rows[idx].award = award
+    }
     rows[idx].updatedBy = user.email
     rows[idx].updatedAt = new Date().toISOString()
     writeJsonlAtomic(FILES.leads, rows)

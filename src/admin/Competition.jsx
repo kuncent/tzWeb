@@ -26,6 +26,16 @@ const STATUSES = [
 ]
 const statusMeta = (v) => STATUSES.find((s) => s.value === v) || STATUSES[0]
 
+/* 评奖：与官网奖励办法一致的四个奖项，空值表示尚未评奖 */
+const AWARDS = [
+  { value: '', label: '未评奖', tone: 'neutral' },
+  { value: 'first', label: '一等奖', tone: 'amber' },
+  { value: 'second', label: '二等奖', tone: 'brand' },
+  { value: 'third', label: '三等奖', tone: 'neutral' },
+  { value: 'excellent', label: '优秀奖', tone: 'green' },
+]
+const awardMeta = (v) => AWARDS.find((a) => a.value === v) || AWARDS[0]
+
 const fmtTime = (iso) => {
   if (!iso) return '—'
   const d = new Date(iso)
@@ -117,12 +127,12 @@ export default function Competition() {
 
   const setF = (k) => (e) => setFilters((f) => ({ ...f, [k]: e.target.value }))
 
-  const saveStatus = async (status) => {
+  const saveTeam = async (patch) => {
     try {
-      const r = await api.updateLead(active.id, { status })
+      const r = await api.updateLead(active.id, patch)
       setRows((list) => list.map((x) => (x.id === active.id ? { ...x, ...r.item } : x)))
       setActive((a) => ({ ...a, ...r.item }))
-      toast('状态已更新', 'success')
+      toast('已保存', 'success')
     } catch (e) {
       toast(e.message || '保存失败', 'error')
     }
@@ -200,7 +210,7 @@ export default function Competition() {
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] text-left text-[13px]">
+            <table className="w-full min-w-[1060px] text-left text-[13px]">
               <thead className="border-b border-ink-900/8 bg-mist-100/60 text-[12px] text-ink-500">
                 <tr>
                   <th className="px-4 py-2.5 font-medium">提交时间</th>
@@ -210,6 +220,7 @@ export default function Competition() {
                   <th className="px-4 py-2.5 font-medium">队员</th>
                   <th className="px-4 py-2.5 font-medium">指导教师</th>
                   <th className="px-4 py-2.5 font-medium">状态</th>
+                  <th className="px-4 py-2.5 font-medium">奖项</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-900/6">
@@ -250,6 +261,13 @@ export default function Competition() {
                         <div className="truncate text-ink-700">{t.advisors.join('、') || '—'}</div>
                       </td>
                       <td className="px-4 py-3"><Badge tone={sm.tone}>{sm.label}</Badge></td>
+                      <td className="px-4 py-3">
+                        {t.award ? (
+                          <Badge tone={awardMeta(t.award).tone}>{awardMeta(t.award).label}</Badge>
+                        ) : (
+                          <span className="text-ink-300">—</span>
+                        )}
+                      </td>
                     </tr>
                   )
                 })}
@@ -270,7 +288,7 @@ export default function Competition() {
           <TeamDetail
             team={active}
             canWrite={canWrite}
-            onStatus={saveStatus}
+            onSave={saveTeam}
           />
         )}
       </Modal>
@@ -278,12 +296,17 @@ export default function Competition() {
   )
 }
 
-function TeamDetail({ team, canWrite, onStatus }) {
+function TeamDetail({ team, canWrite, onSave }) {
   const [status, setStatus] = useState(team.status || 'new')
+  const [award, setAward] = useState(team.award || '')
   const [saving, setSaving] = useState(false)
-  useEffect(() => setStatus(team.status || 'new'), [team])
-  const dirty = status !== (team.status || 'new')
+  useEffect(() => {
+    setStatus(team.status || 'new')
+    setAward(team.award || '')
+  }, [team])
+  const dirty = status !== (team.status || 'new') || award !== (team.award || '')
   const sm = statusMeta(team.status)
+  const am = awardMeta(team.award)
 
   const rows = [
     ['队伍名称', team.team || '未命名队伍'],
@@ -353,13 +376,23 @@ function TeamDetail({ team, canWrite, onStatus }) {
         </div>
       )}
 
-      <Field label="跟进状态" hint={`当前：${sm.label}`}>
-        <Select value={status} onChange={(e) => setStatus(e.target.value)} disabled={!canWrite}>
-          {STATUSES.map((s) => (
-            <option key={s.value} value={s.value}>{s.label}</option>
-          ))}
-        </Select>
-      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="跟进状态" hint={`当前：${sm.label}`}>
+          <Select value={status} onChange={(e) => setStatus(e.target.value)} disabled={!canWrite}>
+            {STATUSES.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="评奖" hint={`当前：${am.label}`}>
+          <Select value={award} onChange={(e) => setAward(e.target.value)} disabled={!canWrite}>
+            {AWARDS.map((a) => (
+              <option key={a.value || 'none'} value={a.value}>{a.label}</option>
+            ))}
+          </Select>
+        </Field>
+      </div>
 
       {canWrite ? (
         <div className="flex justify-end gap-2 pt-1">
@@ -369,7 +402,7 @@ function TeamDetail({ team, canWrite, onStatus }) {
             disabled={!dirty}
             onClick={async () => {
               setSaving(true)
-              await onStatus(status)
+              await onSave({ status, award })
               setSaving(false)
             }}
           >
@@ -377,7 +410,7 @@ function TeamDetail({ team, canWrite, onStatus }) {
           </Btn>
         </div>
       ) : (
-        <Banner kind="success">当前角色为只读，无法修改报名状态。</Banner>
+        <Banner kind="success">当前角色为只读，无法修改报名状态与评奖。</Banner>
       )}
     </div>
   )

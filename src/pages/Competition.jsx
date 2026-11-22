@@ -6,6 +6,7 @@
   GraduationCap,
   Layers,
   LineChart,
+  Landmark,
   Phone,
   ReceiptText,
   TrendingUp,
@@ -65,7 +66,7 @@ const STAGES = [
   },
   {
     n: '03',
-    icon: ReceiptText,
+    icon: Landmark,
     title: '税务',
     desc: '纳税申报、税务筹划与合规风控，把握政策边界与风险底线。',
     items: ['纳税申报', '税务筹划', '合规风控'],
@@ -131,6 +132,7 @@ const FINAL_AWARDS = [
 
 const NOTICES = [
   '每支参赛团队由 4 名学生组成，每位选手限参加一个团队。',
+  '每所学校最多只能报名 4 支队伍。',
   '鼓励跨专业、跨系、跨学院组队，但不可跨校组队。',
   '每队可配 1–2 名指导教师，指导教师可同时指导多个团队。',
   '报名须提交完整、真实的团队及成员资料。',

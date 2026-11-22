@@ -88,7 +88,7 @@ export default function Competition() {
       rows.map((r) => {
         const p = parseNote(r.note)
         const members = p.members.length ? p.members : [r.name].filter(Boolean)
-        return { ...r, team: p.team, members, advisors: p.advisors, email: p.email, extra: p.extra }
+        return { ...r, team: p.team, members, advisors: p.advisors, email: p.email, extra: p.extra, phones: Array.isArray(r.phones) ? r.phones : [] }
       }),
     [rows],
   )
@@ -312,6 +312,9 @@ function TeamDetail({ team, canWrite, onStatus }) {
             >
               <span className="font-mono text-[10px] text-ink-400">{String(i + 1).padStart(2, '0')}</span>
               {m}
+              {team.phones?.[i] && (
+                <span className="font-mono text-[11px] tabular-nums text-ink-400">{team.phones[i]}</span>
+              )}
               {i === 0 && <span className="rounded bg-brand/10 px-1.5 py-0.5 text-[10px] text-brand">队长</span>}
             </span>
           ))}

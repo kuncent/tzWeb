@@ -30,6 +30,9 @@ const EMPTY = {
   team: '',
   captain: '',
   phone: '',
+  phone2: '',
+  phone3: '',
+  phone4: '',
   email: '',
   m2: '',
   m3: '',
@@ -83,8 +86,35 @@ export default function CompetitionSignup() {
     const err = {}
     if (!form.school.trim()) err.school = '请填写学校全称'
     if (!form.captain.trim()) err.captain = '请填写队长姓名'
-    if (!/^1\d{10}$/.test(form.phone.trim())) err.phone = '请输入正确的 11 位手机号'
-    if (!form.m2.trim() || !form.m3.trim() || !form.m4.trim()) err.members = '请填齐 4 名参赛成员（含队长）'
+    // 4 名成员（含队长）每人都要填手机号，且队内不能重复
+    const phones = [
+      ['phone', form.phone],
+      ['phone2', form.phone2],
+      ['phone3', form.phone3],
+      ['phone4', form.phone4],
+    ]
+    for (const [k, v] of phones) {
+      if (!/^1\d{10}$/.test((v || '').trim())) err[k] = '请输入正确的 11 位手机号'
+    }
+    const names = [form.captain, form.m2, form.m3, form.m4]
+    if (names.some((n) => !(n || '').trim())) err.members = '请填齐 4 名参赛成员（含队长）'
+    // 队内去重：手机号 / 姓名都不能重复
+    const seenP = new Map()
+    for (const [k, v] of phones) {
+      const p = (v || '').trim()
+      if (!p) continue
+      if (seenP.has(p)) {
+        err[k] = '该手机号与队内其他成员重复'
+        err[seenP.get(p)] = '该手机号与队内其他成员重复'
+      } else seenP.set(p, k)
+    }
+    const seenN = new Map()
+    for (const [k, v] of [['captain', form.captain], ['m2', form.m2], ['m3', form.m3], ['m4', form.m4]]) {
+      const n = (v || '').trim()
+      if (!n) continue
+      if (seenN.has(n)) err.members = '队内成员姓名重复，请核对'
+      else seenN.set(n, k)
+    }
     setErrors(err)
     if (Object.keys(err).length) return
 
@@ -106,6 +136,9 @@ export default function CompetitionSignup() {
         body: JSON.stringify({
           name: form.captain.trim(),
           phone: form.phone.trim(),
+          phone2: form.phone2.trim(),
+          phone3: form.phone3.trim(),
+          phone4: form.phone4.trim(),
           org: form.school.trim(),
           region: form.region.trim(),
           role: '队长',
@@ -118,7 +151,7 @@ export default function CompetitionSignup() {
       if (res.status === 422) {
         const j = await res.json().catch(() => null)
         if (j?.fields) {
-          setErrors({ ...j.fields, school: j.fields.org, captain: j.fields.name })
+          setErrors({ ...j.fields, school: j.fields.school || j.fields.org, captain: j.fields.name })
           return
         }
       }
@@ -246,25 +279,41 @@ export default function CompetitionSignup() {
         </div>
       </Fieldset>
 
-      <Fieldset num="03" title="团队成员" hint="含队长共 4 名">
-        <div className="grid gap-4 sm:grid-cols-3">
+      <Fieldset num="03" title="团队成员" hint="含队长共 4 名 · 每人都需填写手机号">
+        <div className="grid gap-5 sm:grid-cols-2">
           {[
-            ['m2', '成员 02'],
-            ['m3', '成员 03'],
-            ['m4', '成员 04'],
-          ].map(([k, label]) => (
-            <label key={k} className="block">
-              <span className="mb-1.5 block text-[12px] text-ink-500">
-                {label} <span className="text-[#9a7220]">*</span>
-              </span>
-              <input
-                value={form[k]}
-                onChange={set(k)}
-                placeholder="姓名"
-                className={inputCls}
-                aria-invalid={!!errors.members}
-              />
-            </label>
+            ['m2', 'phone2', '成员 02'],
+            ['m3', 'phone3', '成员 03'],
+            ['m4', 'phone4', '成员 04'],
+          ].map(([nk, pk, label]) => (
+            <div key={nk} className="contents">
+              <label className="block">
+                <span className={labelCls}>
+                  {label} 姓名 <span className="text-[#9a7220]">*</span>
+                </span>
+                <input
+                  value={form[nk]}
+                  onChange={set(nk)}
+                  placeholder="姓名"
+                  className={inputCls}
+                  aria-invalid={!!errors.members}
+                />
+              </label>
+              <label className="block">
+                <span className={labelCls}>
+                  {label} 手机号 <span className="text-[#9a7220]">*</span>
+                </span>
+                <input
+                  value={form[pk]}
+                  onChange={set(pk)}
+                  inputMode="tel"
+                  placeholder="11 位手机号"
+                  className={inputCls}
+                  aria-invalid={!!errors[pk]}
+                />
+                {errors[pk] && <span className="mt-1.5 block text-[12px] text-red-500">{errors[pk]}</span>}
+              </label>
+            </div>
           ))}
         </div>
         {errors.members && <span className="mt-2 block text-[12px] text-red-500">{errors.members}</span>}

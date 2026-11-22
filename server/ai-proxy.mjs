@@ -519,6 +519,66 @@ export async function aiProxy(req, res, next) {
       if (!org) err.org = '请填写学校 / 单位名称'
       if (!product) err.product = '请选择意向方向'
       if (Object.keys(err).length) return json(res, 422, { error: 'invalid', fields: err })
+
+      /* 竞赛报名额外规则（source 以 competition 开头）：
+         · 4 名成员各填 11 位手机号，队内手机号 / 姓名去重（前端先挡，服务端兜底）；
+         · 每位选手限报一支队伍：任一手机号已在已报名队伍出现即拦截；
+         · 每所学校最多报名 4 支队伍：按 org 精确匹配计数。 */
+      const isComp = String(body.source || '').startsWith('competition')
+      let compPhones = null
+      if (isComp) {
+        const phone2 = str(body.phone2, 20)
+        const phone3 = str(body.phone3, 20)
+        const phone4 = str(body.phone4, 20)
+        const phones = [phone, phone2, phone3, phone4]
+        const keyAt = (i) => (i === 0 ? 'phone' : `phone${i + 1}`)
+        const compErr = {}
+        for (let i = 0; i < phones.length; i++) {
+          if (!/^1\d{10}$/.test(phones[i])) compErr[keyAt(i)] = '请输入正确的 11 位手机号'
+        }
+        const seen = new Map()
+        for (let i = 0; i < phones.length; i++) {
+          const p = phones[i]
+          if (!p) continue
+          if (seen.has(p)) {
+            compErr[keyAt(i)] = '该手机号与队内其他成员重复'
+            compErr[keyAt(seen.get(p))] = '该手机号与队内其他成员重复'
+          } else {
+            seen.set(p, i)
+          }
+        }
+        if (!Object.keys(compErr).length) {
+          let existing = []
+          try {
+            existing = readJsonl(FILES.leads)
+          } catch {
+            existing = []
+          }
+          existing = existing.filter((r) => String(r.source || '').startsWith('competition'))
+          // 每位选手限报一支队伍：收集所有已报名队伍的手机号
+          const usedPhones = new Set()
+          for (const r of existing) {
+            const list = Array.isArray(r.phones) && r.phones.length ? r.phones : [r.phone]
+            for (const p of list) if (p) usedPhones.add(String(p).trim())
+          }
+          for (let i = 0; i < phones.length; i++) {
+            if (phones[i] && usedPhones.has(phones[i])) {
+              compErr[keyAt(i)] = '该手机号已报名其他队伍，每位选手限报一支队伍'
+            }
+          }
+          // 每校最多 4 支队伍
+          const orgNorm = org.trim()
+          if (orgNorm) {
+            const schoolCount = existing.filter((r) => (r.org || '').trim() === orgNorm).length
+            if (schoolCount >= 4) {
+              compErr.school = `该校已报名 ${schoolCount} 支队伍，每所学校最多 4 支`
+            }
+          }
+        }
+        if (Object.keys(compErr).length) return json(res, 422, { error: 'invalid', fields: compErr })
+        compPhones = phones
+      }
+
       const record = {
         ts: new Date().toISOString(),
         ip,
@@ -526,6 +586,7 @@ export async function aiProxy(req, res, next) {
         source: str(body.source, 40) || 'site-contact',
         name, phone, org, region, role, product, note,
       }
+      if (compPhones) record.phones = compPhones
       try {
         sinkLead(record)
       } catch (e) {

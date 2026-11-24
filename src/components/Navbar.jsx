@@ -70,7 +70,7 @@ export default function Navbar() {
   const suppressFocusOpen = useRef(false) // Esc 把焦点还给触发项时，别让 onFocus 又把面板弹开
   const [flyLeft, setFlyLeft] = useState(0) // 面板相对触发项的 left（px）
   const onHome = location.pathname === '/'
-  const onCompetition = location.pathname === '/competition'
+  const onCompetition = location.pathname.startsWith('/competition')
   const navRef = useRef(null)
   /* 选中项背景胶囊位置（measurePill 量出）；null = 不显 */
   const [pillBox, setPillBox] = useState(null)

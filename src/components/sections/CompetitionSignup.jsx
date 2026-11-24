@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from 'react'
 import { AlertCircle, Check, Clock, Loader2, Send } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 /* ============================================================
  * 大赛报名表
@@ -66,11 +67,13 @@ function Fieldset({ num, title, hint, children }) {
 }
 
 export default function CompetitionSignup() {
+  const navigate = useNavigate()
   const [form, setForm] = useState(EMPTY)
   const [errors, setErrors] = useState({})
   const [busy, setBusy] = useState(false)
   const [fail, setFail] = useState('')
   const [done, setDone] = useState(false)
+  const [backIn, setBackIn] = useState(5)
   const [hp, setHp] = useState('')
   const [openLeft, setOpenLeft] = useState(() => Math.max(0, OPEN_AT - Date.now()))
   const opened = openLeft <= 0
@@ -82,6 +85,24 @@ export default function CompetitionSignup() {
     }, 1000)
     return () => window.clearInterval(id)
   }, [opened])
+
+  /* 报名成功后停留 5 秒展示结果，再自动回到竞赛页 */
+  useEffect(() => {
+    if (!done) return
+    setBackIn(5)
+    const startedAt = Date.now()
+    const id = window.setInterval(() => {
+      const left = 5 - Math.floor((Date.now() - startedAt) / 1000)
+      if (left <= 0) {
+        window.clearInterval(id)
+        setBackIn(0)
+        navigate('/competition')
+        return
+      }
+      setBackIn(left)
+    }, 250)
+    return () => window.clearInterval(id)
+  }, [done, navigate])
 
   const set = (k) => (e) => {
     setForm((f) => ({ ...f, [k]: e.target.value }))
@@ -205,19 +226,20 @@ export default function CompetitionSignup() {
         <span className="mx-auto grid h-[72px] w-[72px] place-items-center rounded-full bg-[linear-gradient(135deg,#4ade80,#16a34a)] text-white shadow-[0_16px_34px_-14px_rgba(22,163,74,0.8)]">
           <Check className="h-9 w-9" strokeWidth={2.4} />
         </span>
-        <h3 className="mt-6 text-[21px] font-extrabold tracking-tight text-[#0b2038]">报名信息已提交</h3>
+        <h3 className="mt-6 text-[21px] font-extrabold tracking-tight text-[#0b2038]">报名成功</h3>
         <p className="mx-auto mt-2.5 max-w-md text-[13.5px] leading-[1.9] text-[#5b6b82]">
           组委会将按您预留的手机号对接后续事宜。报名截止前如需修改队伍信息，可直接联系组委会老师。
         </p>
+        <p className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full bg-[#f3f8ff] px-4 py-1.5 text-[12.5px] text-[#5b6b82]">
+          <Clock className="h-3.5 w-3.5 text-[#b0812f]" strokeWidth={2} />
+          {backIn > 0 ? `${backIn} 秒后自动返回竞赛页面` : '正在返回竞赛页面…'}
+        </p>
         <button
           type="button"
-          onClick={() => {
-            setForm(EMPTY)
-            setDone(false)
-          }}
-          className="mx-auto mt-7 inline-flex items-center gap-2 rounded-full bg-[#0b2038] px-6 py-3 text-[13.5px] font-semibold text-white transition-colors hover:bg-[#123156]"
+          onClick={() => navigate('/competition')}
+          className="mx-auto mt-6 flex items-center gap-2 rounded-full bg-[#0b2038] px-6 py-3 text-[13.5px] font-semibold text-white transition-colors hover:bg-[#123156]"
         >
-          再提交一支队伍
+          立即返回竞赛页面
           <span aria-hidden>→</span>
         </button>
       </div>

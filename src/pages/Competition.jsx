@@ -7,7 +7,6 @@
   Layers,
   LineChart,
   Landmark,
-  Phone,
   ReceiptText,
   TrendingUp,
   Trophy,
@@ -15,7 +14,6 @@
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Reveal } from '../components/ui'
-import CompetitionSignup from '../components/sections/CompetitionSignup'
 import CompetitionCountdown from '../components/sections/CompetitionCountdown'
 
 /* ============================================================
@@ -130,21 +128,6 @@ const FINAL_AWARDS = [
   { m: '二', tone: 'from-[#eef2f7] to-[#c3ccd9] text-[#3b4a5e]', name: '二等奖', pct: '后 60%' },
 ]
 
-const NOTICES = [
-  '每支参赛团队由 4 名学生组成，每位选手限参加一个团队。',
-  '每所学校最多只能报名 4 支队伍。',
-  '鼓励跨专业、跨系、跨学院组队，但不可跨校组队。',
-  '每队可配 1–2 名指导教师，指导教师可同时指导多个团队。',
-  '报名须提交完整、真实的团队及成员资料。',
-  '区域赛、总决赛前一周原则上不得更换参赛选手和指导教师；确需更换的，须提前提交盖有单位公章的书面说明，经组委会核实后决定是否批准。',
-  '所有参赛团队须遵守诚信原则，一经发现弄虚作假，立即取消获奖资格并予以通报。',
-]
-
-const CONTACTS = [
-  { name: '张老师', tel: '13751059857' },
-  { name: '陈老师', tel: '13533759386' },
-]
-
 const STATS = [
   { v: '4', unit: '大', k: '竞赛环节' },
   { v: '4', unit: '人', k: '团队组队' },
@@ -230,7 +213,7 @@ function Hero() {
           <Reveal delay={0.32}>
             <div className="mt-9 flex flex-wrap justify-center gap-3.5">
               <Link
-                to="/competition#signup"
+                to="/competition/signup"
                 className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[linear-gradient(135deg,#f9e2b4,#e8b863_60%,#cf9c37)] px-9 py-4 text-[15px] font-bold text-[#241704] shadow-[0_18px_40px_-14px_rgba(232,184,99,0.95)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_26px_50px_-16px_rgba(232,184,99,1)]"
               >
                 立即报名
@@ -528,64 +511,38 @@ export default function Competition() {
         </div>
       </section>
 
-      {/* ―― 05 团队报名 ―― */}
+      {/* ―― 05 报名引导：报名表已独立成页 /competition/signup ―― */}
       <section id="signup" className="scroll-mt-[96px] bg-[linear-gradient(180deg,#eef4fb,#f7fafe_60%,#fff)] py-20 md:py-28">
         <div className="mx-auto w-full max-w-[1180px] px-6">
-          <SectionHead
-            en="Registration"
-            title="团队报名"
-            desc="报名时间：2026 年 11 月 23 日 — 12 月 05 日，请以团队为单位填写以下信息。"
-          />
-
-          <div className="mt-14 grid gap-7 lg:grid-cols-[330px_1fr]">
-            {/* 须知侧栏：lg 起吸附在表单左侧，随表单滚动保持可见 */}
-            <Reveal className="lg:h-full">
-              <aside className="relative overflow-hidden rounded-[18px] bg-[linear-gradient(160deg,#0b2038,#123156)] px-7 py-7 text-white shadow-[0_30px_60px_-30px_rgba(11,32,56,0.65)] lg:sticky lg:top-[96px]">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -right-24 -top-24 h-[240px] w-[240px] rounded-full bg-[radial-gradient(circle,rgba(232,184,99,0.3),transparent_70%)]"
-                />
-                <h3 className="relative flex items-center gap-2.5 text-[17px] font-extrabold">
-                  <span aria-hidden className="h-[17px] w-1 rounded-full bg-[linear-gradient(180deg,#f9e2b4,#e8b863)]" />
-                  报名须知
-                </h3>
-                <ul className="relative mt-5 flex flex-col gap-4">
-                  {NOTICES.map((t, i) => (
-                    <li key={i} className="flex gap-3 text-[13px] leading-[1.8] text-white/75">
-                      <span className="mt-[2px] grid h-5 w-5 shrink-0 place-items-center rounded-[6px] bg-[#e8b863]/[0.16] text-[10.5px] font-extrabold text-[#f7d9a0]">
-                        {i + 1}
-                      </span>
-                      <span>{t}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="relative mt-6 border-t border-white/[0.11] pt-5">
-                  <p className="text-[10.5px] uppercase tracking-[0.18em] text-white/40">报名咨询</p>
-                  <div className="mt-3 flex flex-col">
-                    {CONTACTS.map((c) => (
-                      <a
-                        key={c.tel}
-                        href={`tel:${c.tel}`}
-                        className="group flex items-center gap-2.5 py-2 text-[13.5px] font-semibold text-white transition-colors hover:text-[#f7d9a0]"
-                      >
-                        <Phone className="h-3.5 w-3.5 text-[#e8b863]" strokeWidth={2} />
-                        {c.name}
-                        <span className="tabular-nums">{c.tel}</span>
-                        <span className="ml-auto text-[11px] font-normal text-white/35 transition-transform group-hover:translate-x-0.5">
-                          点击拨打
-                        </span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </aside>
-            </Reveal>
-
-            <Reveal delay={0.08}>
-              <CompetitionSignup />
-            </Reveal>
-          </div>
+          <Reveal>
+            <div className="relative overflow-hidden rounded-[20px] bg-[linear-gradient(150deg,#0b2038,#123156_60%,#0a1c31)] px-7 py-11 text-center text-white shadow-[0_30px_60px_-30px_rgba(11,32,56,0.7)] md:px-12 md:py-14">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -right-24 -top-24 h-[300px] w-[300px] rounded-full bg-[radial-gradient(circle,rgba(232,184,99,0.28),transparent_70%)]"
+              />
+              <span className="relative inline-flex items-center gap-2.5 text-[11.5px] font-bold uppercase tracking-[0.22em] text-[#e8b863]">
+                <span className="h-px w-6 bg-[linear-gradient(90deg,transparent,#e8b863)]" aria-hidden />
+                Registration
+                <span className="h-px w-6 bg-[linear-gradient(90deg,#e8b863,transparent)]" aria-hidden />
+              </span>
+              <h2 className="relative mt-4 text-[24px] font-extrabold leading-[1.3] tracking-[-0.015em] md:text-[32px]">
+                2026 大赛<em className="not-italic text-[#f0cf92]">报名进行中</em>
+              </h2>
+              <p className="relative mx-auto mt-3 max-w-[620px] text-[13.5px] leading-[1.9] text-white/60">
+                报名时间 2026.11.23 — 12.05 · 每校最多 4 支队伍 · 每位选手限报一支队伍
+              </p>
+              <Link
+                to="/competition/signup"
+                className="group relative mt-8 inline-flex items-center justify-center gap-2.5 rounded-full bg-[linear-gradient(135deg,#f9e2b4,#e8b863_60%,#cf9c37)] px-9 py-4 text-[15px] font-bold text-[#241704] shadow-[0_18px_40px_-14px_rgba(232,184,99,0.95)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_26px_50px_-16px_rgba(232,184,99,1)]"
+              >
+                立即报名
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+              <p className="relative mt-7 text-[12.5px] text-white/45">
+                报名咨询：张老师 13751059857 · 陈老师 13533759386
+              </p>
+            </div>
+          </Reveal>
 
           <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2 text-[12px] text-[#8a97a8]">
             <GraduationCap className="h-4 w-4 text-[#b0812f]" strokeWidth={1.9} />

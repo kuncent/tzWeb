@@ -256,7 +256,7 @@ export default function CompetitionSignup() {
         <span className="text-[12px] text-[#9aa8bb]">同一队伍提交一次即可</span>
       </div>
       <p className="mt-1.5 text-[12.5px] text-[#9aa8bb]">
-        报名时间 2026.11.23 – 12.05 · 带 <span className="text-[#e2554f]">*</span> 为必填
+        报名时间 2026.11.23 – 12.10 · 带 <span className="text-[#e2554f]">*</span> 为必填
       </p>
 
       <Fieldset num="01" title="院校与团队信息" hint="带 * 为必填">

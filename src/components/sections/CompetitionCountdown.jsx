@@ -3,12 +3,12 @@
 /* ============================================================
  * 赛事看板：报名截止倒计时
  * ------------------------------------------------------------
- * 倒计时按通知口径算到 12-05 结束（即 12-06 00:00，UTC+8）。
+ * 倒计时按通知口径算到 12-10 结束（即 12-11 00:00，UTC+8）。
  * 秒级 tick 只影响本组件自身 —— 状态关在这里，
  * 不会带动整个竞赛页每秒重渲染。
  * ============================================================ */
 
-const DEADLINE = new Date('2026-12-06T00:00:00+08:00').getTime()
+const DEADLINE = new Date('2026-12-11T00:00:00+08:00').getTime()
 
 function remain(now) {
   const ms = DEADLINE - now
@@ -51,7 +51,7 @@ export default function CompetitionCountdown() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#d9bd83] opacity-70 motion-reduce:animate-none" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#d9bd83]" />
           </span>
-          距报名截止 · 12 月 05 日
+          距报名截止 · 12 月 10 日
         </p>
 
         {left ? (

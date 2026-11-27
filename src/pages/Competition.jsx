@@ -81,20 +81,20 @@ const STAGES = [
 const PHASES = [
   {
     n: '01',
-    date: '2026.11.23 — 12.05',
+    date: '2026.11.23 — 12.10',
     title: '报名阶段',
     desc: '以团队为单位登录大赛官网报名。组委会为参赛团队免费提供有限次数的训练账号和训练模板，供赛前练习使用。',
   },
   {
     n: '02',
-    date: '2026.12.15',
-    title: '区域赛',
-    desc: '线上举行，时长 1 天。以区域赛实际参赛总团队数为基数，按得分排序评奖；一等奖团队原则上直接晋级总决赛，每所院校最多推荐 2 支队伍参加总决赛。',
+    date: '2026.12.12',
+    title: '初赛',
+    desc: '线上举行，时长 1 天。以初赛实际参赛总团队数为基数，按得分排序评奖；一等奖团队原则上直接晋级决赛，每所院校最多推荐 2 支队伍参加决赛。',
   },
   {
     n: '03',
-    date: '2026.12.16',
-    title: '总决赛',
+    date: '2026.12.19',
+    title: '决赛',
     desc: '时长 1 天，线上决赛，具体地点另行通知。晋级团队同台竞技，角逐最终奖项。',
   },
 ]
@@ -109,7 +109,6 @@ const ORGS = [
       '金融虚拟仿真国家级实验教学中心（广东金融学院）',
       '山东大学',
       '深圳信息职业技术大学',
-      '广州大学',
       '长春财经学院',
     ],
   },
@@ -132,7 +131,7 @@ const STATS = [
   { v: '4', unit: '大', k: '竞赛环节' },
   { v: '4', unit: '人', k: '团队组队' },
   { v: '3', unit: '个', k: '比赛回合' },
-  { v: '60', unit: '%', k: '区域赛获奖覆盖面' },
+  { v: '60', unit: '%', k: '初赛获奖覆盖面' },
 ]
 
 /* ―― 居中章节头：两侧金线 + 金色强调词 ―― */
@@ -176,7 +175,7 @@ function Hero() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#4ade80] opacity-70 motion-reduce:animate-none" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#4ade80]" />
               </span>
-              报名开放 · 11.23 00:00 — 12.05
+              报名开放 · 11.23 00:00 — 12.10
             </span>
           </Reveal>
 
@@ -434,16 +433,16 @@ export default function Competition() {
           <SectionHead
             en="Awards"
             title="奖励办法"
-            desc="区域赛按得分排序设奖；另设优秀组织单位奖、优秀指导教师奖若干名。"
+            desc="初赛按得分排序设奖；另设优秀组织单位奖、优秀指导教师奖若干名。"
           />
 
           <div className="mt-14 grid gap-5 md:grid-cols-2">
-            {/* 区域赛 */}
+            {/* 初赛 */}
             <Reveal>
               <div className="h-full rounded-[18px] border border-[#e3eaf3] bg-white px-7 py-7 transition-all duration-300 hover:-translate-y-1 hover:border-transparent hover:shadow-[0_26px_54px_-30px_rgba(11,32,56,0.3)]">
                 <h3 className="flex items-center gap-2.5 text-[18px] font-extrabold text-[#0b2038]">
                   <Trophy className="h-5 w-5 text-[#b0812f]" strokeWidth={1.9} />
-                  区域赛
+                  初赛
                 </h3>
                 <p className="mt-1.5 text-[12.5px] tracking-wide text-[#5b6b82]">
                   按得分排序 · 以实际参赛总团队数为基数
@@ -466,7 +465,7 @@ export default function Competition() {
               </div>
             </Reveal>
 
-            {/* 总决赛 */}
+            {/* 决赛 */}
             <Reveal delay={0.06}>
               <div className="relative h-full overflow-hidden rounded-[18px] bg-[linear-gradient(150deg,#0b2038,#123156_60%,#0a1c31)] px-7 py-7 text-white shadow-[0_30px_60px_-30px_rgba(11,32,56,0.7)]">
                 <div
@@ -475,7 +474,7 @@ export default function Competition() {
                 />
                 <h3 className="relative flex items-center gap-2.5 text-[18px] font-extrabold">
                   <Trophy className="h-5 w-5 text-[#e8b863]" strokeWidth={1.9} />
-                  总决赛
+                  决赛
                 </h3>
                 <p className="relative mt-1.5 text-[12.5px] tracking-wide text-white/50">晋级团队同台竞技 · 线上决赛</p>
 
@@ -496,7 +495,7 @@ export default function Competition() {
 
                 <div className="relative mt-7 flex items-center gap-2.5 border-t border-white/10 pt-5 text-[12.5px] text-white/45">
                   <CalendarDays className="h-4 w-4 text-[#e8b863]" strokeWidth={1.9} />
-                  2026.12.16 · 1 天 · 线上
+                  2026.12.19 · 1 天 · 线上
                 </div>
               </div>
             </Reveal>
@@ -529,7 +528,7 @@ export default function Competition() {
                 2026 大赛<em className="not-italic text-[#f0cf92]">报名进行中</em>
               </h2>
               <p className="relative mx-auto mt-3 max-w-[620px] text-[13.5px] leading-[1.9] text-white/60">
-                报名时间 2026.11.23 — 12.05 · 每校最多 4 支队伍 · 每位选手限报一支队伍
+                报名时间 2026.11.23 — 12.10 · 每校最多 4 支队伍 · 每位选手限报一支队伍
               </p>
               <Link
                 to="/competition/signup"

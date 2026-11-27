@@ -144,7 +144,7 @@ export default function Competition() {
         <div>
           <h1 className="text-[20px] font-bold tracking-tight text-ink-900">竞赛报名</h1>
           <p className="mt-1 text-[13px] text-ink-500">
-            2026 全国数智财经综合应用大赛 · 报名期 2026.11.23 — 12.05
+            2026 全国数智财经综合应用大赛 · 报名期 2026.11.23 — 12.10
           </p>
         </div>
         <div className="flex items-center gap-2">
